@@ -1,4 +1,4 @@
-from nnetflow import Tensor
+from cyflow import Tensor
 import sys
 import unittest
 from pathlib import Path
@@ -23,7 +23,7 @@ class TensorTests(unittest.TestCase):
         self.assertIn("numel=4", representation)
 
     def test_tensor_can_be_imported_from_package_root(self) -> None:
-        from nnetflow import Tensor as PackageTensor
+        from cyflow import Tensor as PackageTensor
 
         self.assertIs(PackageTensor, Tensor)
 

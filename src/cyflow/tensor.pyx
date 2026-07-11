@@ -110,4 +110,4 @@ cdef class Tensor:
         return self._c_tensor.numel
 
     def __repr__(self):
-        return f"<nnetflow.Tensor shape={self.shape} strides={self.strides} numel={self.numel}>"
+        return f"<cyflow.Tensor shape={self.shape} strides={self.strides} numel={self.numel}>"

@@ -2,7 +2,7 @@ from .tensor import Tensor
 
 
 def hello() -> str:
-    return "Hello from nnetflow!"
+    return "Hello from cyflow!"
 
 
 __all__ = ["Tensor", "hello"]
