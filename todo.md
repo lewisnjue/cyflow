@@ -1,4 +1,4 @@
 - add common linear argebra operations [in process]
-- add auto grad
+- add auto grad [ in process]
 - add support for diffrent data types
 - add support for gpus
