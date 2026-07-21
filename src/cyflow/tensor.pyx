@@ -1,5 +1,5 @@
 # cython: language_level=3
-from typing import Tuple, Set, Optional
+from typing import Tuple, Set, Optional,Union
 from libc.stdint cimport int64_t
 from libc.stdlib cimport malloc, free
 import numpy as np
@@ -66,6 +66,9 @@ cdef class Tensor:
         else:
             # Support direct NumPy-backed tensor creation by accepting an ndarray.
             if hasattr(shape, "__array_interface__") or hasattr(shape, "__array_priority__"):
+                # Ensure float32
+                if not np.issubdtype(shape.dtype, np.floating) or shape.dtype != np.float32:
+                    shape = np.asarray(shape, dtype=np.float32)
                 self._init_from_numpy(shape)
             else:
                 ndim = len(shape)
@@ -85,18 +88,18 @@ cdef class Tensor:
         # Autograd Graph Attributes
         self._prev = set(c for c in _children if isinstance(c, Tensor))
         self._op = _op
-        
+
         if requires_grad is None:
             self.requires_grad = any(c.requires_grad for c in self._prev)
         else:
             self.requires_grad = bool(requires_grad)
-            
-        self.grad = None 
+
+        self.grad = None
         if self.requires_grad and self._c_tensor != NULL:
             self.grad = np.zeros(self.shape, dtype=np.float32)
 
         self._backward = lambda: None # Placeholder for backward function
-        
+
     def zero_grad(self):
         """ Reset the gradient of the tensor to zero. """
         if self.requires_grad:
@@ -170,7 +173,7 @@ cdef class Tensor:
             raise RuntimeError("Cannot get buffer from uninitialized Tensor")
 
         cdef int itemsize = sizeof(float)
-        
+
         # Position pointer with respect to storage_offset
         buffer.buf = <char *>(self._c_tensor.storage.data) + self._c_tensor.storage_offset * itemsize
         buffer.format = b'f'
@@ -183,7 +186,7 @@ cdef class Tensor:
 
         buffer.shape = <Py_ssize_t *> malloc(self.ndim * sizeof(Py_ssize_t))
         buffer.strides = <Py_ssize_t *> malloc(self.ndim * sizeof(Py_ssize_t))
-        
+
         if not buffer.shape or not buffer.strides:
             if buffer.shape: free(buffer.shape)
             if buffer.strides: free(buffer.strides)
@@ -192,9 +195,9 @@ cdef class Tensor:
         for i in range(self.ndim):
             buffer.shape[i] = self._c_tensor.shape[i]
             buffer.strides[i] = self._c_tensor.strides[i] * itemsize
-            
+
         buffer.suboffsets = NULL
-        
+
     def __releasebuffer__(self, Py_buffer *buffer):
         """Releases the memory allocated for the Buffer Protocol."""
         if buffer.shape != NULL:
@@ -269,11 +272,11 @@ cdef class Tensor:
 
     # --- Math Operations & Autograd Engine ---
 
-    @classmethod 
+    @classmethod
     def can_matmul(cls, shape_a: Tuple[int, ...], shape_b: Tuple[int, ...]):
         """Check if two shapes can be matrix multiplied together."""
         if not shape_a or not shape_b:
-            return False 
+            return False
         inner_b = shape_b[-2] if len(shape_b) > 1 else shape_b[-1]
         if shape_a[-1] != inner_b:
             return False
@@ -319,12 +322,13 @@ cdef class Tensor:
     def __add__(self, other):
         if not isinstance(other, Tensor):
             return NotImplemented
-        cdef Tensor other_tensor = <Tensor>other
-        cdef TensorImpl* result_impl = tensor_add(self._c_tensor, other_tensor._c_tensor)
+        cdef TensorImpl* result_impl = NULL
+        other_tensor: Tensor = other
+        result_impl = tensor_add(self._c_tensor, (<Tensor>other_tensor)._c_tensor)
         if result_impl == NULL:
             raise ValueError("Addition failed. Check if shapes are compatible.")
-        
-        cdef Tensor result = Tensor(shape=None, _children=(self, other), _op='+')
+
+        result = Tensor(shape=None, _children=(self, other), _op='+')
         result._c_tensor = result_impl
         if result.requires_grad:
             result.grad = np.zeros(result.shape, dtype=np.float32)
@@ -338,16 +342,17 @@ cdef class Tensor:
         if result.requires_grad:
             result._backward = _backward
         return result
-    
+
     def __sub__(self, other):
         if not isinstance(other, Tensor):
             return NotImplemented
-        cdef Tensor other_tensor = <Tensor>other
-        cdef TensorImpl* result_impl = tensor_sub(self._c_tensor, other_tensor._c_tensor)
+        cdef TensorImpl* result_impl = NULL
+        other_tensor: Tensor = other
+        result_impl = tensor_sub(self._c_tensor, (<Tensor>other_tensor)._c_tensor)
         if result_impl == NULL:
             raise ValueError("Subtraction failed. Check if shapes are compatible.")
-        
-        cdef Tensor result = Tensor(shape=None, _children=(self, other), _op='-')
+
+        result = Tensor(shape=None, _children=(self, other), _op='-')
         result._c_tensor = result_impl
         if result.requires_grad:
             result.grad = np.zeros(result.shape, dtype=np.float32)
@@ -362,41 +367,57 @@ cdef class Tensor:
         if result.requires_grad:
             result._backward = _backward
         return result
-    
-    def __mul__(self, other):
-        if not isinstance(other, Tensor):
-            return NotImplemented
-        cdef Tensor other_tensor = <Tensor>other
-        cdef TensorImpl* result_impl = tensor_mul(self._c_tensor, other_tensor._c_tensor)
-        if result_impl == NULL:
-            raise ValueError("Multiplication failed. Check if shapes are compatible.")
-        
-        cdef Tensor result = Tensor(shape=None, _children=(self, other), _op='*')
-        result._c_tensor = result_impl
-        if result.requires_grad:
-            result.grad = np.zeros(result.shape, dtype=np.float32)
 
-        def _backward():
-            if self.requires_grad:
-                grad_contrib = result.grad * other_tensor.data
-                np.add(self.grad, Tensor.unbroadcast(grad_contrib, self.shape), out=self.grad)
-            if other_tensor.requires_grad:
-                grad_contrib = result.grad * self.data
-                np.add(other_tensor.grad, Tensor.unbroadcast(grad_contrib, other_tensor.shape), out=other_tensor.grad)
+    def __mul__(self, other: Union['Tensor', float, int, np.ndarray]) -> 'Tensor':
+        """Element-wise multiplication with scalar or tensor support."""
+        cdef TensorImpl* result_impl = NULL
+        # Tensor * Tensor
+        if isinstance(other, Tensor):
+            other_tensor: Tensor = other
+            result_impl = tensor_mul(self._c_tensor, (<Tensor>other_tensor)._c_tensor)
+            if result_impl == NULL:
+                raise ValueError("Multiplication failed. Check shapes.")
 
-        if result.requires_grad:
-            result._backward = _backward
-        return result
+            result = Tensor(shape=None, _children=(self, other), _op='*',
+                           requires_grad=self.requires_grad or other_tensor.requires_grad)
+            result._c_tensor = result_impl
 
+            if result.requires_grad:
+                def _backward():
+                    if self.requires_grad:
+                        grad_contrib = result.grad * other_tensor.data
+                        np.add(self.grad, Tensor.unbroadcast(grad_contrib, self.shape), out=self.grad)
+                    if other_tensor.requires_grad:
+                        grad_contrib = result.grad * self.data
+                        np.add(other_tensor.grad, Tensor.unbroadcast(grad_contrib, other_tensor.shape), out=other_tensor.grad)
+                result._backward = _backward
+            return result
+
+        # Tensor * scalar (int/float) or ndarray
+        if isinstance(other, (int, float, np.ndarray)):
+            scalar = float(other) if isinstance(other, (int, float)) else other
+            result = Tensor(self.data * scalar, _children=(self,), _op='*',
+                           requires_grad=self.requires_grad)
+            if result.requires_grad:
+                def _backward():
+                    if self.requires_grad:
+                        grad_contrib = scalar * result.grad
+                        np.add(self.grad, Tensor.unbroadcast(grad_contrib, self.shape), out=self.grad)
+                result._backward = _backward
+            return result
+
+        return NotImplemented
+    def __rmul__(self, other):
+        return self.__mul__(other)
     def __pow__(self, exponent):
         if not isinstance(exponent, int):
             raise TypeError("Exponent must be an integer")
-            
+
         cdef TensorImpl* result_impl = tensor_pow(self._c_tensor, <int64_t>exponent)
         if result_impl == NULL:
             raise ValueError("Power operation failed.")
-            
-        cdef Tensor result = Tensor(shape=None, _children=(self,), _op='pow')
+
+        result = Tensor(shape=None, _children=(self,), _op='pow')
         result._c_tensor = result_impl
         if result.requires_grad:
             result.grad = np.zeros(result.shape, dtype=np.float32)
@@ -410,13 +431,13 @@ cdef class Tensor:
         if result.requires_grad:
             result._backward = _backward
         return result
-    
+
     def exp(self):
         cdef TensorImpl* result_impl = tensor_exp(self._c_tensor)
         if result_impl == NULL:
             raise ValueError("Exponential operation failed.")
-            
-        cdef Tensor result = Tensor(shape=None, _children=(self,), _op='exp')
+
+        result = Tensor(shape=None, _children=(self,), _op='exp')
         result._c_tensor = result_impl
         if result.requires_grad:
             result.grad = np.zeros(result.shape, dtype=np.float32)
@@ -430,11 +451,6 @@ cdef class Tensor:
         if result.requires_grad:
             result._backward = _backward
         return result
-    
-
-        if result.requires_grad:
-            result._backward = _backward
-        return result
 
     def sum(self, axis: Optional[Union[int, Tuple[int, ...]]] = None, keepdims: bool = False) -> 'Tensor':
             # Compute the sum using the zero-copy numpy view
@@ -442,7 +458,7 @@ cdef class Tensor:
             out_data = np.atleast_1d(out_data)
             # Pass the numpy array to the first argument (which acts as shape/data)
             out = Tensor(out_data, _children=(self,), _op='sum')
-            
+
             # Ensure the gradient is initialized if needed
             if out.requires_grad:
                 out.grad = np.zeros(out.shape, dtype=np.float32)
@@ -453,27 +469,28 @@ cdef class Tensor:
                         grad_to_expand = out.grad
                     else:
                         grad_to_expand = out.grad if keepdims else np.expand_dims(out.grad, axis=axis)
-                    
+
                     # Add into self.grad with broadcasting to avoid temporaries
                     np.add(self.grad, grad_to_expand, out=self.grad)
-            
+
             if out.requires_grad:
                 out._backward = _backward
-                
+
             return out
     def __matmul__(self, other):
         if not isinstance(other, Tensor):
             return NotImplemented
 
-        cdef Tensor other_tensor = <Tensor>other
+        cdef TensorImpl* result_impl = NULL
+        other_tensor: Tensor = other
         if not Tensor.can_matmul(self.shape, other_tensor.shape):
             raise ValueError(f"Shapes {self.shape} and {other_tensor.shape} not aligned for matmul")
 
-        cdef TensorImpl* result_impl = tensor_matmul(self._c_tensor, other_tensor._c_tensor)
+        result_impl = tensor_matmul(self._c_tensor, (<Tensor>other_tensor)._c_tensor)
         if result_impl == NULL:
             raise ValueError("Matrix multiplication failed. Check if shapes are compatible.")
 
-        cdef Tensor result = Tensor(shape=None, _children=(self, other), _op='@')
+        result = Tensor(shape=None, _children=(self, other), _op='@')
         result._c_tensor = result_impl
         if result.requires_grad:
             result.grad = np.zeros(result.shape, dtype=np.float32)
@@ -488,7 +505,7 @@ cdef class Tensor:
                         self_grad_contrib = result.grad * other_tensor.data
                     else:
                         self_grad_contrib = np.outer(result.grad, other_tensor.data)
-                
+
                 np.add(self.grad, Tensor.unbroadcast(self_grad_contrib, self.shape), out=self.grad)
 
             if other_tensor.requires_grad:
@@ -507,6 +524,314 @@ cdef class Tensor:
             result._backward = _backward
         return result
 
+    def __truediv__(self, other: Union['Tensor', float, int, np.ndarray]) -> 'Tensor':
+        """Element-wise division (``self/other``)"""
+        if not isinstance(other, Tensor):
+            # Handle scalar division
+            out = Tensor(self.data / other, _children = (self,),_op ='/')
+            if out.requires_grad:
+                def _backward_scalar():
+                    if self.requires_grad:
+                        np.add(self.grad, Tensor.unbroadcast((1.0 / other) * out.grad, self.shape), out=self.grad)
+                out._backward = _backward_scalar
+            return out
+
+        # Handle Tensor division
+        out = Tensor(self.data / other.data, _children = (self, other), _op = '/')
+        if out.requires_grad:
+            def _backward_tensor():
+                if self.requires_grad:
+                    np.add(self.grad, Tensor.unbroadcast((1.0 / other.data) * out.grad, self.shape), out=self.grad)
+                if other.requires_grad:
+                    np.add(other.grad, Tensor.unbroadcast((-self.data / (other.data ** 2)) * out.grad, other.shape), out=other.grad)
+            out._backward = _backward_tensor
+        return out
+
+    def log(self) -> 'Tensor':
+        """Natural logarithm (ln)."""
+        out = Tensor(np.log(self.data), (self,), 'log')
+        if out.requires_grad:
+            def _backward():
+                if self.requires_grad:
+                    np.add(self.grad, (1.0 / (self.data + 1e-8)) * out.grad, out=self.grad)
+            out._backward = _backward
+        return out
+
+    def log10(self) -> 'Tensor':
+        """Base-10 logarithm."""
+        out = Tensor(np.log10(self.data), (self,), 'log10')
+        if out.requires_grad:
+            def _backward():
+                if self.requires_grad:
+                    np.add(self.grad, (1.0 / ((self.data + 1e-8) * np.log(10.0))) * out.grad, out=self.grad)
+            out._backward = _backward
+        return out
+
+    def sqrt(self) -> 'Tensor':
+        """Square root."""
+        out = Tensor(np.sqrt(self.data), (self,), 'sqrt')
+        if out.requires_grad:
+            def _backward():
+                if self.requires_grad:
+                    np.add(self.grad, (0.5 / (np.sqrt(self.data) + 1e-8)) * out.grad, out=self.grad)
+            out._backward = _backward
+        return out
+
+    def clip(self, min_val: float, max_val: float) -> 'Tensor':
+        """Clip tensor values to [min_val, max_val]."""
+        out = Tensor(np.clip(self.data, min_val, max_val), (self,), 'clip')
+        if out.requires_grad:
+            def _backward():
+                if self.requires_grad:
+                    mask = (self.data >= min_val) & (self.data <= max_val)
+                    np.add(self.grad, out.grad * mask, out=self.grad)
+            out._backward = _backward
+        return out
+
+    def relu(self) -> 'Tensor':
+        """Rectified Linear Unit: max(0, x)."""
+        out = Tensor(np.maximum(self.data, 0.0), _children =(self,), _op = 'relu')
+        if out.requires_grad:
+            def _backward():
+                if self.requires_grad:
+                    np.add(self.grad, (self.data > 0).astype(np.float32) * out.grad, out=self.grad)
+            out._backward = _backward
+        return out
+
+    def leaky_relu(self, alpha: float = 0.01) -> 'Tensor':
+        """Leaky ReLU: x if x > 0, else alpha * x."""
+        out = Tensor(np.where(self.data > 0, self.data, alpha * self.data), _children = (self,), _op ='leaky_relu')
+        if out.requires_grad:
+            def _backward():
+                if self.requires_grad:
+                    np.add(self.grad, np.where(self.data > 0, 1.0, alpha) * out.grad, out=self.grad)
+            out._backward = _backward
+        return out
+
+    def elu(self, alpha: float = 1.0) -> 'Tensor':
+        """Exponential Linear Unit: x if x > 0, else alpha * (exp(x) - 1)."""
+        out = Tensor(np.where(self.data > 0, self.data, alpha * (np.exp(self.data) - 1)), _children = (self,), _op = 'elu')
+        if out.requires_grad:
+            def _backward():
+                if self.requires_grad:
+                    np.add(self.grad, np.where(self.data > 0, 1.0, alpha * np.exp(self.data)) * out.grad, out=self.grad)
+            out._backward = _backward
+        return out
+
+    def selu(self, alpha: float = 1.67326, scale: float = 1.0507) -> 'Tensor':
+        """Scaled Exponential Linear Unit."""
+        out = Tensor(scale * np.where(self.data > 0, self.data, alpha * (np.exp(self.data) - 1)), _children =(self,), _op ='selu')
+        if out.requires_grad:
+            def _backward():
+                if self.requires_grad:
+                    np.add(self.grad, scale * np.where(self.data > 0, 1.0, alpha * np.exp(self.data)) * out.grad, out=self.grad)
+            out._backward = _backward
+        return out
+
+    def sigmoid(self) -> 'Tensor':
+        """Sigmoid activation: 1 / (1 + exp(-x))."""
+        # Numerically stable sigmoid
+        sig = np.where(self.data >= 0,
+                       1.0 / (1.0 + np.exp(-self.data)),
+                       np.exp(self.data) / (1.0 + np.exp(self.data)))
+        out = Tensor(sig, _children =(self,), _op = 'sigmoid')
+        if out.requires_grad:
+            def _backward():
+                if self.requires_grad:
+                    np.add(self.grad, sig * (1.0 - sig) * out.grad, out=self.grad)
+            out._backward = _backward
+        return out
+
+    def tanh(self) -> 'Tensor':
+        """Hyperbolic tangent activation."""
+        t = np.tanh(self.data)
+        out = Tensor(t, _children = (self,), _op ='tanh')
+        if out.requires_grad:
+            def _backward():
+                if self.requires_grad:
+                    np.add(self.grad, (1.0 - t ** 2) * out.grad, out=self.grad)
+            out._backward = _backward
+        return out
+
+    def swish(self) -> 'Tensor':
+        """Swish activation: x * sigmoid(x)."""
+        sig = self.sigmoid()
+        out = self * sig
+        out._op = 'swish'
+        return out
+
+    def gelu(self) -> 'Tensor':
+        """Gaussian Error Linear Unit."""
+        from scipy import special as sp
+        data_np = np.asarray(self.data)
+        erf_result = sp.erf(data_np / np.sqrt(2.0))
+        out_data = 0.5 * self.data * (1.0 + erf_result)
+        out = Tensor(out_data, _children =(self,), _op ='gelu')
+        if out.requires_grad:
+            def _backward():
+                if self.requires_grad:
+                    sqrt_2pi = np.sqrt(2.0 * np.pi)
+                    cdf = 0.5 * (1.0 + sp.erf(data_np / np.sqrt(2.0)))
+                    pdf = (1.0 / sqrt_2pi) * np.exp(-0.5 * data_np ** 2)
+                    np.add(self.grad, (cdf + data_np * pdf) * out.grad, out=self.grad)
+            out._backward = _backward
+        return out
+
+    def softmax(self, axis: int = -1) -> 'Tensor':
+        """Softmax: exp(x_i) / sum(exp(x_j)) along axis."""
+        max_val = self.data.max(axis=axis, keepdims=True)
+        e_x = np.exp(self.data - max_val)
+        sum_e_x = e_x.sum(axis=axis, keepdims=True)
+        sm = e_x / (sum_e_x + 1e-8)
+        out = Tensor(sm, _children = (self,), _op = 'softmax')
+        if out.requires_grad:
+            def _backward():
+                if self.requires_grad:
+                    y = out.data
+                    g = out.grad
+                    sum_gy = (g * y).sum(axis=axis, keepdims=True)
+                    grad_contrib = y * (g - sum_gy)
+                    np.add(self.grad, grad_contrib, out=self.grad)
+            out._backward = _backward
+        return out
+
+    def log_softmax(self, axis: int = -1) -> 'Tensor':
+        """Log-softmax: numerically stable log(softmax(x))."""
+        max_val = self.data.max(axis=axis, keepdims=True)
+        x_minus_max = self.data - max_val
+        log_sum_exp = np.log(np.exp(x_minus_max).sum(axis=axis, keepdims=True) + 1e-8)
+        log_sm = x_minus_max - log_sum_exp
+        out = Tensor(log_sm, _children = (self,), _op = 'log_softmax')
+        if out.requires_grad:
+            def _backward():
+                if self.requires_grad:
+                    g = out.grad
+                    sm = np.exp(out.data)
+                    grad_contrib = g - sm * g.sum(axis=axis, keepdims=True)
+                    np.add(self.grad, grad_contrib, out=self.grad)
+            out._backward = _backward
+        return out
+
+    def reshape(self, *new_shape: int) -> 'Tensor':
+        """Reshape tensor to new shape."""
+        if len(new_shape) == 1 and isinstance(new_shape[0], (tuple, list)):
+            new_shape = tuple(new_shape[0])
+
+        if -1 in new_shape:
+            new_shape_list = list(new_shape)
+            known_prod = np.prod([d for d in new_shape_list if d != -1])
+            new_shape_list[new_shape_list.index(-1)] = self.data.size // int(known_prod)
+            new_shape = tuple(new_shape_list)
+
+        out = Tensor(self.data.reshape(new_shape), (self,), 'reshape')
+        if out.requires_grad:
+            def _backward():
+                if self.requires_grad:
+                    np.add(self.grad, out.grad.reshape(self.shape), out=self.grad)
+            out._backward = _backward
+        return out
+
+    def view(self, *new_shape: int) -> 'Tensor':
+        """View tensor with new shape (wrapper for reshape)."""
+        if len(new_shape) == 1 and isinstance(new_shape[0], (tuple, list)):
+            new_shape = tuple(new_shape[0])
+        return self.reshape(*new_shape)
+
+    def transpose(self, axes: Optional[Tuple[int, ...]] = None) -> 'Tensor':
+        """Permute tensor dimensions."""
+        out = Tensor(np.transpose(self.data, axes=axes), _children = (self,), _op = 'transpose')
+        if out.requires_grad:
+            def _backward():
+                if self.requires_grad:
+                    if axes is None:
+                        inverse_axes = None
+                    else:
+                        inverse_axes = tuple(np.argsort(axes))
+                    np.add(self.grad, np.transpose(out.grad, axes=inverse_axes), out=self.grad)
+            out._backward = _backward
+        return out
+
+    def mean(self, axis: Optional[Union[int, Tuple[int, ...]]] = None, keepdims: bool = False) -> 'Tensor':
+        """Compute mean along axis."""
+        if axis is None:
+            n = float(self.numel)
+        elif isinstance(axis, int):
+            n = float(self.shape[axis])
+        else:
+            n = float(np.prod([self.shape[i] for i in axis]))
+
+        sum_out = self.sum(axis=axis, keepdims=keepdims)
+        out = sum_out * (1.0 / n)          # Now works reliably
+        out._op = 'mean'
+        return out
+
+    def var(self, axis: Optional[Union[int, Tuple[int, ...]]] = None, keepdims: bool = True) -> 'Tensor':
+        """Sample variance (N-1 denominator)."""
+        mean = self.mean(axis=axis, keepdims=True)
+        diff = self - mean
+        sq_diff = diff ** 2
+
+        if axis is None:
+            n = self.numel
+        elif isinstance(axis, int):
+            n = self.shape[axis]
+        else:
+            n = int(np.prod([self.shape[a] for a in axis]))
+
+        denom = max(n - 1, 1)
+        var = sq_diff.sum(axis=axis, keepdims=keepdims) / float(denom)
+        var._op = 'var'
+        return var
+
+    def std(self, axis: Optional[Union[int, Tuple[int, ...]]] = None, keepdims: bool = True) -> 'Tensor':
+        """Sample standard deviation."""
+        variance = self.var(axis=axis, keepdims=keepdims)
+        return variance.sqrt()
+
+    def item(self) -> float:
+        """Return scalar value (only for single-element tensors)."""
+        if self.data.size != 1:
+            raise ValueError("item() can only be called on tensors with one element.")
+        return float(self.data.flat[0])
+
+    def __getitem__(self, indices) -> 'Tensor':
+        """Get item by index/slice."""
+        out = Tensor(self.data[indices], (self,), 'getitem')
+        if out.requires_grad:
+            def _backward():
+                if self.requires_grad:
+                    grad_slice = np.zeros_like(self.data)
+                    grad_slice[indices] = out.grad
+                    np.add(self.grad, grad_slice, out=self.grad)
+            out._backward = _backward
+        return out
+
+    def bool(self) -> 'Tensor':
+        """Cast to boolean (detached)."""
+        return Tensor(self.data.astype(bool), requires_grad=False)
+
+    def __bool__(self) -> bool:
+        """Boolean context behavior."""
+        if self.data.size == 1:
+            return bool(self.data.item())
+        raise ValueError(
+            "The truth value of a Tensor with more than one element is ambiguous. "
+            "Use .any() or .all() if you want to check for element-wise truth."
+        )
+
+    def masked_fill(self, mask: 'Tensor', fill_value: float) -> 'Tensor':
+        """Fill elements where mask is True with fill_value."""
+        out = Tensor(np.where(mask.data, fill_value, self.data), _children = (self,), _op = 'masked_fill')
+        if out.requires_grad:
+            def _backward():
+                if self.requires_grad:
+                    grad_for_self = np.where(mask.data, 0.0, out.grad)
+                    np.add(self.grad, grad_for_self, out=self.grad)
+            out._backward = _backward
+        return out
+
+    def __neg__(self) -> 'Tensor':
+        return self * -1
     def numpy(self) -> np.ndarray:
         """Returns a copy of the tensor's data as a NumPy array."""
         if self._c_tensor == NULL:
@@ -522,7 +847,7 @@ cdef class Tensor:
         # Use self.data (zero-copy view) for numpy string formatting
         data_np = self.data
         data_str = np.array2string(data_np, max_line_width=70, precision=4, suppress_small=True)
-        
+
         # Format multi-line array representations cleanly
         if '\n' in data_str:
             lines = data_str.split('\n')
@@ -530,7 +855,7 @@ cdef class Tensor:
 
         grad_info = f", grad_fn=<{self._op}>" if self._op else ""
         return f"Tensor(data={data_str}, shape={self.shape}, requires_grad={self.requires_grad}{grad_info})"
-        
+
     def backward(self) -> None:
         """
         Performs backpropagation starting from this tensor.
@@ -538,7 +863,7 @@ cdef class Tensor:
         """
         if not self.requires_grad:
             raise RuntimeError("Cannot call backward on tensor that does not require_grad")
-            
+
         # Build topological sort
         topo = []
         visited = set()
@@ -549,19 +874,19 @@ cdef class Tensor:
                 for child in v._prev:
                     build_topo(child)
                 topo.append(v)
-                
+
         build_topo(self)
-        
+
         # --- Initialize Gradients ---
         for node in topo:
             is_leaf = len(node._prev) == 0
-            
+
             if not is_leaf:
-                # Intermediate nodes MUST be zeroed every backward pass 
+                # Intermediate nodes MUST be zeroed every backward pass
                 # to prevent incorrect double-counting in the chain rule.
                 node.grad = np.zeros_like(node.data)
             else:
-                # Leaf nodes (weights/biases) ACCUMULATE. 
+                # Leaf nodes (weights/biases) ACCUMULATE.
                 # We just ensure the array exists, but do NOT zero it.
                 if node.grad is None:
                     node.grad = np.zeros_like(node.data)
