@@ -21,6 +21,7 @@ build-backend = "uv_build"
 dev = [
     "memory-profiler>=0.61.0",
     "pytest>=9.1.1",
+    "torch>=2.13.0",
 ]
 
 [tool.pytest.ini_options]

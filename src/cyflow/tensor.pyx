@@ -266,8 +266,6 @@ cdef class Tensor:
     def numel(self):
         return self._c_tensor.numel
 
-    def __repr__(self):
-        return f"<cyflow.Tensor shape={self.shape} strides={self.strides} numel={self.numel} grad={self.requires_grad}>"
 
     # --- Math Operations & Autograd Engine ---
 
@@ -509,6 +507,30 @@ cdef class Tensor:
             result._backward = _backward
         return result
 
+    def numpy(self) -> np.ndarray:
+        """Returns a copy of the tensor's data as a NumPy array."""
+        if self._c_tensor == NULL:
+            return np.empty((0,), dtype=np.float32)
+        # Fast path: leverage zero-copy buffer view and make a copy
+        return np.array(self.data, copy=True)
+
+    def __repr__(self) -> str:
+        """Returns a human-readable string representation of the Tensor."""
+        if self._c_tensor == NULL:
+            return "Tensor(uninitialized)"
+
+        # Use self.data (zero-copy view) for numpy string formatting
+        data_np = self.data
+        data_str = np.array2string(data_np, max_line_width=70, precision=4, suppress_small=True)
+        
+        # Format multi-line array representations cleanly
+        if '\n' in data_str:
+            lines = data_str.split('\n')
+            data_str = f"{lines[0]} ... {lines[-1].strip()}"
+
+        grad_info = f", grad_fn=<{self._op}>" if self._op else ""
+        return f"Tensor(data={data_str}, shape={self.shape}, requires_grad={self.requires_grad}{grad_info})"
+        
     def backward(self) -> None:
         """
         Performs backpropagation starting from this tensor.
