@@ -1,5 +1,5 @@
 # cython: language_level=3
-from typing import Tuple, Set, Optional,Union
+from typing import Tuple, Set, Optional, Union
 from libc.stdint cimport int64_t
 from libc.stdlib cimport malloc, free
 import numpy as np
@@ -7,13 +7,12 @@ cimport numpy as np
 from libc.string cimport strcmp
 from cpython.buffer cimport PyBUF_FORMAT, PyBUF_STRIDES, PyBUF_WRITABLE, Py_buffer
 from cpython.buffer cimport PyObject_GetBuffer, PyBuffer_Release
-from cpython.ref cimport Py_INCREF, Py_DECREF
 
-# Initialize numpy's C-API to avoid runtime errors when integrating cython and numpy
+# Initialize numpy's C-API
 np.import_array()
 
 # =============================================================================
-# 1. Declare the C structs and functions from our header
+# 1. C Header Declarations
 # =============================================================================
 cdef extern from "c_tensor.h":
     ctypedef struct Storage:
@@ -33,17 +32,17 @@ cdef extern from "c_tensor.h":
 
     TensorImpl* tensor_create(const int64_t* shape, size_t ndim)
     TensorImpl* tensor_create_from_buffer(float *data,
-                                         const int64_t *shape,
-                                         const int64_t *strides,
-                                         size_t ndim,
-                                         void *owner)
+                                          const int64_t *shape,
+                                          const int64_t *strides,
+                                          size_t ndim,
+                                          void *owner)
     void tensor_free(TensorImpl* tensor)
     TensorImpl* tensor_matmul(TensorImpl* A, TensorImpl* B)
-    TensorImpl *tensor_add(TensorImpl *A, TensorImpl *B);
-    TensorImpl *tensor_sub(TensorImpl *A, TensorImpl *B);
-    TensorImpl *tensor_mul(TensorImpl *A, TensorImpl *B);
-    TensorImpl *tensor_pow(TensorImpl *A, int64_t exponent);
-    TensorImpl *tensor_exp(TensorImpl *A);
+    TensorImpl *tensor_add(TensorImpl *A, TensorImpl *B)
+    TensorImpl *tensor_sub(TensorImpl *A, TensorImpl *B)
+    TensorImpl *tensor_mul(TensorImpl *A, TensorImpl *B)
+    TensorImpl *tensor_pow(TensorImpl *A, int64_t exponent)
+    TensorImpl *tensor_exp(TensorImpl *A)
 
 # =============================================================================
 # 2. Python Extension Type
@@ -55,8 +54,9 @@ cdef class Tensor:
     cdef public bint requires_grad
     cdef public object grad
     cdef public object _backward
+    cdef public object _owner  # Keeps parent memory views alive for GC
 
-    def __cinit__(self, shape=None, requires_grad: Optional[bool]=None, _children: Tuple['Tensor',...] = (), _op: str = ''):
+    def __cinit__(self, shape=None, requires_grad =None, _children= (), _op = ''):
         cdef size_t ndim
         cdef int64_t* c_shape
         cdef size_t i
@@ -64,9 +64,7 @@ cdef class Tensor:
         if shape is None:
             self._c_tensor = NULL
         else:
-            # Support direct NumPy-backed tensor creation by accepting an ndarray.
             if hasattr(shape, "__array_interface__") or hasattr(shape, "__array_priority__"):
-                # Ensure float32
                 if not np.issubdtype(shape.dtype, np.floating) or shape.dtype != np.float32:
                     shape = np.asarray(shape, dtype=np.float32)
                 self._init_from_numpy(shape)
@@ -98,7 +96,7 @@ cdef class Tensor:
         if self.requires_grad and self._c_tensor != NULL:
             self.grad = np.zeros(self.shape, dtype=np.float32)
 
-        self._backward = lambda: None # Placeholder for backward function
+        self._backward = lambda: None
 
     def zero_grad(self):
         """ Reset the gradient of the tensor to zero. """
@@ -134,10 +132,8 @@ cdef class Tensor:
             shape = <int64_t*>malloc(ndim * sizeof(int64_t))
             strides = <int64_t*>malloc(ndim * sizeof(int64_t))
             if not shape or not strides:
-                if shape:
-                    free(shape)
-                if strides:
-                    free(strides)
+                if shape: free(shape)
+                if strides: free(strides)
                 raise MemoryError("Failed to allocate shape or strides array")
 
             for i in range(ndim):
@@ -154,6 +150,12 @@ cdef class Tensor:
 
             data_ptr = <float*>view.buf
             self._c_tensor = tensor_create_from_buffer(data_ptr, shape, strides, ndim, <void*>np_array)
+            self._owner = np_array
+
+            # Free dynamic shape & strides allocations after passing them to C struct
+            free(shape)
+            free(strides)
+
         finally:
             PyBuffer_Release(&view)
 
@@ -165,7 +167,13 @@ cdef class Tensor:
             tensor_free(self._c_tensor)
             self._c_tensor = NULL
 
-    # --- Buffer Protocol for Zero-Copy NumPy Views ---
+    # --- Buffer Protocol ---
+
+    @classmethod
+    def zeros_like(cls, tensor: 'Tensor', requires_grad: Optional[bool] = None) -> 'Tensor':
+        if requires_grad is None:
+            requires_grad = tensor.requires_grad
+        return cls(np.zeros_like(tensor.data), requires_grad=requires_grad)
 
     def __getbuffer__(self, Py_buffer *buffer, int flags):
         """Allows seamlessly converting the Cython Tensor to a NumPy array."""
@@ -174,7 +182,6 @@ cdef class Tensor:
 
         cdef int itemsize = sizeof(float)
 
-        # Position pointer with respect to storage_offset
         buffer.buf = <char *>(self._c_tensor.storage.data) + self._c_tensor.storage_offset * itemsize
         buffer.format = b'f'
         buffer.internal = NULL
@@ -199,7 +206,7 @@ cdef class Tensor:
         buffer.suboffsets = NULL
 
     def __releasebuffer__(self, Py_buffer *buffer):
-        """Releases the memory allocated for the Buffer Protocol."""
+        """Releases memory allocated for the buffer protocol descriptors."""
         if buffer.shape != NULL:
             free(buffer.shape)
         if buffer.strides != NULL:
@@ -209,47 +216,67 @@ cdef class Tensor:
     def data(self) -> np.ndarray:
         """Returns a zero-copy numpy view of the tensor's underlying memory."""
         return np.asarray(self)
+    @data.setter
+    def data(self, value):
+        """Allows in-place updating via assignment to .data (e.g. param.data -= ... or param.data = ...)"""
+        cdef np.ndarray current_view = np.asarray(self)
+        if isinstance(value, Tensor):
+            current_view[:] = value.data
+        else:
+            current_view[:] = value
 
-    # --- Indexing & Memory Access ---
-
-    cdef size_t _get_flat_index(self, index) except *:
-        cdef size_t flat_idx = self._c_tensor.storage_offset
-        cdef size_t i
-        cdef int64_t idx
-
-        if isinstance(index, int):
-            if self.ndim != 1:
-                raise IndexError(f"Expected tuple of length {self.ndim}, got int")
-            index = (index,)
-
-        if not isinstance(index, tuple):
-            raise TypeError("Index must be an int or tuple of ints")
-
-        if len(index) != self.ndim:
-            raise IndexError(f"Expected index of length {self.ndim}, got {len(index)}")
-
-        for i in range(self.ndim):
-            idx = index[i]
-            if idx < 0:
-                idx += self._c_tensor.shape[i]
-
-            if idx < 0 or idx >= self._c_tensor.shape[i]:
-                raise IndexError(f"Index {index[i]} is out of bounds for axis {i} with size {self._c_tensor.shape[i]}")
-
-            flat_idx += idx * self._c_tensor.strides[i]
-
-        return flat_idx
-
+    # --- Indexing & Slicing ---
     def __getitem__(self, index):
-        cdef size_t flat_idx = self._get_flat_index(index)
-        return self._c_tensor.storage.data[flat_idx]
+            """
+            NumPy-like slicing. Returns a zero-copy view of the tensor for slices,
+            or a scalar when fully indexed down to 0D.
+            """
+            res = self.data[index]
+
+            if np.isscalar(res) or getattr(res, 'ndim', 0) == 0:
+                return float(res)
+
+            result = Tensor(np.asarray(res, dtype=np.float32), requires_grad=self.requires_grad)
+            result._owner = res
+            return result
 
     def __setitem__(self, index, value):
-        cdef float c_value = value
-        cdef size_t flat_idx = self._get_flat_index(index)
-        self._c_tensor.storage.data[flat_idx] = c_value
+        if isinstance(value, Tensor):
+            self.data[index] = value.data
+        else:
+            self.data[index] = value
 
-    # --- Python Properties ---
+    # --- In-Place Math Operations ---
+
+    def __iadd__(self, other):
+        if isinstance(other, Tensor):
+            self.data += other.data
+        else:
+            self.data += other
+        return self
+
+    def __isub__(self, other):
+        if isinstance(other, Tensor):
+            self.data -= other.data
+        else:
+            self.data -= other
+        return self
+
+    def __imul__(self, other):
+        if isinstance(other, Tensor):
+            self.data *= other.data
+        else:
+            self.data *= other
+        return self
+
+    def __itruediv__(self, other):
+        if isinstance(other, Tensor):
+            self.data /= other.data
+        else:
+            self.data /= other
+        return self
+
+    # --- Properties ---
 
     @property
     def shape(self):
@@ -263,13 +290,13 @@ cdef class Tensor:
 
     @property
     def ndim(self):
+        if self._c_tensor == NULL: return 0
         return self._c_tensor.ndim
 
     @property
     def numel(self):
+        if self._c_tensor == NULL: return 0
         return self._c_tensor.numel
-
-
     # --- Math Operations & Autograd Engine ---
 
     @classmethod
@@ -795,8 +822,13 @@ cdef class Tensor:
         return float(self.data.flat[0])
 
     def __getitem__(self, indices) -> 'Tensor':
-        """Get item by index/slice."""
-        out = Tensor(self.data[indices], (self,), 'getitem')
+        """Get item by index/slice and preserve shared-memory view semantics."""
+        selected = self.data[indices]
+        if np.isscalar(selected) or getattr(selected, 'ndim', 0) == 0:
+            return float(selected)
+
+        out = Tensor(np.asarray(selected, dtype=np.float32), _children=(self,), _op='getitem', requires_grad=self.requires_grad)
+        out._owner = (selected, self)
         if out.requires_grad:
             def _backward():
                 if self.requires_grad:

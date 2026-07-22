@@ -1,5 +1,6 @@
 import numpy as np
 from cyflow import Tensor
+from cyflow.module import Module
 
 
 def numpy_to_cyflow(np_arr):
@@ -108,3 +109,58 @@ def test_tensor_exp() -> None:
 
     assert C_cy.shape == C_np.shape
     assert np.allclose(cyflow_to_numpy(C_cy), C_np, rtol=1e-5, atol=1e-6)
+
+
+def test_tensor_slice_returns_view_for_numpy_backed_tensor() -> None:
+    base_np = np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]], dtype=np.float32)
+    tensor = numpy_to_cyflow(base_np)
+
+    view = tensor[0:2, 1:3]
+    assert view.shape == (2, 2)
+
+    view.data[0, 0] = 99.0
+
+    assert tensor.data[0, 1] == 99.0
+    assert base_np[0, 1] == 99.0
+
+
+def test_tensor_slice_returns_view_for_independent_tensor() -> None:
+    tensor = Tensor((2, 3), requires_grad=False)
+    tensor.data[:] = np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]], dtype=np.float32)
+
+    view = tensor[0:2, 1:3]
+    assert view.shape == (2, 2)
+
+    view.data[1, 1] = 77.0
+
+    assert tensor.data[1, 2] == 77.0
+
+
+def test_module_apply_and_parameters_walk_nested_containers() -> None:
+    class Leaf(Module):
+        def __init__(self) -> None:
+            super().__init__()
+            self.weight = Tensor((1,), requires_grad=True)
+
+        def forward(self, *args, **kwargs):
+            return None
+
+    class Composite(Module):
+        def __init__(self) -> None:
+            super().__init__()
+            self.left = Leaf()
+            self.right = [Leaf(), (Leaf(),)]
+
+    composite = Composite()
+
+    seen = []
+
+    def mark(module):
+        seen.append(module.__class__.__name__)
+        return module
+
+    composite.apply(mark)
+    params = composite.parameters()
+
+    assert len(seen) >= 3
+    assert len(params) == 3
