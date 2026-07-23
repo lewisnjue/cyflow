@@ -84,4 +84,43 @@ static inline TensorImpl *tensor_view(TensorImpl *src, const int64_t *shape,
   return tensor;
 }
 
+static inline TensorImpl *tensor_index(TensorImpl *src, int64_t index) {
+  if (!src || !src->storage)
+    return NULL;
+  size_t ndim = src->ndim;
+  if (ndim == 0) {
+    return NULL;
+  }
+  int64_t dim0 = src->shape[0];
+  if (index < 0)
+    index += dim0;
+  if (index < 0 || index >= dim0) {
+    fprintf(stderr, "Index %lld out of range for dimension size %zu\n",
+            (long long)index, dim0);
+    return NULL;
+  }
+  TensorImpl *tensor = (TensorImpl *)malloc(sizeof(TensorImpl));
+  if (!tensor)
+    return NULL;
+  tensor->storage = src->storage;
+  tensor->storage->ref_count++;
+  tensor->storage_offset = src->storage_offset + index * src->strides[0];
+  if (ndim > 1) {
+    tensor->ndim = ndim - 1;
+    tensor->numel = src->numel / dim0;
+    tensor->shape = (int64_t *)malloc((ndim - 1) * sizeof(int64_t));
+    tensor->strides = (int64_t *)malloc((ndim - 1) * sizeof(int64_t));
+    for (size_t i = 1; i < ndim; ++i) {
+      tensor->shape[i - 1] = src->shape[i];
+      tensor->strides[i - 1] = src->strides[i];
+    }
+  } else {
+    tensor->ndim = 0;
+    tensor->numel = 1;
+    tensor->shape = NULL;
+    tensor->strides = NULL;
+  }
+  return tensor;
+}
+
 #endif
