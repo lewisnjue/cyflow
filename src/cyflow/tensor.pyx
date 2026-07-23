@@ -164,9 +164,58 @@ cdef class Tensor:
             return "cuda"
         return "unknown"
 
-    def __repr__(self):
-        return f"<Tensor shape={self.shape} strides={self.strides} device='{self.device}'>"
+    def item(self):
+        cdef float val = 0.0
+        cdef float* data_ptr = NULL
 
+        if self._tensor is NULL:
+            raise ValueError("Cannot call item() on an uninitialized tensor")
+
+        if self._tensor.numel != 1:
+            raise ValueError(
+                f"only one element tensors can be converted to Python scalars (got numel {self._tensor.numel})"
+            )
+
+        data_ptr = <float*>self._tensor.storage.data
+
+        if self._tensor.storage.device == DEVICE_CPU:
+            val = data_ptr[self._tensor.storage_offset]
+        elif self._tensor.storage.device == DEVICE_CUDA:
+            cudaMemcpy(
+                &val,
+                data_ptr + self._tensor.storage_offset,
+                sizeof(float),
+                cudaMemcpyDeviceToHost
+            )
+
+        return float(val)
+    
+    cpdef _to_nested_list(self):
+            # Use Python properties (self.ndim, self.shape) instead of raw C pointers
+            if self.ndim == 0:
+                return self.item()
+            elif self.ndim == 1:
+                return [self[i].item() for i in range(self.shape[0])]
+            else:
+                return [self[i]._to_nested_list() for i in range(self.shape[0])]
+
+    def __str__(self):
+        return self.__repr__()
+
+    def __repr__(self):
+        if self._tensor is NULL:
+            return "<Tensor [Uninitialized]>"
+        
+        # If the tensor is small enough, display its data values nicely
+        if self.numel <= 100:
+            try:
+                data = self._to_nested_list()
+                return f"<Tensor data={data}, shape={self.shape}, device='{self.device}'>"
+            except Exception as e:
+                pass
+
+        # Default summary representation for large tensors
+        return f"<Tensor shape={self.shape}, strides={self.strides}, device='{self.device}'>"
     @property
     def nbytes(self):
         return self.numel * sizeof(float)
@@ -351,6 +400,129 @@ cdef class Tensor:
         finally:
             if target_indices: free(target_indices)
             if src_indices: free(src_indices)
+
+    cpdef _apply_inplace(self, object other, str op):
+        cdef size_t numel = self._tensor.numel
+        cdef size_t ndim = self._tensor.ndim
+        cdef int64_t* shape = self._tensor.shape
+        cdef int64_t* strides = self._tensor.strides
+        cdef int64_t offset = self._tensor.storage_offset
+        cdef int device = self._tensor.storage.device
+        
+        cdef float* target_ptr = <float*>self._tensor.storage.data
+        cdef int64_t* indices = NULL
+        cdef size_t elem_i, k
+        cdef int64_t cur_offset, cur_src_offset
+        cdef float val = 0.0
+        cdef float src_val = 0.0
+
+        cdef Tensor src_tensor = None
+        cdef size_t src_ndim = 0
+        cdef int64_t* src_strides = NULL
+        cdef int64_t src_offset = 0
+        cdef float* src_ptr = NULL
+        cdef int64_t* src_indices = NULL
+
+        # 1. Parse operand (Scalar vs Tensor)
+        if isinstance(other, Tensor):
+            src_tensor = <Tensor>other
+            if self.shape != src_tensor.shape:
+                raise ValueError(f"Shape mismatch for in-place operation: {self.shape} vs {src_tensor.shape}")
+            if self.device != src_tensor.device:
+                raise ValueError(f"Device mismatch for in-place operation: {self.device} vs {src_tensor.device}")
+            
+            src_ndim = src_tensor._tensor.ndim
+            src_strides = src_tensor._tensor.strides
+            src_offset = src_tensor._tensor.storage_offset
+            src_ptr = <float*>src_tensor._tensor.storage.data
+            if src_ndim > 0:
+                src_indices = <int64_t*>calloc(src_ndim, sizeof(int64_t))
+        elif isinstance(other, (int, float)):
+            src_val = float(other)
+        else:
+            raise TypeError(f"Unsupported operand type for in-place operation: {type(other).__name__}")
+
+        if numel == 0:
+            return self
+
+        if ndim > 0:
+            indices = <int64_t*>calloc(ndim, sizeof(int64_t))
+            if not indices:
+                if src_indices: free(src_indices)
+                raise MemoryError("Failed to allocate index buffer")
+
+        try:
+            for elem_i in range(numel):
+                cur_offset = offset
+                for k in range(ndim):
+                    cur_offset += indices[k] * strides[k]
+
+                # Fetch source value if operand is a Tensor
+                if src_tensor is not None:
+                    cur_src_offset = src_offset
+                    for k in range(src_ndim):
+                        cur_src_offset += src_indices[k] * src_strides[k]
+                    
+                    if device == DEVICE_CPU:
+                        src_val = src_ptr[cur_src_offset]
+                    elif device == DEVICE_CUDA:
+                        cudaMemcpy(&src_val, src_ptr + cur_src_offset, sizeof(float), cudaMemcpyDeviceToHost)
+
+                # Fetch current target value
+                if device == DEVICE_CPU:
+                    val = target_ptr[cur_offset]
+                elif device == DEVICE_CUDA:
+                    cudaMemcpy(&val, target_ptr + cur_offset, sizeof(float), cudaMemcpyDeviceToHost)
+
+                # Perform arithmetic operation
+                if op == "+":
+                    val += src_val
+                elif op == "-":
+                    val -= src_val
+                elif op == "*":
+                    val *= src_val
+                elif op == "/":
+                    if src_val == 0.0:
+                        raise ZeroDivisionError("Division by zero in tensor in-place division")
+                    val /= src_val
+
+                # Write result back to target
+                if device == DEVICE_CPU:
+                    target_ptr[cur_offset] = val
+                elif device == DEVICE_CUDA:
+                    cudaMemcpy(target_ptr + cur_offset, &val, sizeof(float), cudaMemcpyHostToDevice)
+
+                # Advance indices for multi-dimensional traversal
+                if ndim > 0:
+                    for k in range(ndim - 1, -1, -1):
+                        indices[k] += 1
+                        if indices[k] < shape[k]:
+                            break
+                        indices[k] = 0
+
+                if src_indices != NULL:
+                    for k in range(src_ndim - 1, -1, -1):
+                        src_indices[k] += 1
+                        if src_indices[k] < src_tensor._tensor.shape[k]:
+                            break
+                        src_indices[k] = 0
+        finally:
+            if indices: free(indices)
+            if src_indices: free(src_indices)
+
+        return self
+
+    def __iadd__(self, other):
+        return self._apply_inplace(other, "+")
+
+    def __isub__(self, other):
+        return self._apply_inplace(other, "-")
+
+    def __imul__(self, other):
+        return self._apply_inplace(other, "*")
+
+    def __itruediv__(self, other):
+        return self._apply_inplace(other, "/")
 
     def __setitem__(self, key, value):
         # 1. Resolve sub-view for the given key
