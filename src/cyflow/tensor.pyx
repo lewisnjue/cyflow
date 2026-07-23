@@ -1,8 +1,7 @@
 # cython: language_level=3
 from libc.stdlib cimport malloc, free, calloc
 from libc.stdint cimport int64_t
-from libc.stdlib cimport malloc, free
-
+from libc.string cimport memcpy
 cdef extern from "cyflow/common.h":
     ctypedef enum DeviceType:
         DEVICE_CPU
@@ -27,24 +26,49 @@ cdef extern from "cyflow/common.h":
     TensorImpl *tensor_view(TensorImpl *src, const int64_t *shape, size_t ndim)
     TensorImpl *tensor_index(TensorImpl *src, int64_t index)
 
-
 cdef extern from "cyflow/tensor_cpu.h":
     Storage *storage_create_cpu(size_t size)
     void storage_free_cpu(Storage *storage)
     TensorImpl *tensor_create_cpu(const int64_t *shape, size_t ndim)
     void tensor_free_cpu(TensorImpl *tensor)
+    
     void cyflow_manual_seed(unsigned int seed)
     void tensor_fill_uniform_cpu(TensorImpl *tensor)
     void tensor_set_data_cpu(TensorImpl *tensor, const float *data)
+    
+    bint tensor_is_contiguous_cpu(const TensorImpl *tensor)
+    
+    void tensor_add_scalar_cpu(TensorImpl *dst, float val)
+    void tensor_sub_scalar_cpu(TensorImpl *dst, float val)
+    void tensor_mul_scalar_cpu(TensorImpl *dst, float val)
+    void tensor_div_scalar_cpu(TensorImpl *dst, float val)
+    
+    void tensor_add_tensor_cpu(TensorImpl *dst, const TensorImpl *src)
+    void tensor_sub_tensor_cpu(TensorImpl *dst, const TensorImpl *src)
+    void tensor_mul_tensor_cpu(TensorImpl *dst, const TensorImpl *src)
+    void tensor_div_tensor_cpu(TensorImpl *dst, const TensorImpl *src)
 
 cdef extern from "cyflow/tensor_cuda.h":
     Storage *storage_create_cuda(size_t size)
     void storage_free_cuda(Storage *storage)
     TensorImpl *tensor_create_cuda(const int64_t *shape, size_t ndim)
     void tensor_free_cuda(TensorImpl *tensor)
+    
     void tensor_fill_uniform_cuda(TensorImpl *tensor)
     void cyflow_manual_seed_cuda(unsigned long long seed)
     void tensor_set_data_cuda(TensorImpl *tensor, const float *data)
+    
+    bint tensor_is_contiguous_cuda(const TensorImpl *tensor)
+    
+    void tensor_add_scalar_cuda(TensorImpl *dst, float val)
+    void tensor_sub_scalar_cuda(TensorImpl *dst, float val)
+    void tensor_mul_scalar_cuda(TensorImpl *dst, float val)
+    void tensor_div_scalar_cuda(TensorImpl *dst, float val)
+    
+    void tensor_add_tensor_cuda(TensorImpl *dst, const TensorImpl *src)
+    void tensor_sub_tensor_cuda(TensorImpl *dst, const TensorImpl *src)
+    void tensor_mul_tensor_cuda(TensorImpl *dst, const TensorImpl *src)
+    void tensor_div_tensor_cuda(TensorImpl *dst, const TensorImpl *src)
 
 cdef extern from "cuda_runtime.h":
     cdef enum cudaMemcpyKind:
@@ -52,14 +76,18 @@ cdef extern from "cuda_runtime.h":
         cudaMemcpyHostToDevice
         cudaMemcpyDeviceToHost
         cudaMemcpyDeviceToDevice
+        
     int cudaMemcpy(void* dst, const void* src, size_t count, cudaMemcpyKind kind)
+
+
+ # cython: language_level=3
 
 CPU = DEVICE_CPU
 CUDA = DEVICE_CUDA
 
 cpdef manual_seed(unsigned long long seed, int device=CPU):
     if device == DEVICE_CPU:
-        cyflow_manual_seed(seed)
+        cyflow_manual_seed(<unsigned int>seed)
     elif device == DEVICE_CUDA:
         cyflow_manual_seed_cuda(seed)
     else:
@@ -105,6 +133,12 @@ cdef class Tensor:
         if shape is None:
             self._tensor = NULL
             return
+
+        # Normalize integer shapes e.g. Tensor(5) -> Tensor((5,))
+        if isinstance(shape, int):
+            shape = (shape,)
+        else:
+            shape = tuple(shape)
 
         ndim = len(shape)
         c_shape = <int64_t*>malloc(ndim * sizeof(int64_t))
@@ -164,6 +198,10 @@ cdef class Tensor:
             return "cuda"
         return "unknown"
 
+    @property
+    def nbytes(self):
+        return self.numel * sizeof(float)
+
     def item(self):
         cdef float val = 0.0
         cdef float* data_ptr = NULL
@@ -189,15 +227,14 @@ cdef class Tensor:
             )
 
         return float(val)
-    
+
     cpdef _to_nested_list(self):
-            # Use Python properties (self.ndim, self.shape) instead of raw C pointers
-            if self.ndim == 0:
-                return self.item()
-            elif self.ndim == 1:
-                return [self[i].item() for i in range(self.shape[0])]
-            else:
-                return [self[i]._to_nested_list() for i in range(self.shape[0])]
+        if self.ndim == 0:
+            return self.item()
+        elif self.ndim == 1:
+            return [self[i].item() for i in range(self.shape[0])]
+        else:
+            return [self[i]._to_nested_list() for i in range(self.shape[0])]
 
     def __str__(self):
         return self.__repr__()
@@ -205,75 +242,48 @@ cdef class Tensor:
     def __repr__(self):
         if self._tensor is NULL:
             return "<Tensor [Uninitialized]>"
-        
-        # If the tensor is small enough, display its data values nicely
+
         if self.numel <= 100:
             try:
                 data = self._to_nested_list()
                 return f"<Tensor data={data}, shape={self.shape}, device='{self.device}'>"
-            except Exception as e:
+            except Exception:
                 pass
 
-        # Default summary representation for large tensors
         return f"<Tensor shape={self.shape}, strides={self.strides}, device='{self.device}'>"
-    @property
-    def nbytes(self):
-        return self.numel * sizeof(float)
 
     def fill_uniform(self):
         if self._tensor.storage.device == DEVICE_CPU:
             tensor_fill_uniform_cpu(self._tensor)
         elif self._tensor.storage.device == DEVICE_CUDA:
             tensor_fill_uniform_cuda(self._tensor)
+
     cdef _fill_scalar(self, float val):
-        cdef size_t numel = self._tensor.numel
-        cdef size_t ndim = self._tensor.ndim
-        cdef int64_t* shape = self._tensor.shape
-        cdef int64_t* strides = self._tensor.strides
-        cdef int64_t offset = self._tensor.storage_offset
-        cdef int device = self._tensor.storage.device
-
-        cdef float* target_ptr = NULL
-        cdef int64_t* indices = NULL
-        cdef size_t elem_i, k
-        cdef int64_t cur_offset
-
-        if numel == 0:
+        """Zeroes tensor and adds scalar using fast parallel kernels."""
+        if self._tensor.numel == 0:
             return
 
-        if ndim > 0:
-            indices = <int64_t*>calloc(ndim, sizeof(int64_t))
-            if not indices:
-                raise MemoryError("Failed to allocate index buffer")
-
-        try:
-            target_ptr = <float*>self._tensor.storage.data
-            for elem_i in range(numel):
-                cur_offset = offset
-                for k in range(ndim):
-                    cur_offset += indices[k] * strides[k]
-
-                if device == DEVICE_CPU:
-                    target_ptr[cur_offset] = val
-                elif device == DEVICE_CUDA:
-                    cudaMemcpy(
-                        target_ptr + cur_offset,
-                        &val,
-                        sizeof(float),
-                        cudaMemcpyHostToDevice
-                    )
-
-                if ndim > 0:
-                    for k in range(ndim - 1, -1, -1):
-                        indices[k] += 1
-                        if indices[k] < shape[k]:
-                            break
-                        indices[k] = 0
-        finally:
-            if indices:
-                free(indices)
+        if self._tensor.storage.device == DEVICE_CPU:
+            tensor_mul_scalar_cpu(self._tensor, 0.0)
+            tensor_add_scalar_cpu(self._tensor, val)
+        elif self._tensor.storage.device == DEVICE_CUDA:
+            tensor_mul_scalar_cuda(self._tensor, 0.0)
+            tensor_add_scalar_cuda(self._tensor, val)
 
     cdef _fill_from_flat_list(self, list flat_vals):
+        """Fills tensor from flat python list with contiguous fast-path."""
+        cdef bint is_contig
+        if self._tensor.storage.device == DEVICE_CPU:
+            is_contig = tensor_is_contiguous_cpu(self._tensor)
+        else:
+            is_contig = tensor_is_contiguous_cuda(self._tensor)
+
+        # FAST PATH: If view is contiguous, use batch memory load
+        if is_contig:
+            self._set_data_from_list(flat_vals)
+            return
+
+        # STRIDED FALLBACK:
         cdef size_t numel = self._tensor.numel
         cdef size_t ndim = self._tensor.ndim
         cdef int64_t* shape = self._tensor.shape
@@ -281,7 +291,7 @@ cdef class Tensor:
         cdef int64_t offset = self._tensor.storage_offset
         cdef int device = self._tensor.storage.device
 
-        cdef float* target_ptr = NULL
+        cdef float* target_ptr = <float*>self._tensor.storage.data
         cdef int64_t* indices = NULL
         cdef size_t elem_i, k
         cdef int64_t cur_offset
@@ -290,16 +300,12 @@ cdef class Tensor:
         if numel != len(flat_vals):
             raise ValueError(f"Expected {numel} elements, got {len(flat_vals)}")
 
-        if numel == 0:
-            return
-
         if ndim > 0:
             indices = <int64_t*>calloc(ndim, sizeof(int64_t))
             if not indices:
                 raise MemoryError("Failed to allocate index buffer")
 
         try:
-            target_ptr = <float*>self._tensor.storage.data
             for elem_i in range(numel):
                 val = float(flat_vals[elem_i])
                 cur_offset = offset
@@ -327,17 +333,53 @@ cdef class Tensor:
                 free(indices)
 
     cdef _copy_from_tensor(self, Tensor src):
+        """Copies memory between tensors with single block memcpy fast-path."""
+        if self.shape != src.shape:
+            raise ValueError(f"Cannot copy tensor of shape {src.shape} to tensor of shape {self.shape}")
+
+        if self.device != src.device:
+            raise ValueError(f"Cannot copy between different devices: {self.device} vs {src.device}")
+
         cdef size_t numel = self._tensor.numel
+        if numel == 0:
+            return
+
+        cdef int device = self._tensor.storage.device
+        cdef bint dst_contig, src_contig
+
+        if device == DEVICE_CPU:
+            dst_contig = tensor_is_contiguous_cpu(self._tensor)
+            src_contig = tensor_is_contiguous_cpu(src._tensor)
+        else:
+            dst_contig = tensor_is_contiguous_cuda(self._tensor)
+            src_contig = tensor_is_contiguous_cuda(src._tensor)
+
+        # FAST PATH: Single block memory copy when both tensors are contiguous
+        if dst_contig and src_contig:
+            if device == DEVICE_CPU:
+                memcpy(
+                    <float*>self._tensor.storage.data + self._tensor.storage_offset,
+                    <float*>src._tensor.storage.data + src._tensor.storage_offset,
+                    numel * sizeof(float)
+                )
+            elif device == DEVICE_CUDA:
+                cudaMemcpy(
+                    <float*>self._tensor.storage.data + self._tensor.storage_offset,
+                    <float*>src._tensor.storage.data + src._tensor.storage_offset,
+                    numel * sizeof(float),
+                    cudaMemcpyDeviceToDevice
+                )
+            return
+
+        # STRIDED FALLBACK:
         cdef size_t ndim = self._tensor.ndim
         cdef int64_t* shape = self._tensor.shape
         cdef int64_t* strides = self._tensor.strides
         cdef int64_t offset = self._tensor.storage_offset
-        cdef int device = self._tensor.storage.device
 
         cdef size_t src_ndim = src._tensor.ndim
         cdef int64_t* src_strides = src._tensor.strides
         cdef int64_t src_offset = src._tensor.storage_offset
-        cdef int src_device = src._tensor.storage.device
 
         cdef float* target_ptr = <float*>self._tensor.storage.data
         cdef float* src_ptr = <float*>src._tensor.storage.data
@@ -346,15 +388,6 @@ cdef class Tensor:
         cdef int64_t* src_indices = NULL
         cdef size_t elem_i, k
         cdef int64_t cur_target_offset, cur_src_offset
-
-        if self.shape != src.shape:
-            raise ValueError(f"Cannot copy tensor of shape {src.shape} to tensor of shape {self.shape}")
-
-        if device != src_device:
-            raise ValueError(f"Cannot copy between different devices: {self.device} vs {src.device}")
-
-        if numel == 0:
-            return
 
         if ndim > 0:
             target_indices = <int64_t*>calloc(ndim, sizeof(int64_t))
@@ -402,113 +435,40 @@ cdef class Tensor:
             if src_indices: free(src_indices)
 
     cpdef _apply_inplace(self, object other, str op):
-        cdef size_t numel = self._tensor.numel
-        cdef size_t ndim = self._tensor.ndim
-        cdef int64_t* shape = self._tensor.shape
-        cdef int64_t* strides = self._tensor.strides
-        cdef int64_t offset = self._tensor.storage_offset
         cdef int device = self._tensor.storage.device
-        
-        cdef float* target_ptr = <float*>self._tensor.storage.data
-        cdef int64_t* indices = NULL
-        cdef size_t elem_i, k
-        cdef int64_t cur_offset, cur_src_offset
-        cdef float val = 0.0
-        cdef float src_val = 0.0
+        cdef float val
+        cdef Tensor src_tensor
 
-        cdef Tensor src_tensor = None
-        cdef size_t src_ndim = 0
-        cdef int64_t* src_strides = NULL
-        cdef int64_t src_offset = 0
-        cdef float* src_ptr = NULL
-        cdef int64_t* src_indices = NULL
+        if isinstance(other, (int, float)):
+            val = float(other)
+            if device == DEVICE_CPU:
+                if op == "+": tensor_add_scalar_cpu(self._tensor, val)
+                elif op == "-": tensor_sub_scalar_cpu(self._tensor, val)
+                elif op == "*": tensor_mul_scalar_cpu(self._tensor, val)
+                elif op == "/": tensor_div_scalar_cpu(self._tensor, val)
+            elif device == DEVICE_CUDA:
+                if op == "+": tensor_add_scalar_cuda(self._tensor, val)
+                elif op == "-": tensor_sub_scalar_cuda(self._tensor, val)
+                elif op == "*": tensor_mul_scalar_cuda(self._tensor, val)
+                elif op == "/": tensor_div_scalar_cuda(self._tensor, val)
 
-        # 1. Parse operand (Scalar vs Tensor)
-        if isinstance(other, Tensor):
+        elif isinstance(other, Tensor):
             src_tensor = <Tensor>other
             if self.shape != src_tensor.shape:
-                raise ValueError(f"Shape mismatch for in-place operation: {self.shape} vs {src_tensor.shape}")
+                raise ValueError(f"Shape mismatch: {self.shape} vs {src_tensor.shape}")
             if self.device != src_tensor.device:
-                raise ValueError(f"Device mismatch for in-place operation: {self.device} vs {src_tensor.device}")
-            
-            src_ndim = src_tensor._tensor.ndim
-            src_strides = src_tensor._tensor.strides
-            src_offset = src_tensor._tensor.storage_offset
-            src_ptr = <float*>src_tensor._tensor.storage.data
-            if src_ndim > 0:
-                src_indices = <int64_t*>calloc(src_ndim, sizeof(int64_t))
-        elif isinstance(other, (int, float)):
-            src_val = float(other)
-        else:
-            raise TypeError(f"Unsupported operand type for in-place operation: {type(other).__name__}")
+                raise ValueError(f"Device mismatch: {self.device} vs {src_tensor.device}")
 
-        if numel == 0:
-            return self
-
-        if ndim > 0:
-            indices = <int64_t*>calloc(ndim, sizeof(int64_t))
-            if not indices:
-                if src_indices: free(src_indices)
-                raise MemoryError("Failed to allocate index buffer")
-
-        try:
-            for elem_i in range(numel):
-                cur_offset = offset
-                for k in range(ndim):
-                    cur_offset += indices[k] * strides[k]
-
-                # Fetch source value if operand is a Tensor
-                if src_tensor is not None:
-                    cur_src_offset = src_offset
-                    for k in range(src_ndim):
-                        cur_src_offset += src_indices[k] * src_strides[k]
-                    
-                    if device == DEVICE_CPU:
-                        src_val = src_ptr[cur_src_offset]
-                    elif device == DEVICE_CUDA:
-                        cudaMemcpy(&src_val, src_ptr + cur_src_offset, sizeof(float), cudaMemcpyDeviceToHost)
-
-                # Fetch current target value
-                if device == DEVICE_CPU:
-                    val = target_ptr[cur_offset]
-                elif device == DEVICE_CUDA:
-                    cudaMemcpy(&val, target_ptr + cur_offset, sizeof(float), cudaMemcpyDeviceToHost)
-
-                # Perform arithmetic operation
-                if op == "+":
-                    val += src_val
-                elif op == "-":
-                    val -= src_val
-                elif op == "*":
-                    val *= src_val
-                elif op == "/":
-                    if src_val == 0.0:
-                        raise ZeroDivisionError("Division by zero in tensor in-place division")
-                    val /= src_val
-
-                # Write result back to target
-                if device == DEVICE_CPU:
-                    target_ptr[cur_offset] = val
-                elif device == DEVICE_CUDA:
-                    cudaMemcpy(target_ptr + cur_offset, &val, sizeof(float), cudaMemcpyHostToDevice)
-
-                # Advance indices for multi-dimensional traversal
-                if ndim > 0:
-                    for k in range(ndim - 1, -1, -1):
-                        indices[k] += 1
-                        if indices[k] < shape[k]:
-                            break
-                        indices[k] = 0
-
-                if src_indices != NULL:
-                    for k in range(src_ndim - 1, -1, -1):
-                        src_indices[k] += 1
-                        if src_indices[k] < src_tensor._tensor.shape[k]:
-                            break
-                        src_indices[k] = 0
-        finally:
-            if indices: free(indices)
-            if src_indices: free(src_indices)
+            if device == DEVICE_CPU:
+                if op == "+": tensor_add_tensor_cpu(self._tensor, src_tensor._tensor)
+                elif op == "-": tensor_sub_tensor_cpu(self._tensor, src_tensor._tensor)
+                elif op == "*": tensor_mul_tensor_cpu(self._tensor, src_tensor._tensor)
+                elif op == "/": tensor_div_tensor_cpu(self._tensor, src_tensor._tensor)
+            elif device == DEVICE_CUDA:
+                if op == "+": tensor_add_tensor_cuda(self._tensor, src_tensor._tensor)
+                elif op == "-": tensor_sub_tensor_cuda(self._tensor, src_tensor._tensor)
+                elif op == "*": tensor_mul_tensor_cuda(self._tensor, src_tensor._tensor)
+                elif op == "/": tensor_div_tensor_cuda(self._tensor, src_tensor._tensor)
 
         return self
 
@@ -525,14 +485,11 @@ cdef class Tensor:
         return self._apply_inplace(other, "/")
 
     def __setitem__(self, key, value):
-        # 1. Resolve sub-view for the given key
         cdef Tensor target = self[key]
 
-        # 2. Assign scalar float/int
         if isinstance(value, (int, float)):
             target._fill_scalar(float(value))
 
-        # 3. Assign Tensor
         elif isinstance(value, Tensor):
             if target.shape != (<Tensor>value).shape:
                 raise ValueError(
@@ -540,7 +497,6 @@ cdef class Tensor:
                 )
             target._copy_from_tensor(<Tensor>value)
 
-        # 4. Assign Python list / tuple
         elif isinstance(value, (list, tuple)):
             list_shape, flat_vals = _get_nested_list_shape_and_flat(value)
 

@@ -12,18 +12,23 @@
         "extra_compile_args": {
             "gcc": [
                 "-O3",
-                "-std=c99"
+                "-std=c99",
+                "-std=c++17"
             ],
             "nvcc": [
                 "-O3",
                 "-std=c++17"
             ]
         },
+        "extra_link_args": [
+            "-lstdc++"
+        ],
         "include_dirs": [
             "/teamspace/studios/this_studio/cyflow/src/include",
             "/teamspace/studios/this_studio/cyflow/.venv/lib/python3.12/site-packages/numpy/_core/include",
             "/usr/local/cuda/include"
         ],
+        "language": "c++",
         "libraries": [
             "cudart",
             "cublas",
@@ -559,20 +564,36 @@ typedef uintptr_t  __pyx_uintptr_t;
 #endif
 #define __PYX_REINTERPRET_FUNCION(func_pointer, other_pointer) ((func_pointer)(void(*)(void))(other_pointer))
 
-/* CInitCode */
+/* CppInitCode */
+#ifndef __cplusplus
+  #error "Cython files generated with the C++ option must be compiled with a C++ compiler."
+#endif
 #ifndef CYTHON_INLINE
   #if defined(__clang__)
     #define CYTHON_INLINE __inline__ __attribute__ ((__unused__))
-  #elif defined(__GNUC__)
-    #define CYTHON_INLINE __inline__
-  #elif defined(_MSC_VER)
-    #define CYTHON_INLINE __inline
-  #elif defined (__STDC_VERSION__) && __STDC_VERSION__ >= 199901L
-    #define CYTHON_INLINE inline
   #else
-    #define CYTHON_INLINE
+    #define CYTHON_INLINE inline
   #endif
 #endif
+template<typename T>
+void __Pyx_call_destructor(T& x) {
+    x.~T();
+}
+template<typename T>
+class __Pyx_FakeReference {
+  public:
+    __Pyx_FakeReference() : ptr(NULL) { }
+    __Pyx_FakeReference(const T& ref) : ptr(const_cast<T*>(&ref)) { }
+    T *operator->() { return ptr; }
+    T *operator&() { return ptr; }
+    operator T&() { return *ptr; }
+    template<typename U> bool operator ==(const U& other) const { return *ptr == other; }
+    template<typename U> bool operator !=(const U& other) const { return *ptr != other; }
+    template<typename U> bool operator==(const __Pyx_FakeReference<U>& other) const { return *ptr == *other.ptr; }
+    template<typename U> bool operator!=(const __Pyx_FakeReference<U>& other) const { return *ptr != *other.ptr; }
+  private:
+    T *ptr;
+};
 
 /* PythonCompatibility */
 #define __PYX_BUILD_PY_SSIZE_T "n"
@@ -1153,11 +1174,7 @@ static int __Pyx_init_co_variables(void) {
     #warning Please do not define the '__PYX_EXTERN_C' macro externally. Use 'CYTHON_EXTERN_C' instead.
     #endif
 #else
-  #ifdef __cplusplus
-    #define __PYX_EXTERN_C extern "C"
-  #else
-    #define __PYX_EXTERN_C extern
-  #endif
+    #define __PYX_EXTERN_C extern "C++"
 #endif
 
 #define __PYX_HAVE__cyflow__tensor
