@@ -8,4 +8,5 @@ void tensor_free_cpu(TensorImpl *tensor);
 void cyflow_manual_seed(unsigned int seed);
 void tensor_fill_uniform_cpu(TensorImpl *tensor);
 void cyflow_manual_seed_cuda(unsigned long long seed);
+void tensor_set_data_cpu(TensorImpl *tensor, const float *data);
 #endif // TENSOR_CPU_H
