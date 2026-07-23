@@ -1,5 +1,7 @@
 #include "cyflow/common.h"
 #include "cyflow/tensor_cuda.h"
+#include <stddef.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -40,3 +42,29 @@ void cyflow_manual_seed_cuda(unsigned long long seed) {
 void tensor_set_data_cuda(TensorImpl *tensor, const float *data) {
   cuda_not_available_error("tensor_set_data_cuda");
 }
+/* Define stub types and return codes to match CUDA headers */
+typedef int cudaError_t;
+#define cudaSuccess 0
+#define cudaErrorNoDevice 38
+
+typedef enum {
+  cudaMemcpyHostToHost = 0,
+  cudaMemcpyHostToDevice = 1,
+  cudaMemcpyDeviceToHost = 2,
+  cudaMemcpyDeviceToDevice = 3
+} cudaMemcpyKind;
+
+/* Stub implementation of cudaMemcpy for CPU-only builds */
+cudaError_t cudaMemcpy(void *dst, const void *src, size_t count,
+                       cudaMemcpyKind kind) {
+  // If running purely on CPU, this shouldn't be hit for actual device memory
+  // transfers, but returning success or handling a fallback prevents the linker
+  // error.
+  return cudaErrorNoDevice;
+}
+
+cudaError_t cudaMalloc(void **devPtr, size_t size) { return cudaErrorNoDevice; }
+
+cudaError_t cudaFree(void *devPtr) { return cudaErrorNoDevice; }
+
+cudaError_t cudaDeviceSynchronize(void) { return cudaSuccess; }

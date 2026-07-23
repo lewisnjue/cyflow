@@ -1,5 +1,5 @@
 # cython: language_level=3
-
+from libc.stdlib cimport malloc, free, calloc
 from libc.stdint cimport int64_t
 from libc.stdlib cimport malloc, free
 
@@ -46,6 +46,14 @@ cdef extern from "cyflow/tensor_cuda.h":
     void cyflow_manual_seed_cuda(unsigned long long seed)
     void tensor_set_data_cuda(TensorImpl *tensor, const float *data)
 
+cdef extern from "cuda_runtime.h":
+    cdef enum cudaMemcpyKind:
+        cudaMemcpyHostToHost
+        cudaMemcpyHostToDevice
+        cudaMemcpyDeviceToHost
+        cudaMemcpyDeviceToDevice
+    int cudaMemcpy(void* dst, const void* src, size_t count, cudaMemcpyKind kind)
+
 CPU = DEVICE_CPU
 CUDA = DEVICE_CUDA
 
@@ -56,6 +64,35 @@ cpdef manual_seed(unsigned long long seed, int device=CPU):
         cyflow_manual_seed_cuda(seed)
     else:
         raise ValueError(f"Unsupported device integer: {device}")
+
+def _get_nested_list_shape_and_flat(lst):
+    if not isinstance(lst, (list, tuple)):
+        raise TypeError("Expected list or tuple")
+
+    shape = []
+    curr = lst
+    while isinstance(curr, (list, tuple)):
+        shape.append(len(curr))
+        if len(curr) == 0:
+            break
+        curr = curr[0]
+
+    flat = []
+    def _flatten(item, depth=0):
+        if isinstance(item, (list, tuple)):
+            if depth < len(shape) and len(item) != shape[depth]:
+                raise ValueError(
+                    f"Inconsistent list dimension at depth {depth}: expected {shape[depth]}, got {len(item)}"
+                )
+            for sub in item:
+                _flatten(sub, depth + 1)
+        elif isinstance(item, (int, float)):
+            flat.append(float(item))
+        else:
+            raise TypeError(f"Invalid element type in list: {type(item).__name__}")
+
+    _flatten(lst)
+    return tuple(shape), flat
 
 cdef class Tensor:
     cdef TensorImpl* _tensor
@@ -139,6 +176,211 @@ cdef class Tensor:
             tensor_fill_uniform_cpu(self._tensor)
         elif self._tensor.storage.device == DEVICE_CUDA:
             tensor_fill_uniform_cuda(self._tensor)
+    cdef _fill_scalar(self, float val):
+        cdef size_t numel = self._tensor.numel
+        cdef size_t ndim = self._tensor.ndim
+        cdef int64_t* shape = self._tensor.shape
+        cdef int64_t* strides = self._tensor.strides
+        cdef int64_t offset = self._tensor.storage_offset
+        cdef int device = self._tensor.storage.device
+
+        cdef float* target_ptr = NULL
+        cdef int64_t* indices = NULL
+        cdef size_t elem_i, k
+        cdef int64_t cur_offset
+
+        if numel == 0:
+            return
+
+        if ndim > 0:
+            indices = <int64_t*>calloc(ndim, sizeof(int64_t))
+            if not indices:
+                raise MemoryError("Failed to allocate index buffer")
+
+        try:
+            target_ptr = <float*>self._tensor.storage.data
+            for elem_i in range(numel):
+                cur_offset = offset
+                for k in range(ndim):
+                    cur_offset += indices[k] * strides[k]
+
+                if device == DEVICE_CPU:
+                    target_ptr[cur_offset] = val
+                elif device == DEVICE_CUDA:
+                    cudaMemcpy(
+                        target_ptr + cur_offset,
+                        &val,
+                        sizeof(float),
+                        cudaMemcpyHostToDevice
+                    )
+
+                if ndim > 0:
+                    for k in range(ndim - 1, -1, -1):
+                        indices[k] += 1
+                        if indices[k] < shape[k]:
+                            break
+                        indices[k] = 0
+        finally:
+            if indices:
+                free(indices)
+
+    cdef _fill_from_flat_list(self, list flat_vals):
+        cdef size_t numel = self._tensor.numel
+        cdef size_t ndim = self._tensor.ndim
+        cdef int64_t* shape = self._tensor.shape
+        cdef int64_t* strides = self._tensor.strides
+        cdef int64_t offset = self._tensor.storage_offset
+        cdef int device = self._tensor.storage.device
+
+        cdef float* target_ptr = NULL
+        cdef int64_t* indices = NULL
+        cdef size_t elem_i, k
+        cdef int64_t cur_offset
+        cdef float val
+
+        if numel != len(flat_vals):
+            raise ValueError(f"Expected {numel} elements, got {len(flat_vals)}")
+
+        if numel == 0:
+            return
+
+        if ndim > 0:
+            indices = <int64_t*>calloc(ndim, sizeof(int64_t))
+            if not indices:
+                raise MemoryError("Failed to allocate index buffer")
+
+        try:
+            target_ptr = <float*>self._tensor.storage.data
+            for elem_i in range(numel):
+                val = float(flat_vals[elem_i])
+                cur_offset = offset
+                for k in range(ndim):
+                    cur_offset += indices[k] * strides[k]
+
+                if device == DEVICE_CPU:
+                    target_ptr[cur_offset] = val
+                elif device == DEVICE_CUDA:
+                    cudaMemcpy(
+                        target_ptr + cur_offset,
+                        &val,
+                        sizeof(float),
+                        cudaMemcpyHostToDevice
+                    )
+
+                if ndim > 0:
+                    for k in range(ndim - 1, -1, -1):
+                        indices[k] += 1
+                        if indices[k] < shape[k]:
+                            break
+                        indices[k] = 0
+        finally:
+            if indices:
+                free(indices)
+
+    cdef _copy_from_tensor(self, Tensor src):
+        cdef size_t numel = self._tensor.numel
+        cdef size_t ndim = self._tensor.ndim
+        cdef int64_t* shape = self._tensor.shape
+        cdef int64_t* strides = self._tensor.strides
+        cdef int64_t offset = self._tensor.storage_offset
+        cdef int device = self._tensor.storage.device
+
+        cdef size_t src_ndim = src._tensor.ndim
+        cdef int64_t* src_strides = src._tensor.strides
+        cdef int64_t src_offset = src._tensor.storage_offset
+        cdef int src_device = src._tensor.storage.device
+
+        cdef float* target_ptr = <float*>self._tensor.storage.data
+        cdef float* src_ptr = <float*>src._tensor.storage.data
+
+        cdef int64_t* target_indices = NULL
+        cdef int64_t* src_indices = NULL
+        cdef size_t elem_i, k
+        cdef int64_t cur_target_offset, cur_src_offset
+
+        if self.shape != src.shape:
+            raise ValueError(f"Cannot copy tensor of shape {src.shape} to tensor of shape {self.shape}")
+
+        if device != src_device:
+            raise ValueError(f"Cannot copy between different devices: {self.device} vs {src.device}")
+
+        if numel == 0:
+            return
+
+        if ndim > 0:
+            target_indices = <int64_t*>calloc(ndim, sizeof(int64_t))
+            src_indices = <int64_t*>calloc(src_ndim, sizeof(int64_t))
+            if not target_indices or not src_indices:
+                if target_indices: free(target_indices)
+                if src_indices: free(src_indices)
+                raise MemoryError("Failed to allocate index buffer")
+
+        try:
+            for elem_i in range(numel):
+                cur_target_offset = offset
+                for k in range(ndim):
+                    cur_target_offset += target_indices[k] * strides[k]
+
+                cur_src_offset = src_offset
+                for k in range(src_ndim):
+                    cur_src_offset += src_indices[k] * src_strides[k]
+
+                if device == DEVICE_CPU:
+                    target_ptr[cur_target_offset] = src_ptr[cur_src_offset]
+                elif device == DEVICE_CUDA:
+                    cudaMemcpy(
+                        target_ptr + cur_target_offset,
+                        src_ptr + cur_src_offset,
+                        sizeof(float),
+                        cudaMemcpyDeviceToDevice
+                    )
+
+                if ndim > 0:
+                    for k in range(ndim - 1, -1, -1):
+                        target_indices[k] += 1
+                        if target_indices[k] < shape[k]:
+                            break
+                        target_indices[k] = 0
+
+                if src_ndim > 0:
+                    for k in range(src_ndim - 1, -1, -1):
+                        src_indices[k] += 1
+                        if src_indices[k] < src._tensor.shape[k]:
+                            break
+                        src_indices[k] = 0
+        finally:
+            if target_indices: free(target_indices)
+            if src_indices: free(src_indices)
+
+    def __setitem__(self, key, value):
+        # 1. Resolve sub-view for the given key
+        cdef Tensor target = self[key]
+
+        # 2. Assign scalar float/int
+        if isinstance(value, (int, float)):
+            target._fill_scalar(float(value))
+
+        # 3. Assign Tensor
+        elif isinstance(value, Tensor):
+            if target.shape != (<Tensor>value).shape:
+                raise ValueError(
+                    f"Shape mismatch: cannot assign Tensor with shape {(<Tensor>value).shape} to target view with shape {target.shape}"
+                )
+            target._copy_from_tensor(<Tensor>value)
+
+        # 4. Assign Python list / tuple
+        elif isinstance(value, (list, tuple)):
+            list_shape, flat_vals = _get_nested_list_shape_and_flat(value)
+
+            if target.shape != list_shape:
+                raise ValueError(
+                    f"Shape mismatch: cannot assign list with shape {list_shape} to target view with shape {target.shape}"
+                )
+
+            target._fill_from_flat_list(flat_vals)
+
+        else:
+            raise TypeError(f"Cannot assign value of type {type(value).__name__} to Tensor")
 
     def view(self, *shape) -> Tensor:
         cdef size_t target_numel = 1
@@ -246,7 +488,6 @@ cdef class Tensor:
         if explicit_axes > self.ndim:
             raise IndexError(f"Too many indices for tensor: tensor is {self.ndim}D, but {explicit_axes} axes were indexed")
 
-        # 3. Expand Ellipsis (...) into explicit slice(None) objects
         clean_key = []
         missing_axes = self.ndim - explicit_axes
 
@@ -257,7 +498,6 @@ cdef class Tensor:
             else:
                 clean_key.append(item)
 
-        # 4. Calculate output dimensions and allocate shape/strides memory
         out_ndim = (self.ndim - num_int) + num_none
 
         if out_ndim > 0:
@@ -268,17 +508,14 @@ cdef class Tensor:
                 if c_strides: free(c_strides)
                 raise MemoryError("Failed to allocate shape/stride memory for view")
 
-        # 5. Single-pass loop calculating shapes, strides, and memory offsets
         for item in clean_key:
             if item is None:
-                # Insert a new dimension of size 1 (np.newaxis / unsqueeze)
                 c_shape[dst_dim] = 1
                 if src_dim < self.ndim:
                     c_strides[dst_dim] = self._tensor.strides[src_dim]
                 else:
                     c_strides[dst_dim] = 1
                 dst_dim += 1
-                # src_dim is NOT incremented (doesn't consume source dimension)
 
             elif isinstance(item, int):
                 cur_dim_size = self._tensor.shape[src_dim]
@@ -293,7 +530,6 @@ cdef class Tensor:
 
                 offset_delta += idx * cur_stride
                 src_dim += 1
-                # dst_dim is NOT incremented (integer indexing collapses the dimension)
 
             elif isinstance(item, slice):
                 cur_dim_size = self._tensor.shape[src_dim]

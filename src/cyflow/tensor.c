@@ -1144,12 +1144,13 @@ static int __Pyx_init_co_variables(void) {
 #define __PYX_HAVE__cyflow__tensor
 #define __PYX_HAVE_API__cyflow__tensor
 /* Early includes */
-#include <stdint.h>
 #include <string.h>
 #include <stdlib.h>
+#include <stdint.h>
 #include "cyflow/common.h"
 #include "cyflow/tensor_cpu.h"
 #include "cyflow/tensor_cuda.h"
+#include "cuda_runtime.h"
 #ifdef _OPENMP
 #include <omp.h>
 #endif /* _OPENMP */
@@ -1545,9 +1546,10 @@ static const char* const __pyx_f[] = {
 
 /*--- Type declarations ---*/
 struct __pyx_obj_6cyflow_6tensor_Tensor;
+struct __pyx_obj_6cyflow_6tensor___pyx_scope_struct___get_nested_list_shape_and_flat;
 struct __pyx_opt_args_6cyflow_6tensor_manual_seed;
 
-/* "cyflow/tensor.pyx":52
+/* "cyflow/tensor.pyx":60
  * CUDA = DEVICE_CUDA
  * 
  * cpdef manual_seed(unsigned long long seed, int device=CPU):             # <<<<<<<<<<<<<<
@@ -1559,8 +1561,8 @@ struct __pyx_opt_args_6cyflow_6tensor_manual_seed {
   int device;
 };
 
-/* "cyflow/tensor.pyx":60
- *         raise ValueError(f"Unsupported device integer: {device}")
+/* "cyflow/tensor.pyx":97
+ *     return tuple(shape), flat
  * 
  * cdef class Tensor:             # <<<<<<<<<<<<<<
  *     cdef TensorImpl* _tensor
@@ -1573,9 +1575,35 @@ struct __pyx_obj_6cyflow_6tensor_Tensor {
 };
 
 
+/* "cyflow/tensor.pyx":68
+ *         raise ValueError(f"Unsupported device integer: {device}")
+ * 
+ * def _get_nested_list_shape_and_flat(lst):             # <<<<<<<<<<<<<<
+ *     if not isinstance(lst, (list, tuple)):
+ *         raise TypeError("Expected list or tuple")
+*/
+struct __pyx_obj_6cyflow_6tensor___pyx_scope_struct___get_nested_list_shape_and_flat {
+  PyObject_HEAD
+  PyObject *__pyx_v__flatten;
+  PyObject *__pyx_v_flat;
+  PyObject *__pyx_v_shape;
+};
+
+
+
+/* "cyflow/tensor.pyx":97
+ *     return tuple(shape), flat
+ * 
+ * cdef class Tensor:             # <<<<<<<<<<<<<<
+ *     cdef TensorImpl* _tensor
+ * 
+*/
 
 struct __pyx_vtabstruct_6cyflow_6tensor_Tensor {
   struct __pyx_obj_6cyflow_6tensor_Tensor *(*_from_c_tensor)(TensorImpl *);
+  PyObject *(*_fill_scalar)(struct __pyx_obj_6cyflow_6tensor_Tensor *, float);
+  PyObject *(*_fill_from_flat_list)(struct __pyx_obj_6cyflow_6tensor_Tensor *, PyObject *);
+  PyObject *(*_copy_from_tensor)(struct __pyx_obj_6cyflow_6tensor_Tensor *, struct __pyx_obj_6cyflow_6tensor_Tensor *);
 };
 static struct __pyx_vtabstruct_6cyflow_6tensor_Tensor *__pyx_vtabptr_6cyflow_6tensor_Tensor;
 /* #### Code section: utility_code_proto ### */
@@ -1942,8 +1970,8 @@ static CYTHON_INLINE int __Pyx_ParseKeywords(
 static void __Pyx_RaiseArgtupleInvalid(const char* func_name, int exact,
     Py_ssize_t num_min, Py_ssize_t num_max, Py_ssize_t num_found);
 
-/* PyMemoryError_Check.proto */
-#define __Pyx_PyExc_MemoryError_Check(obj)  __Pyx_TypeCheck(obj, PyExc_MemoryError)
+/* RaiseClosureNameError.proto */
+static void __Pyx_RaiseClosureNameError(const char *varname);
 
 /* GetItemInt.proto */
 #define __Pyx_GetItemInt(o, i, type, is_signed, to_py_func, is_list, wraparound, boundscheck, has_gil, unsafe_shared)\
@@ -1967,57 +1995,11 @@ static PyObject *__Pyx_GetItemInt_Generic(PyObject *o, PyObject* j);
 static CYTHON_INLINE PyObject *__Pyx_GetItemInt_Fast(PyObject *o, Py_ssize_t i,
                                                      int is_list, int wraparound, int boundscheck, int unsafe_shared);
 
-/* GetException.proto */
-#if CYTHON_FAST_THREAD_STATE
-#define __Pyx_GetException(type, value, tb)  __Pyx__GetException(__pyx_tstate, type, value, tb)
-static int __Pyx__GetException(PyThreadState *tstate, PyObject **type, PyObject **value, PyObject **tb);
+/* ObjectGetItem.proto */
+#if CYTHON_USE_TYPE_SLOTS
+static CYTHON_INLINE PyObject *__Pyx_PyObject_GetItem(PyObject *obj, PyObject *key);
 #else
-static int __Pyx_GetException(PyObject **type, PyObject **value, PyObject **tb);
-#endif
-
-/* SwapException.proto */
-#if CYTHON_FAST_THREAD_STATE
-#define __Pyx_ExceptionSwap(type, value, tb)  __Pyx__ExceptionSwap(__pyx_tstate, type, value, tb)
-static CYTHON_INLINE void __Pyx__ExceptionSwap(PyThreadState *tstate, PyObject **type, PyObject **value, PyObject **tb);
-#else
-static CYTHON_INLINE void __Pyx_ExceptionSwap(PyObject **type, PyObject **value, PyObject **tb);
-#endif
-
-/* GetTopmostException.proto (used by SaveResetException) */
-#if CYTHON_USE_EXC_INFO_STACK && CYTHON_FAST_THREAD_STATE
-static _PyErr_StackItem * __Pyx_PyErr_GetTopmostException(PyThreadState *tstate);
-#endif
-
-/* SaveResetException.proto */
-#if CYTHON_FAST_THREAD_STATE
-#define __Pyx_ExceptionSave(type, value, tb)  __Pyx__ExceptionSave(__pyx_tstate, type, value, tb)
-static CYTHON_INLINE void __Pyx__ExceptionSave(PyThreadState *tstate, PyObject **type, PyObject **value, PyObject **tb);
-#define __Pyx_ExceptionReset(type, value, tb)  __Pyx__ExceptionReset(__pyx_tstate, type, value, tb)
-static CYTHON_INLINE void __Pyx__ExceptionReset(PyThreadState *tstate, PyObject *type, PyObject *value, PyObject *tb);
-#else
-#define __Pyx_ExceptionSave(type, value, tb)   PyErr_GetExcInfo(type, value, tb)
-#define __Pyx_ExceptionReset(type, value, tb)  PyErr_SetExcInfo(type, value, tb)
-#endif
-
-/* ListCompAppend.proto */
-#if CYTHON_USE_PYLIST_INTERNALS && CYTHON_ASSUME_SAFE_MACROS
-static CYTHON_INLINE int __Pyx_ListComp_Append(PyObject* list, PyObject* x) {
-    PyListObject* L = (PyListObject*) list;
-    Py_ssize_t len = Py_SIZE(list);
-    if (likely(L->allocated > len)) {
-        Py_INCREF(x);
-        #if CYTHON_COMPILING_IN_CPYTHON && PY_VERSION_HEX >= 0x030d0000
-        L->ob_item[len] = x;
-        #else
-        PyList_SET_ITEM(list, len, x);
-        #endif
-        __Pyx_SET_SIZE(list, len + 1);
-        return 0;
-    }
-    return PyList_Append(list, x);
-}
-#else
-#define __Pyx_ListComp_Append(L,x) PyList_Append(L,x)
+#define __Pyx_PyObject_GetItem(obj, key)  PyObject_GetItem(obj, key)
 #endif
 
 /* PyObjectFormatSimple.proto */
@@ -2037,24 +2019,6 @@ static CYTHON_INLINE int __Pyx_ListComp_Append(PyObject* list, PyObject* x) {
         PyObject_Format(s, f))
 #endif
 
-/* JoinPyUnicode.export */
-static PyObject* __Pyx_PyUnicode_Join(PyObject** values, Py_ssize_t value_count, Py_ssize_t result_ulength,
-                                      Py_UCS4 max_char);
-
-/* RejectKeywords.export */
-static void __Pyx_RejectKeywords(const char* function_name, PyObject *kwds);
-
-/* PyRuntimeError_Check.proto */
-#define __Pyx_PyExc_RuntimeError_Check(obj)  __Pyx_TypeCheck(obj, PyExc_RuntimeError)
-
-/* ArgTypeTestFunc.export */
-static int __Pyx__ArgTypeTest(PyObject *obj, PyTypeObject *type, const char *name, int exact);
-
-/* ArgTypeTest.proto */
-#define __Pyx_ArgTypeTest(obj, type, none_allowed, name, exact)\
-    ((likely(__Pyx_IS_TYPE(obj, type) | (none_allowed && (obj == Py_None)))) ? 1 :\
-        __Pyx__ArgTypeTest(obj, type, name, exact))
-
 /* CIntToPyUnicode.proto */
 #define __Pyx_PyUnicode_From_Py_ssize_t(value, width, padding_char, format_char) (\
     ((format_char) == ('c')) ?\
@@ -2064,7 +2028,40 @@ static int __Pyx__ArgTypeTest(PyObject *obj, PyTypeObject *type, const char *nam
 static CYTHON_INLINE PyObject* __Pyx_uchar___Pyx_PyUnicode_From_Py_ssize_t(Py_ssize_t value, Py_ssize_t width, char padding_char);
 static CYTHON_INLINE PyObject* __Pyx____Pyx_PyUnicode_From_Py_ssize_t(Py_ssize_t value, Py_ssize_t width, char padding_char, char format_char);
 
-/* pybytes_as_double.proto (used by pyobject_as_double) */
+/* JoinPyUnicode.export */
+static PyObject* __Pyx_PyUnicode_Join(PyObject** values, Py_ssize_t value_count, Py_ssize_t result_ulength,
+                                      Py_UCS4 max_char);
+
+/* PyLongBinop.proto */
+#if !CYTHON_COMPILING_IN_PYPY
+static CYTHON_INLINE PyObject* __Pyx_PyLong_AddObjC(PyObject *op1, PyObject *op2, long intval, int inplace, int zerodivision_check);
+#else
+#define __Pyx_PyLong_AddObjC(op1, op2, intval, inplace, zerodivision_check)\
+    (inplace ? PyNumber_InPlaceAdd(op1, op2) : PyNumber_Add(op1, op2))
+#endif
+
+/* ListAppend.proto */
+#if CYTHON_USE_PYLIST_INTERNALS && CYTHON_ASSUME_SAFE_MACROS
+static CYTHON_INLINE int __Pyx_PyList_Append(PyObject* list, PyObject* x) {
+    PyListObject* L = (PyListObject*) list;
+    Py_ssize_t len = Py_SIZE(list);
+    if (likely(L->allocated > len) & likely(len > (L->allocated >> 1))) {
+        Py_INCREF(x);
+        #if CYTHON_COMPILING_IN_CPYTHON && PY_VERSION_HEX >= 0x030d0000
+        L->ob_item[len] = x;
+        #else
+        PyList_SET_ITEM(list, len, x);
+        #endif
+        __Pyx_SET_SIZE(list, len + 1);
+        return 0;
+    }
+    return PyList_Append(list, x);
+}
+#else
+#define __Pyx_PyList_Append(L,x) PyList_Append(L,x)
+#endif
+
+/* pybytes_as_double.proto (used by pynumber_float) */
 static double __Pyx_SlowPyString_AsDouble(PyObject *obj);
 static double __Pyx__PyBytes_AsDouble(PyObject *obj, const char* start, Py_ssize_t length);
 static CYTHON_INLINE double __Pyx_PyBytes_AsDouble(PyObject *obj) {
@@ -2096,7 +2093,7 @@ static CYTHON_INLINE double __Pyx_PyByteArray_AsDouble(PyObject *obj) {
     return __Pyx__PyBytes_AsDouble(obj, as_c_string, size);
 }
 
-/* pyunicode_as_double.proto (used by pyobject_as_double) */
+/* pyunicode_as_double.proto (used by pynumber_float) */
 #if !CYTHON_COMPILING_IN_PYPY && CYTHON_ASSUME_SAFE_MACROS
 static const char* __Pyx__PyUnicode_AsDouble_Copy(const void* data, const int kind, char* buffer, Py_ssize_t start, Py_ssize_t end) {
     int last_was_punctuation;
@@ -2223,119 +2220,15 @@ static CYTHON_INLINE double __Pyx_PyUnicode_AsDouble(PyObject *obj) {
 #endif
 }
 
-/* pyobject_as_double.proto */
-static double __Pyx__PyObject_AsDouble(PyObject* obj);
-#if CYTHON_COMPILING_IN_PYPY
-#define __Pyx_PyObject_AsDouble(obj)\
-(likely(PyFloat_CheckExact(obj)) ? PyFloat_AS_DOUBLE(obj) :\
- likely(PyLong_CheckExact(obj)) ?\
- PyFloat_AsDouble(obj) : __Pyx__PyObject_AsDouble(obj))
-#else
-#define __Pyx_PyObject_AsDouble(obj)\
-((likely(PyFloat_CheckExact(obj))) ?  __Pyx_PyFloat_AS_DOUBLE(obj) :\
- likely(PyLong_CheckExact(obj)) ?\
- PyLong_AsDouble(obj) : __Pyx__PyObject_AsDouble(obj))
-#endif
-
-/* FloatExceptionCheck.proto */
-#define __PYX_CHECK_FLOAT_EXCEPTION(value, error_value)\
-    ((error_value) == (error_value) ?\
-     (value) == (error_value) :\
-     (value) != (value))
-
-/* RaiseUnexpectedTypeError.proto */
-static int __Pyx_RaiseUnexpectedTypeError(const char *expected, PyObject *obj);
-
-/* PyNotImplementedError_Check.proto */
-#define __Pyx_PyExc_NotImplementedError_Check(obj)  __Pyx_TypeCheck(obj, PyExc_NotImplementedError)
-
-/* PyIndexError_Check.proto */
-#define __Pyx_PyExc_IndexError_Check(obj)  __Pyx_TypeCheck(obj, PyExc_IndexError)
+/* pynumber_float.proto */
+static CYTHON_INLINE PyObject* __Pyx__PyNumber_Float(PyObject* obj);
+#define __Pyx_PyNumber_Float(x) (PyFloat_CheckExact(x) ? __Pyx_NewRef(x) : __Pyx__PyNumber_Float(x))
 
 /* PyTypeError_Check.proto */
 #define __Pyx_PyExc_TypeError_Check(obj)  __Pyx_TypeCheck(obj, PyExc_TypeError)
 
-/* ListAppend.proto */
-#if CYTHON_USE_PYLIST_INTERNALS && CYTHON_ASSUME_SAFE_MACROS
-static CYTHON_INLINE int __Pyx_PyList_Append(PyObject* list, PyObject* x) {
-    PyListObject* L = (PyListObject*) list;
-    Py_ssize_t len = Py_SIZE(list);
-    if (likely(L->allocated > len) & likely(len > (L->allocated >> 1))) {
-        Py_INCREF(x);
-        #if CYTHON_COMPILING_IN_CPYTHON && PY_VERSION_HEX >= 0x030d0000
-        L->ob_item[len] = x;
-        #else
-        PyList_SET_ITEM(list, len, x);
-        #endif
-        __Pyx_SET_SIZE(list, len + 1);
-        return 0;
-    }
-    return PyList_Append(list, x);
-}
-#else
-#define __Pyx_PyList_Append(L,x) PyList_Append(L,x)
-#endif
-
-/* CIntToPyUnicode.proto */
-#define __Pyx_PyUnicode_From_size_t(value, width, padding_char, format_char) (\
-    ((format_char) == ('c')) ?\
-        __Pyx_uchar___Pyx_PyUnicode_From_size_t(value, width, padding_char) :\
-        __Pyx____Pyx_PyUnicode_From_size_t(value, width, padding_char, format_char)\
-    )
-static CYTHON_INLINE PyObject* __Pyx_uchar___Pyx_PyUnicode_From_size_t(size_t value, Py_ssize_t width, char padding_char);
-static CYTHON_INLINE PyObject* __Pyx____Pyx_PyUnicode_From_size_t(size_t value, Py_ssize_t width, char padding_char, char format_char);
-
-/* CIntToPyUnicode.proto */
-#define __Pyx_PyUnicode_From_int64_t(value, width, padding_char, format_char) (\
-    ((format_char) == ('c')) ?\
-        __Pyx_uchar___Pyx_PyUnicode_From_int64_t(value, width, padding_char) :\
-        __Pyx____Pyx_PyUnicode_From_int64_t(value, width, padding_char, format_char)\
-    )
-static CYTHON_INLINE PyObject* __Pyx_uchar___Pyx_PyUnicode_From_int64_t(int64_t value, Py_ssize_t width, char padding_char);
-static CYTHON_INLINE PyObject* __Pyx____Pyx_PyUnicode_From_int64_t(int64_t value, Py_ssize_t width, char padding_char, char format_char);
-
-/* PyObjectFastCallMethod.proto */
-#if CYTHON_VECTORCALL && PY_VERSION_HEX >= 0x03090000
-#define __Pyx_PyObject_FastCallMethod(name, args, nargsf) PyObject_VectorcallMethod(name, args, nargsf, NULL)
-#else
-static PyObject *__Pyx_PyObject_FastCallMethod(PyObject *name, PyObject *const *args, size_t nargsf);
-#endif
-
-/* RaiseTooManyValuesToUnpack.proto */
-static CYTHON_INLINE void __Pyx_RaiseTooManyValuesError(Py_ssize_t expected);
-
-/* RaiseNeedMoreValuesToUnpack.proto */
-static CYTHON_INLINE void __Pyx_RaiseNeedMoreValuesError(Py_ssize_t index);
-
-/* IterFinish.proto */
-static CYTHON_INLINE int __Pyx_IterFinish(void);
-
-/* UnpackItemEndCheck.proto */
-static int __Pyx_IternextUnpackEndCheck(PyObject *retval, Py_ssize_t expected);
-
-/* DivInt[Py_ssize_t].proto */
-static CYTHON_INLINE Py_ssize_t __Pyx_div_Py_ssize_t(Py_ssize_t, Py_ssize_t, int b_is_constant);
-
-/* UnaryNegOverflows.proto */
-#define __Pyx_UNARY_NEG_WOULD_OVERFLOW(x)\
-        (((x) < 0) & ((unsigned long)(x) == 0-(unsigned long)(x)))
-
-/* AllocateExtensionType.proto */
-static PyObject *__Pyx_AllocateExtensionType(PyTypeObject *t, int is_final);
-
-/* DeallocKeepAlive.proto */
-#if CYTHON_COMPILING_IN_CPYTHON_FREETHREADING
-#define __Pyx_DeallocKeepAliveBegin(o) do {\
-        _Py_atomic_store_uintptr_relaxed(&(o)->ob_tid, _Py_ThreadId());\
-        _Py_atomic_store_uint32_relaxed(&(o)->ob_ref_local, 1);\
-        _Py_atomic_store_ssize_relaxed(&(o)->ob_ref_shared, 0);\
-    } while (0)
-#define __Pyx_DeallocKeepAliveEnd(o)\
-        _Py_atomic_store_uint32_relaxed(&(o)->ob_ref_local, 0)
-#else
-#define __Pyx_DeallocKeepAliveBegin(o) __Pyx_SET_REFCNT(o, Py_REFCNT(o) + 1)
-#define __Pyx_DeallocKeepAliveEnd(o)   __Pyx_SET_REFCNT(o, Py_REFCNT(o) - 1)
-#endif
+/* dict_setdefault.proto (used by FetchCommonType) */
+static CYTHON_INLINE PyObject *__Pyx_PyDict_SetDefault(PyObject *d, PyObject *key, PyObject *default_value);
 
 /* LimitedApiGetTypeDict.proto (used by SetItemOnTypeDict) */
 #if CYTHON_COMPILING_IN_LIMITED_API
@@ -2346,93 +2239,8 @@ static PyObject *__Pyx_GetTypeDict(PyTypeObject *tp);
 static int __Pyx__SetItemOnTypeDict(PyTypeObject *tp, PyObject *k, PyObject *v);
 #define __Pyx_SetItemOnTypeDict(tp, k, v) __Pyx__SetItemOnTypeDict((PyTypeObject*)tp, k, v)
 
-/* FixUpExtensionType.proto */
+/* FixUpExtensionType.proto (used by FetchCommonType) */
 static CYTHON_INLINE int __Pyx_fix_up_extension_type_from_spec(PyType_Spec *spec, PyTypeObject *type);
-
-/* PyObjectCallNoArg.proto (used by PyObjectCallMethod0) */
-static CYTHON_INLINE PyObject* __Pyx_PyObject_CallNoArg(PyObject *func);
-
-/* PyObjectGetMethod.proto (used by PyObjectCallMethod0) */
-#if !(CYTHON_VECTORCALL && (__PYX_LIMITED_VERSION_HEX >= 0x030C0000 || (!CYTHON_COMPILING_IN_LIMITED_API && PY_VERSION_HEX >= 0x03090000)))
-static int __Pyx_PyObject_GetMethod(PyObject *obj, PyObject *name, PyObject **method);
-#endif
-
-/* PyObjectCallMethod0.proto (used by PyType_Ready) */
-static PyObject* __Pyx_PyObject_CallMethod0(PyObject* obj, PyObject* method_name);
-
-/* ValidateBasesTuple.proto (used by PyType_Ready) */
-#if CYTHON_COMPILING_IN_CPYTHON || CYTHON_COMPILING_IN_LIMITED_API || CYTHON_USE_TYPE_SPECS
-static int __Pyx_validate_bases_tuple(const char *type_name, Py_ssize_t dictoffset, PyObject *bases);
-#endif
-
-/* PyType_Ready.proto */
-CYTHON_UNUSED static int __Pyx_PyType_Ready(PyTypeObject *t);
-
-/* SetVTable.proto */
-static int __Pyx_SetVtable(PyTypeObject* typeptr , void* vtable);
-
-/* GetVTable.proto (used by MergeVTables) */
-static void* __Pyx_GetVtable(PyTypeObject *type);
-
-/* MergeVTables.proto */
-static int __Pyx_MergeVtables(PyTypeObject *type);
-
-/* DelItemOnTypeDict.proto (used by SetupReduce) */
-static int __Pyx__DelItemOnTypeDict(PyTypeObject *tp, PyObject *k);
-#define __Pyx_DelItemOnTypeDict(tp, k) __Pyx__DelItemOnTypeDict((PyTypeObject*)tp, k)
-
-/* SetupReduce.proto */
-static int __Pyx_setup_reduce(PyObject* type_obj);
-
-/* PyDictVersioning.proto (used by GetModuleGlobalName) */
-#if CYTHON_USE_DICT_VERSIONS && CYTHON_USE_TYPE_SLOTS
-#define __PYX_DICT_VERSION_INIT  ((PY_UINT64_T) -1)
-#define __PYX_GET_DICT_VERSION(dict)  (((PyDictObject*)(dict))->ma_version_tag)
-#define __PYX_UPDATE_DICT_CACHE(dict, value, cache_var, version_var)\
-    (version_var) = __PYX_GET_DICT_VERSION(dict);\
-    (cache_var) = (value);
-#define __PYX_PY_DICT_LOOKUP_IF_MODIFIED(VAR, DICT, LOOKUP) {\
-    static PY_UINT64_T __pyx_dict_version = 0;\
-    static PyObject *__pyx_dict_cached_value = NULL;\
-    if (likely(__PYX_GET_DICT_VERSION(DICT) == __pyx_dict_version)) {\
-        (VAR) = __Pyx_XNewRef(__pyx_dict_cached_value);\
-    } else {\
-        (VAR) = __pyx_dict_cached_value = (LOOKUP);\
-        __pyx_dict_version = __PYX_GET_DICT_VERSION(DICT);\
-    }\
-}
-static CYTHON_INLINE PY_UINT64_T __Pyx_get_tp_dict_version(PyObject *obj);
-static CYTHON_INLINE PY_UINT64_T __Pyx_get_object_dict_version(PyObject *obj);
-static CYTHON_INLINE int __Pyx_object_dict_version_matches(PyObject* obj, PY_UINT64_T tp_dict_version, PY_UINT64_T obj_dict_version);
-#else
-#define __PYX_GET_DICT_VERSION(dict)  (0)
-#define __PYX_UPDATE_DICT_CACHE(dict, value, cache_var, version_var)
-#define __PYX_PY_DICT_LOOKUP_IF_MODIFIED(VAR, DICT, LOOKUP)  (VAR) = (LOOKUP);
-#endif
-
-/* GetModuleGlobalName.proto */
-#if CYTHON_USE_DICT_VERSIONS
-#define __Pyx_GetModuleGlobalName(var, name)  do {\
-    static PY_UINT64_T __pyx_dict_version = 0;\
-    static PyObject *__pyx_dict_cached_value = NULL;\
-    (var) = (likely(__pyx_dict_version == __PYX_GET_DICT_VERSION(__pyx_mstate_global->__pyx_d))) ?\
-        (likely(__pyx_dict_cached_value) ? __Pyx_NewRef(__pyx_dict_cached_value) : __Pyx_GetBuiltinName(name)) :\
-        __Pyx__GetModuleGlobalName(name, &__pyx_dict_version, &__pyx_dict_cached_value);\
-} while(0)
-#define __Pyx_GetModuleGlobalNameUncached(var, name)  do {\
-    PY_UINT64_T __pyx_dict_version;\
-    PyObject *__pyx_dict_cached_value;\
-    (var) = __Pyx__GetModuleGlobalName(name, &__pyx_dict_version, &__pyx_dict_cached_value);\
-} while(0)
-static PyObject *__Pyx__GetModuleGlobalName(PyObject *name, PY_UINT64_T *dict_version, PyObject **dict_cached_value);
-#else
-#define __Pyx_GetModuleGlobalName(var, name)  (var) = __Pyx__GetModuleGlobalName(name)
-#define __Pyx_GetModuleGlobalNameUncached(var, name)  (var) = __Pyx__GetModuleGlobalName(name)
-static CYTHON_INLINE PyObject *__Pyx__GetModuleGlobalName(PyObject *name);
-#endif
-
-/* dict_setdefault.proto (used by FetchCommonType) */
-static CYTHON_INLINE PyObject *__Pyx_PyDict_SetDefault(PyObject *d, PyObject *key, PyObject *default_value);
 
 /* AddModuleRef.proto (used by FetchSharedCythonModule) */
 #if ((CYTHON_COMPILING_IN_CPYTHON_FREETHREADING ) ||\
@@ -2564,6 +2372,265 @@ static PyObject *__Pyx_CyFunction_New(PyMethodDef *ml,
                                       PyObject *module, PyObject *globals,
                                       PyObject* code);
 
+/* PyMemoryError_Check.proto */
+#define __Pyx_PyExc_MemoryError_Check(obj)  __Pyx_TypeCheck(obj, PyExc_MemoryError)
+
+/* GetException.proto */
+#if CYTHON_FAST_THREAD_STATE
+#define __Pyx_GetException(type, value, tb)  __Pyx__GetException(__pyx_tstate, type, value, tb)
+static int __Pyx__GetException(PyThreadState *tstate, PyObject **type, PyObject **value, PyObject **tb);
+#else
+static int __Pyx_GetException(PyObject **type, PyObject **value, PyObject **tb);
+#endif
+
+/* SwapException.proto */
+#if CYTHON_FAST_THREAD_STATE
+#define __Pyx_ExceptionSwap(type, value, tb)  __Pyx__ExceptionSwap(__pyx_tstate, type, value, tb)
+static CYTHON_INLINE void __Pyx__ExceptionSwap(PyThreadState *tstate, PyObject **type, PyObject **value, PyObject **tb);
+#else
+static CYTHON_INLINE void __Pyx_ExceptionSwap(PyObject **type, PyObject **value, PyObject **tb);
+#endif
+
+/* GetTopmostException.proto (used by SaveResetException) */
+#if CYTHON_USE_EXC_INFO_STACK && CYTHON_FAST_THREAD_STATE
+static _PyErr_StackItem * __Pyx_PyErr_GetTopmostException(PyThreadState *tstate);
+#endif
+
+/* SaveResetException.proto */
+#if CYTHON_FAST_THREAD_STATE
+#define __Pyx_ExceptionSave(type, value, tb)  __Pyx__ExceptionSave(__pyx_tstate, type, value, tb)
+static CYTHON_INLINE void __Pyx__ExceptionSave(PyThreadState *tstate, PyObject **type, PyObject **value, PyObject **tb);
+#define __Pyx_ExceptionReset(type, value, tb)  __Pyx__ExceptionReset(__pyx_tstate, type, value, tb)
+static CYTHON_INLINE void __Pyx__ExceptionReset(PyThreadState *tstate, PyObject *type, PyObject *value, PyObject *tb);
+#else
+#define __Pyx_ExceptionSave(type, value, tb)   PyErr_GetExcInfo(type, value, tb)
+#define __Pyx_ExceptionReset(type, value, tb)  PyErr_SetExcInfo(type, value, tb)
+#endif
+
+/* ListCompAppend.proto */
+#if CYTHON_USE_PYLIST_INTERNALS && CYTHON_ASSUME_SAFE_MACROS
+static CYTHON_INLINE int __Pyx_ListComp_Append(PyObject* list, PyObject* x) {
+    PyListObject* L = (PyListObject*) list;
+    Py_ssize_t len = Py_SIZE(list);
+    if (likely(L->allocated > len)) {
+        Py_INCREF(x);
+        #if CYTHON_COMPILING_IN_CPYTHON && PY_VERSION_HEX >= 0x030d0000
+        L->ob_item[len] = x;
+        #else
+        PyList_SET_ITEM(list, len, x);
+        #endif
+        __Pyx_SET_SIZE(list, len + 1);
+        return 0;
+    }
+    return PyList_Append(list, x);
+}
+#else
+#define __Pyx_ListComp_Append(L,x) PyList_Append(L,x)
+#endif
+
+/* RejectKeywords.export */
+static void __Pyx_RejectKeywords(const char* function_name, PyObject *kwds);
+
+/* CIntToPyUnicode.proto */
+#define __Pyx_PyUnicode_From_size_t(value, width, padding_char, format_char) (\
+    ((format_char) == ('c')) ?\
+        __Pyx_uchar___Pyx_PyUnicode_From_size_t(value, width, padding_char) :\
+        __Pyx____Pyx_PyUnicode_From_size_t(value, width, padding_char, format_char)\
+    )
+static CYTHON_INLINE PyObject* __Pyx_uchar___Pyx_PyUnicode_From_size_t(size_t value, Py_ssize_t width, char padding_char);
+static CYTHON_INLINE PyObject* __Pyx____Pyx_PyUnicode_From_size_t(size_t value, Py_ssize_t width, char padding_char, char format_char);
+
+/* pyobject_as_double.proto */
+static double __Pyx__PyObject_AsDouble(PyObject* obj);
+#if CYTHON_COMPILING_IN_PYPY
+#define __Pyx_PyObject_AsDouble(obj)\
+(likely(PyFloat_CheckExact(obj)) ? PyFloat_AS_DOUBLE(obj) :\
+ likely(PyLong_CheckExact(obj)) ?\
+ PyFloat_AsDouble(obj) : __Pyx__PyObject_AsDouble(obj))
+#else
+#define __Pyx_PyObject_AsDouble(obj)\
+((likely(PyFloat_CheckExact(obj))) ?  __Pyx_PyFloat_AS_DOUBLE(obj) :\
+ likely(PyLong_CheckExact(obj)) ?\
+ PyLong_AsDouble(obj) : __Pyx__PyObject_AsDouble(obj))
+#endif
+
+/* FloatExceptionCheck.proto */
+#define __PYX_CHECK_FLOAT_EXCEPTION(value, error_value)\
+    ((error_value) == (error_value) ?\
+     (value) == (error_value) :\
+     (value) != (value))
+
+/* ExtTypeTest.proto */
+static CYTHON_INLINE int __Pyx_TypeTest(PyObject *obj, PyTypeObject *type);
+
+/* PyDictVersioning.proto (used by GetModuleGlobalName) */
+#if CYTHON_USE_DICT_VERSIONS && CYTHON_USE_TYPE_SLOTS
+#define __PYX_DICT_VERSION_INIT  ((PY_UINT64_T) -1)
+#define __PYX_GET_DICT_VERSION(dict)  (((PyDictObject*)(dict))->ma_version_tag)
+#define __PYX_UPDATE_DICT_CACHE(dict, value, cache_var, version_var)\
+    (version_var) = __PYX_GET_DICT_VERSION(dict);\
+    (cache_var) = (value);
+#define __PYX_PY_DICT_LOOKUP_IF_MODIFIED(VAR, DICT, LOOKUP) {\
+    static PY_UINT64_T __pyx_dict_version = 0;\
+    static PyObject *__pyx_dict_cached_value = NULL;\
+    if (likely(__PYX_GET_DICT_VERSION(DICT) == __pyx_dict_version)) {\
+        (VAR) = __Pyx_XNewRef(__pyx_dict_cached_value);\
+    } else {\
+        (VAR) = __pyx_dict_cached_value = (LOOKUP);\
+        __pyx_dict_version = __PYX_GET_DICT_VERSION(DICT);\
+    }\
+}
+static CYTHON_INLINE PY_UINT64_T __Pyx_get_tp_dict_version(PyObject *obj);
+static CYTHON_INLINE PY_UINT64_T __Pyx_get_object_dict_version(PyObject *obj);
+static CYTHON_INLINE int __Pyx_object_dict_version_matches(PyObject* obj, PY_UINT64_T tp_dict_version, PY_UINT64_T obj_dict_version);
+#else
+#define __PYX_GET_DICT_VERSION(dict)  (0)
+#define __PYX_UPDATE_DICT_CACHE(dict, value, cache_var, version_var)
+#define __PYX_PY_DICT_LOOKUP_IF_MODIFIED(VAR, DICT, LOOKUP)  (VAR) = (LOOKUP);
+#endif
+
+/* GetModuleGlobalName.proto */
+#if CYTHON_USE_DICT_VERSIONS
+#define __Pyx_GetModuleGlobalName(var, name)  do {\
+    static PY_UINT64_T __pyx_dict_version = 0;\
+    static PyObject *__pyx_dict_cached_value = NULL;\
+    (var) = (likely(__pyx_dict_version == __PYX_GET_DICT_VERSION(__pyx_mstate_global->__pyx_d))) ?\
+        (likely(__pyx_dict_cached_value) ? __Pyx_NewRef(__pyx_dict_cached_value) : __Pyx_GetBuiltinName(name)) :\
+        __Pyx__GetModuleGlobalName(name, &__pyx_dict_version, &__pyx_dict_cached_value);\
+} while(0)
+#define __Pyx_GetModuleGlobalNameUncached(var, name)  do {\
+    PY_UINT64_T __pyx_dict_version;\
+    PyObject *__pyx_dict_cached_value;\
+    (var) = __Pyx__GetModuleGlobalName(name, &__pyx_dict_version, &__pyx_dict_cached_value);\
+} while(0)
+static PyObject *__Pyx__GetModuleGlobalName(PyObject *name, PY_UINT64_T *dict_version, PyObject **dict_cached_value);
+#else
+#define __Pyx_GetModuleGlobalName(var, name)  (var) = __Pyx__GetModuleGlobalName(name)
+#define __Pyx_GetModuleGlobalNameUncached(var, name)  (var) = __Pyx__GetModuleGlobalName(name)
+static CYTHON_INLINE PyObject *__Pyx__GetModuleGlobalName(PyObject *name);
+#endif
+
+/* RaiseTooManyValuesToUnpack.proto */
+static CYTHON_INLINE void __Pyx_RaiseTooManyValuesError(Py_ssize_t expected);
+
+/* RaiseNeedMoreValuesToUnpack.proto */
+static CYTHON_INLINE void __Pyx_RaiseNeedMoreValuesError(Py_ssize_t index);
+
+/* IterFinish.proto */
+static CYTHON_INLINE int __Pyx_IterFinish(void);
+
+/* UnpackItemEndCheck.proto */
+static int __Pyx_IternextUnpackEndCheck(PyObject *retval, Py_ssize_t expected);
+
+/* RaiseUnexpectedTypeError.proto */
+static int __Pyx_RaiseUnexpectedTypeError(const char *expected, PyObject *obj);
+
+/* PyRuntimeError_Check.proto */
+#define __Pyx_PyExc_RuntimeError_Check(obj)  __Pyx_TypeCheck(obj, PyExc_RuntimeError)
+
+/* ArgTypeTestFunc.export */
+static int __Pyx__ArgTypeTest(PyObject *obj, PyTypeObject *type, const char *name, int exact);
+
+/* ArgTypeTest.proto */
+#define __Pyx_ArgTypeTest(obj, type, none_allowed, name, exact)\
+    ((likely(__Pyx_IS_TYPE(obj, type) | (none_allowed && (obj == Py_None)))) ? 1 :\
+        __Pyx__ArgTypeTest(obj, type, name, exact))
+
+/* PyNotImplementedError_Check.proto */
+#define __Pyx_PyExc_NotImplementedError_Check(obj)  __Pyx_TypeCheck(obj, PyExc_NotImplementedError)
+
+/* PyIndexError_Check.proto */
+#define __Pyx_PyExc_IndexError_Check(obj)  __Pyx_TypeCheck(obj, PyExc_IndexError)
+
+/* CIntToPyUnicode.proto */
+#define __Pyx_PyUnicode_From_int64_t(value, width, padding_char, format_char) (\
+    ((format_char) == ('c')) ?\
+        __Pyx_uchar___Pyx_PyUnicode_From_int64_t(value, width, padding_char) :\
+        __Pyx____Pyx_PyUnicode_From_int64_t(value, width, padding_char, format_char)\
+    )
+static CYTHON_INLINE PyObject* __Pyx_uchar___Pyx_PyUnicode_From_int64_t(int64_t value, Py_ssize_t width, char padding_char);
+static CYTHON_INLINE PyObject* __Pyx____Pyx_PyUnicode_From_int64_t(int64_t value, Py_ssize_t width, char padding_char, char format_char);
+
+/* PyObjectFastCallMethod.proto */
+#if CYTHON_VECTORCALL && PY_VERSION_HEX >= 0x03090000
+#define __Pyx_PyObject_FastCallMethod(name, args, nargsf) PyObject_VectorcallMethod(name, args, nargsf, NULL)
+#else
+static PyObject *__Pyx_PyObject_FastCallMethod(PyObject *name, PyObject *const *args, size_t nargsf);
+#endif
+
+/* DivInt[Py_ssize_t].proto */
+static CYTHON_INLINE Py_ssize_t __Pyx_div_Py_ssize_t(Py_ssize_t, Py_ssize_t, int b_is_constant);
+
+/* UnaryNegOverflows.proto */
+#define __Pyx_UNARY_NEG_WOULD_OVERFLOW(x)\
+        (((x) < 0) & ((unsigned long)(x) == 0-(unsigned long)(x)))
+
+/* AllocateExtensionType.proto */
+static PyObject *__Pyx_AllocateExtensionType(PyTypeObject *t, int is_final);
+
+/* DeallocKeepAlive.proto */
+#if CYTHON_COMPILING_IN_CPYTHON_FREETHREADING
+#define __Pyx_DeallocKeepAliveBegin(o) do {\
+        _Py_atomic_store_uintptr_relaxed(&(o)->ob_tid, _Py_ThreadId());\
+        _Py_atomic_store_uint32_relaxed(&(o)->ob_ref_local, 1);\
+        _Py_atomic_store_ssize_relaxed(&(o)->ob_ref_shared, 0);\
+    } while (0)
+#define __Pyx_DeallocKeepAliveEnd(o)\
+        _Py_atomic_store_uint32_relaxed(&(o)->ob_ref_local, 0)
+#else
+#define __Pyx_DeallocKeepAliveBegin(o) __Pyx_SET_REFCNT(o, Py_REFCNT(o) + 1)
+#define __Pyx_DeallocKeepAliveEnd(o)   __Pyx_SET_REFCNT(o, Py_REFCNT(o) - 1)
+#endif
+
+/* CheckTypeForFreelists.proto */
+#if CYTHON_USE_FREELISTS
+#if CYTHON_USE_TYPE_SPECS
+#define __PYX_CHECK_FINAL_TYPE_FOR_FREELISTS(t, expected_tp, expected_size) ((int) ((t) == (expected_tp)))
+#define __PYX_CHECK_TYPE_FOR_FREELIST_FLAGS  Py_TPFLAGS_IS_ABSTRACT
+#else
+#define __PYX_CHECK_FINAL_TYPE_FOR_FREELISTS(t, expected_tp, expected_size) ((int) ((t)->tp_basicsize == (expected_size)))
+#define __PYX_CHECK_TYPE_FOR_FREELIST_FLAGS  (Py_TPFLAGS_IS_ABSTRACT | Py_TPFLAGS_HEAPTYPE)
+#endif
+#define __PYX_CHECK_TYPE_FOR_FREELISTS(t, expected_tp, expected_size)\
+    (__PYX_CHECK_FINAL_TYPE_FOR_FREELISTS((t), (expected_tp), (expected_size)) &\
+     (int) (!__Pyx_PyType_HasFeature((t), __PYX_CHECK_TYPE_FOR_FREELIST_FLAGS)))
+#endif
+
+/* PyObjectCallNoArg.proto (used by PyObjectCallMethod0) */
+static CYTHON_INLINE PyObject* __Pyx_PyObject_CallNoArg(PyObject *func);
+
+/* PyObjectGetMethod.proto (used by PyObjectCallMethod0) */
+#if !(CYTHON_VECTORCALL && (__PYX_LIMITED_VERSION_HEX >= 0x030C0000 || (!CYTHON_COMPILING_IN_LIMITED_API && PY_VERSION_HEX >= 0x03090000)))
+static int __Pyx_PyObject_GetMethod(PyObject *obj, PyObject *name, PyObject **method);
+#endif
+
+/* PyObjectCallMethod0.proto (used by PyType_Ready) */
+static PyObject* __Pyx_PyObject_CallMethod0(PyObject* obj, PyObject* method_name);
+
+/* ValidateBasesTuple.proto (used by PyType_Ready) */
+#if CYTHON_COMPILING_IN_CPYTHON || CYTHON_COMPILING_IN_LIMITED_API || CYTHON_USE_TYPE_SPECS
+static int __Pyx_validate_bases_tuple(const char *type_name, Py_ssize_t dictoffset, PyObject *bases);
+#endif
+
+/* PyType_Ready.proto */
+CYTHON_UNUSED static int __Pyx_PyType_Ready(PyTypeObject *t);
+
+/* SetVTable.proto */
+static int __Pyx_SetVtable(PyTypeObject* typeptr , void* vtable);
+
+/* GetVTable.proto (used by MergeVTables) */
+static void* __Pyx_GetVtable(PyTypeObject *type);
+
+/* MergeVTables.proto */
+static int __Pyx_MergeVtables(PyTypeObject *type);
+
+/* DelItemOnTypeDict.proto (used by SetupReduce) */
+static int __Pyx__DelItemOnTypeDict(PyTypeObject *tp, PyObject *k);
+#define __Pyx_DelItemOnTypeDict(tp, k) __Pyx__DelItemOnTypeDict((PyTypeObject*)tp, k)
+
+/* SetupReduce.proto */
+static int __Pyx_setup_reduce(PyObject* type_obj);
+
 /* CLineInTraceback.proto (used by AddTraceback) */
 #if CYTHON_CLINE_IN_TRACEBACK && CYTHON_CLINE_IN_TRACEBACK_RUNTIME
 static int __Pyx_CLineForTraceback(PyThreadState *tstate, int c_line);
@@ -2627,6 +2694,9 @@ static CYTHON_INLINE unsigned PY_LONG_LONG __Pyx_PyLong_As_unsigned_PY_LONG_LONG
 /* CIntToPy.proto */
 static CYTHON_INLINE PyObject* __Pyx_PyLong_From_int(int value);
 
+/* CIntToPy.proto */
+static CYTHON_INLINE PyObject* __Pyx_PyLong_From_long(long value);
+
 /* CIntFromPy.proto */
 static CYTHON_INLINE int64_t __Pyx_PyLong_As_int64_t(PyObject *);
 
@@ -2635,9 +2705,6 @@ static CYTHON_INLINE size_t __Pyx_PyLong_As_size_t(PyObject *);
 
 /* CIntToPy.proto */
 static CYTHON_INLINE PyObject* __Pyx_PyLong_From_int64_t(int64_t value);
-
-/* CIntToPy.proto */
-static CYTHON_INLINE PyObject* __Pyx_PyLong_From_long(long value);
 
 /* FormatTypeName.proto */
 #if CYTHON_COMPILING_IN_LIMITED_API
@@ -2746,12 +2813,15 @@ static int __Pyx_State_RemoveModule(void*);
 #define __PYX_TYPE_MODULE_PREFIX __PYX_ABI_MODULE_NAME "."
 
 static struct __pyx_obj_6cyflow_6tensor_Tensor *__pyx_f_6cyflow_6tensor_6Tensor__from_c_tensor(TensorImpl *__pyx_v_ptr); /* proto*/
-
-/* Module declarations from "libc.stdint" */
+static PyObject *__pyx_f_6cyflow_6tensor_6Tensor__fill_scalar(struct __pyx_obj_6cyflow_6tensor_Tensor *__pyx_v_self, float __pyx_v_val); /* proto*/
+static PyObject *__pyx_f_6cyflow_6tensor_6Tensor__fill_from_flat_list(struct __pyx_obj_6cyflow_6tensor_Tensor *__pyx_v_self, PyObject *__pyx_v_flat_vals); /* proto*/
+static PyObject *__pyx_f_6cyflow_6tensor_6Tensor__copy_from_tensor(struct __pyx_obj_6cyflow_6tensor_Tensor *__pyx_v_self, struct __pyx_obj_6cyflow_6tensor_Tensor *__pyx_v_src); /* proto*/
 
 /* Module declarations from "libc.string" */
 
 /* Module declarations from "libc.stdlib" */
+
+/* Module declarations from "libc.stdint" */
 
 /* Module declarations from "cyflow.tensor" */
 static PyObject *__pyx_f_6cyflow_6tensor_manual_seed(unsigned PY_LONG_LONG, int __pyx_skip_dispatch, struct __pyx_opt_args_6cyflow_6tensor_manual_seed *__pyx_optional_args); /*proto*/
@@ -2767,6 +2837,8 @@ static PyObject *__pyx_builtin_Ellipsis;
 /* #### Code section: string_decls ### */
 /* #### Code section: decls ### */
 static PyObject *__pyx_pf_6cyflow_6tensor_manual_seed(CYTHON_UNUSED PyObject *__pyx_self, unsigned PY_LONG_LONG __pyx_v_seed, int __pyx_v_device); /* proto */
+static PyObject *__pyx_pf_6cyflow_6tensor_31_get_nested_list_shape_and_flat__flatten(PyObject *__pyx_self, PyObject *__pyx_v_item, PyObject *__pyx_v_depth); /* proto */
+static PyObject *__pyx_pf_6cyflow_6tensor_2_get_nested_list_shape_and_flat(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_lst); /* proto */
 static int __pyx_pf_6cyflow_6tensor_6Tensor___cinit__(struct __pyx_obj_6cyflow_6tensor_Tensor *__pyx_v_self, PyObject *__pyx_v_shape, int __pyx_v_device); /* proto */
 static void __pyx_pf_6cyflow_6tensor_6Tensor_2__dealloc__(struct __pyx_obj_6cyflow_6tensor_Tensor *__pyx_v_self); /* proto */
 static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_4ndim___get__(struct __pyx_obj_6cyflow_6tensor_Tensor *__pyx_v_self); /* proto */
@@ -2777,12 +2849,14 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_6device___get__(struct __pyx_o
 static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_4__repr__(struct __pyx_obj_6cyflow_6tensor_Tensor *__pyx_v_self); /* proto */
 static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_6nbytes___get__(struct __pyx_obj_6cyflow_6tensor_Tensor *__pyx_v_self); /* proto */
 static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_6fill_uniform(struct __pyx_obj_6cyflow_6tensor_Tensor *__pyx_v_self); /* proto */
-static struct __pyx_obj_6cyflow_6tensor_Tensor *__pyx_pf_6cyflow_6tensor_6Tensor_8view(struct __pyx_obj_6cyflow_6tensor_Tensor *__pyx_v_self, PyObject *__pyx_v_shape); /* proto */
-static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_10_set_data_from_list(struct __pyx_obj_6cyflow_6tensor_Tensor *__pyx_v_self, PyObject *__pyx_v_flat_data); /* proto */
-static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_12__getitem__(struct __pyx_obj_6cyflow_6tensor_Tensor *__pyx_v_self, PyObject *__pyx_v_key); /* proto */
-static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_14__reduce_cython__(CYTHON_UNUSED struct __pyx_obj_6cyflow_6tensor_Tensor *__pyx_v_self); /* proto */
-static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_16__setstate_cython__(CYTHON_UNUSED struct __pyx_obj_6cyflow_6tensor_Tensor *__pyx_v_self, CYTHON_UNUSED PyObject *__pyx_v___pyx_state); /* proto */
+static int __pyx_pf_6cyflow_6tensor_6Tensor_8__setitem__(struct __pyx_obj_6cyflow_6tensor_Tensor *__pyx_v_self, PyObject *__pyx_v_key, PyObject *__pyx_v_value); /* proto */
+static struct __pyx_obj_6cyflow_6tensor_Tensor *__pyx_pf_6cyflow_6tensor_6Tensor_10view(struct __pyx_obj_6cyflow_6tensor_Tensor *__pyx_v_self, PyObject *__pyx_v_shape); /* proto */
+static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_12_set_data_from_list(struct __pyx_obj_6cyflow_6tensor_Tensor *__pyx_v_self, PyObject *__pyx_v_flat_data); /* proto */
+static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_14__getitem__(struct __pyx_obj_6cyflow_6tensor_Tensor *__pyx_v_self, PyObject *__pyx_v_key); /* proto */
+static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_16__reduce_cython__(CYTHON_UNUSED struct __pyx_obj_6cyflow_6tensor_Tensor *__pyx_v_self); /* proto */
+static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_18__setstate_cython__(CYTHON_UNUSED struct __pyx_obj_6cyflow_6tensor_Tensor *__pyx_v_self, CYTHON_UNUSED PyObject *__pyx_v___pyx_state); /* proto */
 static PyObject *__pyx_tp_new_6cyflow_6tensor_Tensor(PyTypeObject *t, PyObject *a, PyObject *k); /*proto*/
+static PyObject *__pyx_tp_new_6cyflow_6tensor___pyx_scope_struct___get_nested_list_shape_and_flat(PyTypeObject *t, PyObject *a, PyObject *k); /*proto*/
 /* #### Code section: late_includes ### */
 /* #### Code section: module_state ### */
 /* SmallCodeConfig */
@@ -2804,15 +2878,19 @@ typedef struct {
   PyObject *__pyx_empty_bytes;
   PyObject *__pyx_empty_unicode;
   PyObject *__pyx_type_6cyflow_6tensor_Tensor;
+  PyObject *__pyx_type_6cyflow_6tensor___pyx_scope_struct___get_nested_list_shape_and_flat;
   PyTypeObject *__pyx_ptype_6cyflow_6tensor_Tensor;
+  PyTypeObject *__pyx_ptype_6cyflow_6tensor___pyx_scope_struct___get_nested_list_shape_and_flat;
   __Pyx_CachedCFunction __pyx_umethod_PyDict_Type_items;
   __Pyx_CachedCFunction __pyx_umethod_PyDict_Type_pop;
   __Pyx_CachedCFunction __pyx_umethod_PyDict_Type_values;
   int __pyx_k_;
   int __pyx_k__2;
   PyObject *__pyx_slice[1];
-  PyObject *__pyx_codeobj_tab[6];
-  PyObject *__pyx_string_tab[99];
+  PyObject *__pyx_tuple[1];
+  PyObject *__pyx_codeobj_tab[8];
+  PyObject *__pyx_string_tab[126];
+  PyObject *__pyx_number_tab[2];
 /* #### Code section: module_state_contents ### */
 /* CommonTypesMetaclass.module_state_decls */
 PyTypeObject *__pyx_CommonTypesMetaclassType;
@@ -2825,6 +2903,11 @@ PyObject *__Pyx_CachedMethodType;
 /* CythonFunctionShared.module_state_decls */
 PyTypeObject *__pyx_CyFunctionType;
 
+
+#if CYTHON_USE_FREELISTS
+struct __pyx_obj_6cyflow_6tensor___pyx_scope_struct___get_nested_list_shape_and_flat *__pyx_freelist_6cyflow_6tensor___pyx_scope_struct___get_nested_list_shape_and_flat[8];
+int __pyx_freecount_6cyflow_6tensor___pyx_scope_struct___get_nested_list_shape_and_flat;
+#endif
 /* CodeObjectCache.module_state_decls */
 struct __Pyx_CodeObjectCache __pyx_code_cache;
 
@@ -2857,101 +2940,130 @@ static __pyx_mstatetype * const __pyx_mstate_global = &__pyx_mstate_global_stati
 #define __pyx_kp_u_An_index_can_only_have_a_single __pyx_string_tab[1]
 #define __pyx_kp_u_Backend_failed_to_allocate_Tenso __pyx_string_tab[2]
 #define __pyx_kp_u_Backend_failed_to_create_tensor __pyx_string_tab[3]
-#define __pyx_kp_u_Cannot_reshape_tensor_of_size __pyx_string_tab[4]
-#define __pyx_kp_u_D_but __pyx_string_tab[5]
-#define __pyx_kp_u_Expected __pyx_string_tab[6]
-#define __pyx_kp_u_Failed_to_allocate_TensorImpl_fo __pyx_string_tab[7]
-#define __pyx_kp_u_Failed_to_allocate_memory_for_sh __pyx_string_tab[8]
-#define __pyx_kp_u_Failed_to_allocate_shape_array __pyx_string_tab[9]
-#define __pyx_kp_u_Failed_to_allocate_shape_stride __pyx_string_tab[10]
-#define __pyx_kp_u_Failed_to_allocate_temporary_dat __pyx_string_tab[11]
-#define __pyx_kp_u_Index __pyx_string_tab[12]
-#define __pyx_kp_u_Invalid_index_type __pyx_string_tab[13]
-#define __pyx_kp_u_Note_that_Cython_is_deliberately __pyx_string_tab[14]
-#define __pyx_kp_u_Tensor_shape __pyx_string_tab[15]
-#define __pyx_kp_u_Too_many_indices_for_tensor_tens __pyx_string_tab[16]
-#define __pyx_kp_u_Unsupported_device_integer __pyx_string_tab[17]
-#define __pyx_kp_u__3 __pyx_string_tab[18]
-#define __pyx_kp_u__4 __pyx_string_tab[19]
-#define __pyx_kp_u_add_note __pyx_string_tab[20]
-#define __pyx_kp_u_axes_were_indexed __pyx_string_tab[21]
-#define __pyx_kp_u_device_2 __pyx_string_tab[22]
-#define __pyx_kp_u_disable __pyx_string_tab[23]
-#define __pyx_kp_u_elements_got __pyx_string_tab[24]
-#define __pyx_kp_u_enable __pyx_string_tab[25]
-#define __pyx_kp_u_gc __pyx_string_tab[26]
-#define __pyx_kp_u_into_shape __pyx_string_tab[27]
-#define __pyx_kp_u_is_out_of_bounds_for_axis __pyx_string_tab[28]
-#define __pyx_kp_u_isenabled __pyx_string_tab[29]
-#define __pyx_kp_u_no_default___reduce___due_to_non __pyx_string_tab[30]
-#define __pyx_kp_u_src_cyflow_tensor_pyx __pyx_string_tab[31]
-#define __pyx_kp_u_strides __pyx_string_tab[32]
-#define __pyx_kp_u_stringsource __pyx_string_tab[33]
-#define __pyx_kp_u_with_size __pyx_string_tab[34]
-#define __pyx_n_u_CPU __pyx_string_tab[35]
-#define __pyx_n_u_CUDA __pyx_string_tab[36]
-#define __pyx_n_u_Ellipsis __pyx_string_tab[37]
-#define __pyx_n_u_Pyx_PyDict_NextRef __pyx_string_tab[38]
-#define __pyx_n_u_Tensor __pyx_string_tab[39]
-#define __pyx_n_u_Tensor___reduce_cython __pyx_string_tab[40]
-#define __pyx_n_u_Tensor___setstate_cython __pyx_string_tab[41]
-#define __pyx_n_u_Tensor__set_data_from_list __pyx_string_tab[42]
-#define __pyx_n_u_Tensor_fill_uniform __pyx_string_tab[43]
-#define __pyx_n_u_Tensor_view __pyx_string_tab[44]
-#define __pyx_n_u_annotate __pyx_string_tab[45]
-#define __pyx_n_u_asyncio_coroutines __pyx_string_tab[46]
-#define __pyx_n_u_c_data __pyx_string_tab[47]
-#define __pyx_n_u_c_shape __pyx_string_tab[48]
-#define __pyx_n_u_cline_in_traceback __pyx_string_tab[49]
-#define __pyx_n_u_cpu __pyx_string_tab[50]
-#define __pyx_n_u_cuda __pyx_string_tab[51]
-#define __pyx_n_u_cyflow_tensor __pyx_string_tab[52]
-#define __pyx_n_u_device __pyx_string_tab[53]
-#define __pyx_n_u_dim __pyx_string_tab[54]
-#define __pyx_n_u_fill_uniform __pyx_string_tab[55]
-#define __pyx_n_u_flat_data __pyx_string_tab[56]
-#define __pyx_n_u_func __pyx_string_tab[57]
-#define __pyx_n_u_getstate __pyx_string_tab[58]
-#define __pyx_n_u_i __pyx_string_tab[59]
-#define __pyx_n_u_indices __pyx_string_tab[60]
-#define __pyx_n_u_is_coroutine __pyx_string_tab[61]
-#define __pyx_n_u_items __pyx_string_tab[62]
-#define __pyx_n_u_list __pyx_string_tab[63]
-#define __pyx_n_u_main __pyx_string_tab[64]
-#define __pyx_n_u_manual_seed __pyx_string_tab[65]
-#define __pyx_n_u_module __pyx_string_tab[66]
-#define __pyx_n_u_name __pyx_string_tab[67]
-#define __pyx_n_u_ndim __pyx_string_tab[68]
-#define __pyx_n_u_new_impl __pyx_string_tab[69]
-#define __pyx_n_u_numel __pyx_string_tab[70]
-#define __pyx_n_u_pop __pyx_string_tab[71]
-#define __pyx_n_u_pyx_state __pyx_string_tab[72]
-#define __pyx_n_u_pyx_vtable __pyx_string_tab[73]
-#define __pyx_n_u_qualname __pyx_string_tab[74]
-#define __pyx_n_u_reduce __pyx_string_tab[75]
-#define __pyx_n_u_reduce_cython __pyx_string_tab[76]
-#define __pyx_n_u_reduce_ex __pyx_string_tab[77]
-#define __pyx_n_u_return __pyx_string_tab[78]
-#define __pyx_n_u_seed __pyx_string_tab[79]
-#define __pyx_n_u_self __pyx_string_tab[80]
-#define __pyx_n_u_set_data_from_list __pyx_string_tab[81]
-#define __pyx_n_u_set_name __pyx_string_tab[82]
-#define __pyx_n_u_setdefault __pyx_string_tab[83]
-#define __pyx_n_u_setstate __pyx_string_tab[84]
-#define __pyx_n_u_setstate_cython __pyx_string_tab[85]
-#define __pyx_n_u_shape __pyx_string_tab[86]
-#define __pyx_n_u_strides_2 __pyx_string_tab[87]
-#define __pyx_n_u_target_numel __pyx_string_tab[88]
-#define __pyx_n_u_target_shape __pyx_string_tab[89]
-#define __pyx_n_u_test __pyx_string_tab[90]
-#define __pyx_n_u_unknown __pyx_string_tab[91]
-#define __pyx_n_u_values __pyx_string_tab[92]
-#define __pyx_n_u_view __pyx_string_tab[93]
-#define __pyx_kp_b_iso88591_6a_wc_1_1_q_j_7q __pyx_string_tab[94]
-#define __pyx_kp_b_iso88591_A_4xxxs_1D_A_AT __pyx_string_tab[95]
-#define __pyx_kp_b_iso88591_Q __pyx_string_tab[96]
-#define __pyx_kp_b_iso88591_Q_3a_T_A_C1Cq_A_q_b_4q_Qa_U_1_a __pyx_string_tab[97]
-#define __pyx_kp_b_iso88591_a_1_A_3awc_4z_q_WA_5_aq_5_G1_A __pyx_string_tab[98]
+#define __pyx_kp_u_Cannot_assign_value_of_type __pyx_string_tab[4]
+#define __pyx_kp_u_Cannot_copy_between_different_de __pyx_string_tab[5]
+#define __pyx_kp_u_Cannot_copy_tensor_of_shape __pyx_string_tab[6]
+#define __pyx_kp_u_Cannot_reshape_tensor_of_size __pyx_string_tab[7]
+#define __pyx_kp_u_D_but __pyx_string_tab[8]
+#define __pyx_kp_u_Expected __pyx_string_tab[9]
+#define __pyx_kp_u_Expected_list_or_tuple __pyx_string_tab[10]
+#define __pyx_kp_u_Failed_to_allocate_TensorImpl_fo __pyx_string_tab[11]
+#define __pyx_kp_u_Failed_to_allocate_index_buffer __pyx_string_tab[12]
+#define __pyx_kp_u_Failed_to_allocate_memory_for_sh __pyx_string_tab[13]
+#define __pyx_kp_u_Failed_to_allocate_shape_array __pyx_string_tab[14]
+#define __pyx_kp_u_Failed_to_allocate_shape_stride __pyx_string_tab[15]
+#define __pyx_kp_u_Failed_to_allocate_temporary_dat __pyx_string_tab[16]
+#define __pyx_kp_u_Inconsistent_list_dimension_at_d __pyx_string_tab[17]
+#define __pyx_kp_u_Index __pyx_string_tab[18]
+#define __pyx_kp_u_Invalid_element_type_in_list __pyx_string_tab[19]
+#define __pyx_kp_u_Invalid_index_type __pyx_string_tab[20]
+#define __pyx_kp_u_Note_that_Cython_is_deliberately __pyx_string_tab[21]
+#define __pyx_kp_u_Shape_mismatch_cannot_assign_Ten __pyx_string_tab[22]
+#define __pyx_kp_u_Shape_mismatch_cannot_assign_lis __pyx_string_tab[23]
+#define __pyx_kp_u_Tensor_shape __pyx_string_tab[24]
+#define __pyx_kp_u_Too_many_indices_for_tensor_tens __pyx_string_tab[25]
+#define __pyx_kp_u_Unsupported_device_integer __pyx_string_tab[26]
+#define __pyx_kp_u__3 __pyx_string_tab[27]
+#define __pyx_kp_u__4 __pyx_string_tab[28]
+#define __pyx_kp_u_add_note __pyx_string_tab[29]
+#define __pyx_kp_u_axes_were_indexed __pyx_string_tab[30]
+#define __pyx_kp_u_device_2 __pyx_string_tab[31]
+#define __pyx_kp_u_disable __pyx_string_tab[32]
+#define __pyx_kp_u_elements_got __pyx_string_tab[33]
+#define __pyx_kp_u_enable __pyx_string_tab[34]
+#define __pyx_kp_u_expected __pyx_string_tab[35]
+#define __pyx_kp_u_gc __pyx_string_tab[36]
+#define __pyx_kp_u_got __pyx_string_tab[37]
+#define __pyx_kp_u_into_shape __pyx_string_tab[38]
+#define __pyx_kp_u_is_out_of_bounds_for_axis __pyx_string_tab[39]
+#define __pyx_kp_u_isenabled __pyx_string_tab[40]
+#define __pyx_kp_u_no_default___reduce___due_to_non __pyx_string_tab[41]
+#define __pyx_kp_u_src_cyflow_tensor_pyx __pyx_string_tab[42]
+#define __pyx_kp_u_strides __pyx_string_tab[43]
+#define __pyx_kp_u_stringsource __pyx_string_tab[44]
+#define __pyx_kp_u_to_Tensor __pyx_string_tab[45]
+#define __pyx_kp_u_to_target_view_with_shape __pyx_string_tab[46]
+#define __pyx_kp_u_to_tensor_of_shape __pyx_string_tab[47]
+#define __pyx_kp_u_vs __pyx_string_tab[48]
+#define __pyx_kp_u_with_size __pyx_string_tab[49]
+#define __pyx_n_u_CPU __pyx_string_tab[50]
+#define __pyx_n_u_CUDA __pyx_string_tab[51]
+#define __pyx_n_u_Ellipsis __pyx_string_tab[52]
+#define __pyx_n_u_Pyx_PyDict_NextRef __pyx_string_tab[53]
+#define __pyx_n_u_Tensor __pyx_string_tab[54]
+#define __pyx_n_u_Tensor___reduce_cython __pyx_string_tab[55]
+#define __pyx_n_u_Tensor___setstate_cython __pyx_string_tab[56]
+#define __pyx_n_u_Tensor__set_data_from_list __pyx_string_tab[57]
+#define __pyx_n_u_Tensor_fill_uniform __pyx_string_tab[58]
+#define __pyx_n_u_Tensor_view __pyx_string_tab[59]
+#define __pyx_n_u_annotate __pyx_string_tab[60]
+#define __pyx_n_u_asyncio_coroutines __pyx_string_tab[61]
+#define __pyx_n_u_c_data __pyx_string_tab[62]
+#define __pyx_n_u_c_shape __pyx_string_tab[63]
+#define __pyx_n_u_class_getitem __pyx_string_tab[64]
+#define __pyx_n_u_cline_in_traceback __pyx_string_tab[65]
+#define __pyx_n_u_cpu __pyx_string_tab[66]
+#define __pyx_n_u_cuda __pyx_string_tab[67]
+#define __pyx_n_u_curr __pyx_string_tab[68]
+#define __pyx_n_u_cyflow_tensor __pyx_string_tab[69]
+#define __pyx_n_u_depth __pyx_string_tab[70]
+#define __pyx_n_u_device __pyx_string_tab[71]
+#define __pyx_n_u_dim __pyx_string_tab[72]
+#define __pyx_n_u_fill_uniform __pyx_string_tab[73]
+#define __pyx_n_u_flat __pyx_string_tab[74]
+#define __pyx_n_u_flat_data __pyx_string_tab[75]
+#define __pyx_n_u_flatten __pyx_string_tab[76]
+#define __pyx_n_u_func __pyx_string_tab[77]
+#define __pyx_n_u_get_nested_list_shape_and_flat __pyx_string_tab[78]
+#define __pyx_n_u_get_nested_list_shape_and_flat_2 __pyx_string_tab[79]
+#define __pyx_n_u_getstate __pyx_string_tab[80]
+#define __pyx_n_u_i __pyx_string_tab[81]
+#define __pyx_n_u_indices __pyx_string_tab[82]
+#define __pyx_n_u_is_coroutine __pyx_string_tab[83]
+#define __pyx_n_u_item __pyx_string_tab[84]
+#define __pyx_n_u_items __pyx_string_tab[85]
+#define __pyx_n_u_list __pyx_string_tab[86]
+#define __pyx_n_u_lst __pyx_string_tab[87]
+#define __pyx_n_u_main __pyx_string_tab[88]
+#define __pyx_n_u_manual_seed __pyx_string_tab[89]
+#define __pyx_n_u_module __pyx_string_tab[90]
+#define __pyx_n_u_name __pyx_string_tab[91]
+#define __pyx_n_u_ndim __pyx_string_tab[92]
+#define __pyx_n_u_new_impl __pyx_string_tab[93]
+#define __pyx_n_u_numel __pyx_string_tab[94]
+#define __pyx_n_u_pop __pyx_string_tab[95]
+#define __pyx_n_u_pyx_state __pyx_string_tab[96]
+#define __pyx_n_u_pyx_vtable __pyx_string_tab[97]
+#define __pyx_n_u_qualname __pyx_string_tab[98]
+#define __pyx_n_u_reduce __pyx_string_tab[99]
+#define __pyx_n_u_reduce_cython __pyx_string_tab[100]
+#define __pyx_n_u_reduce_ex __pyx_string_tab[101]
+#define __pyx_n_u_return __pyx_string_tab[102]
+#define __pyx_n_u_seed __pyx_string_tab[103]
+#define __pyx_n_u_self __pyx_string_tab[104]
+#define __pyx_n_u_set_data_from_list __pyx_string_tab[105]
+#define __pyx_n_u_set_name __pyx_string_tab[106]
+#define __pyx_n_u_setdefault __pyx_string_tab[107]
+#define __pyx_n_u_setstate __pyx_string_tab[108]
+#define __pyx_n_u_setstate_cython __pyx_string_tab[109]
+#define __pyx_n_u_shape __pyx_string_tab[110]
+#define __pyx_n_u_strides_2 __pyx_string_tab[111]
+#define __pyx_n_u_sub __pyx_string_tab[112]
+#define __pyx_n_u_target_numel __pyx_string_tab[113]
+#define __pyx_n_u_target_shape __pyx_string_tab[114]
+#define __pyx_n_u_test __pyx_string_tab[115]
+#define __pyx_n_u_unknown __pyx_string_tab[116]
+#define __pyx_n_u_values __pyx_string_tab[117]
+#define __pyx_n_u_view __pyx_string_tab[118]
+#define __pyx_kp_b_iso88591_6a_wc_1_1_q_j_7q __pyx_string_tab[119]
+#define __pyx_kp_b_iso88591_A_4xxxs_1D_A_AT __pyx_string_tab[120]
+#define __pyx_kp_b_iso88591_Q __pyx_string_tab[121]
+#define __pyx_kp_b_iso88591_Q_3a_T_A_C1Cq_A_q_b_4q_Qa_U_1_a __pyx_string_tab[122]
+#define __pyx_kp_b_iso88591_a_1_A_3awc_4z_q_WA_5_aq_5_G1_A __pyx_string_tab[123]
+#define __pyx_kp_b_iso88591_q_QgV1_vRs_7_c_5_j_1_MQeSTTaabb __pyx_string_tab[124]
+#define __pyx_kp_b_iso88591_t_QfF_iq_A_1_AWF_WAS_3avS_t1A_1 __pyx_string_tab[125]
+#define __pyx_int_0 __pyx_number_tab[0]
+#define __pyx_int_1 __pyx_number_tab[1]
 /* #### Code section: module_state_clear ### */
 #if CYTHON_USE_MODULE_STATE
 static CYTHON_SMALL_CODE int __pyx_m_clear(PyObject *m) {
@@ -2968,9 +3080,13 @@ static CYTHON_SMALL_CODE int __pyx_m_clear(PyObject *m) {
   #endif
   Py_CLEAR(clear_module_state->__pyx_ptype_6cyflow_6tensor_Tensor);
   Py_CLEAR(clear_module_state->__pyx_type_6cyflow_6tensor_Tensor);
+  Py_CLEAR(clear_module_state->__pyx_ptype_6cyflow_6tensor___pyx_scope_struct___get_nested_list_shape_and_flat);
+  Py_CLEAR(clear_module_state->__pyx_type_6cyflow_6tensor___pyx_scope_struct___get_nested_list_shape_and_flat);
   for (int i=0; i<1; ++i) { Py_CLEAR(clear_module_state->__pyx_slice[i]); }
-  for (int i=0; i<6; ++i) { Py_CLEAR(clear_module_state->__pyx_codeobj_tab[i]); }
-  for (int i=0; i<99; ++i) { Py_CLEAR(clear_module_state->__pyx_string_tab[i]); }
+  for (int i=0; i<1; ++i) { Py_CLEAR(clear_module_state->__pyx_tuple[i]); }
+  for (int i=0; i<8; ++i) { Py_CLEAR(clear_module_state->__pyx_codeobj_tab[i]); }
+  for (int i=0; i<126; ++i) { Py_CLEAR(clear_module_state->__pyx_string_tab[i]); }
+  for (int i=0; i<2; ++i) { Py_CLEAR(clear_module_state->__pyx_number_tab[i]); }
 /* #### Code section: module_state_clear_contents ### */
 /* CommonTypesMetaclass.module_state_clear */
 Py_CLEAR(clear_module_state->__pyx_CommonTypesMetaclassType);
@@ -2995,9 +3111,13 @@ static CYTHON_SMALL_CODE int __pyx_m_traverse(PyObject *m, visitproc visit, void
   __Pyx_VISIT_CONST(traverse_module_state->__pyx_empty_unicode);
   Py_VISIT(traverse_module_state->__pyx_ptype_6cyflow_6tensor_Tensor);
   Py_VISIT(traverse_module_state->__pyx_type_6cyflow_6tensor_Tensor);
+  Py_VISIT(traverse_module_state->__pyx_ptype_6cyflow_6tensor___pyx_scope_struct___get_nested_list_shape_and_flat);
+  Py_VISIT(traverse_module_state->__pyx_type_6cyflow_6tensor___pyx_scope_struct___get_nested_list_shape_and_flat);
   for (int i=0; i<1; ++i) { __Pyx_VISIT_CONST(traverse_module_state->__pyx_slice[i]); }
-  for (int i=0; i<6; ++i) { __Pyx_VISIT_CONST(traverse_module_state->__pyx_codeobj_tab[i]); }
-  for (int i=0; i<99; ++i) { __Pyx_VISIT_CONST(traverse_module_state->__pyx_string_tab[i]); }
+  for (int i=0; i<1; ++i) { __Pyx_VISIT_CONST(traverse_module_state->__pyx_tuple[i]); }
+  for (int i=0; i<8; ++i) { __Pyx_VISIT_CONST(traverse_module_state->__pyx_codeobj_tab[i]); }
+  for (int i=0; i<126; ++i) { __Pyx_VISIT_CONST(traverse_module_state->__pyx_string_tab[i]); }
+  for (int i=0; i<2; ++i) { __Pyx_VISIT_CONST(traverse_module_state->__pyx_number_tab[i]); }
 /* #### Code section: module_state_traverse_contents ### */
 /* CommonTypesMetaclass.module_state_traverse */
 Py_VISIT(traverse_module_state->__pyx_CommonTypesMetaclassType);
@@ -3011,7 +3131,7 @@ return 0;
 #endif
 /* #### Code section: module_code ### */
 
-/* "cyflow/tensor.pyx":52
+/* "cyflow/tensor.pyx":60
  * CUDA = DEVICE_CUDA
  * 
  * cpdef manual_seed(unsigned long long seed, int device=CPU):             # <<<<<<<<<<<<<<
@@ -3045,7 +3165,7 @@ static PyObject *__pyx_f_6cyflow_6tensor_manual_seed(unsigned PY_LONG_LONG __pyx
     }
   }
 
-  /* "cyflow/tensor.pyx":53
+  /* "cyflow/tensor.pyx":61
  * 
  * cpdef manual_seed(unsigned long long seed, int device=CPU):
  *     if device == DEVICE_CPU:             # <<<<<<<<<<<<<<
@@ -3055,7 +3175,7 @@ static PyObject *__pyx_f_6cyflow_6tensor_manual_seed(unsigned PY_LONG_LONG __pyx
   switch (__pyx_v_device) {
     case DEVICE_CPU:
 
-    /* "cyflow/tensor.pyx":54
+    /* "cyflow/tensor.pyx":62
  * cpdef manual_seed(unsigned long long seed, int device=CPU):
  *     if device == DEVICE_CPU:
  *         cyflow_manual_seed(seed)             # <<<<<<<<<<<<<<
@@ -3064,7 +3184,7 @@ static PyObject *__pyx_f_6cyflow_6tensor_manual_seed(unsigned PY_LONG_LONG __pyx
 */
     cyflow_manual_seed(__pyx_v_seed);
 
-    /* "cyflow/tensor.pyx":53
+    /* "cyflow/tensor.pyx":61
  * 
  * cpdef manual_seed(unsigned long long seed, int device=CPU):
  *     if device == DEVICE_CPU:             # <<<<<<<<<<<<<<
@@ -3074,7 +3194,7 @@ static PyObject *__pyx_f_6cyflow_6tensor_manual_seed(unsigned PY_LONG_LONG __pyx
     break;
     case DEVICE_CUDA:
 
-    /* "cyflow/tensor.pyx":56
+    /* "cyflow/tensor.pyx":64
  *         cyflow_manual_seed(seed)
  *     elif device == DEVICE_CUDA:
  *         cyflow_manual_seed_cuda(seed)             # <<<<<<<<<<<<<<
@@ -3083,7 +3203,7 @@ static PyObject *__pyx_f_6cyflow_6tensor_manual_seed(unsigned PY_LONG_LONG __pyx
 */
     cyflow_manual_seed_cuda(__pyx_v_seed);
 
-    /* "cyflow/tensor.pyx":55
+    /* "cyflow/tensor.pyx":63
  *     if device == DEVICE_CPU:
  *         cyflow_manual_seed(seed)
  *     elif device == DEVICE_CUDA:             # <<<<<<<<<<<<<<
@@ -3093,17 +3213,17 @@ static PyObject *__pyx_f_6cyflow_6tensor_manual_seed(unsigned PY_LONG_LONG __pyx
     break;
     default:
 
-    /* "cyflow/tensor.pyx":58
+    /* "cyflow/tensor.pyx":66
  *         cyflow_manual_seed_cuda(seed)
  *     else:
  *         raise ValueError(f"Unsupported device integer: {device}")             # <<<<<<<<<<<<<<
  * 
- * cdef class Tensor:
+ * def _get_nested_list_shape_and_flat(lst):
 */
     __pyx_t_2 = NULL;
-    __pyx_t_3 = __Pyx_PyUnicode_From_int(__pyx_v_device, 0, ' ', 'd'); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 58, __pyx_L1_error)
+    __pyx_t_3 = __Pyx_PyUnicode_From_int(__pyx_v_device, 0, ' ', 'd'); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 66, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
-    __pyx_t_4 = __Pyx_PyUnicode_Concat(__pyx_mstate_global->__pyx_kp_u_Unsupported_device_integer, __pyx_t_3); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 58, __pyx_L1_error)
+    __pyx_t_4 = __Pyx_PyUnicode_Concat(__pyx_mstate_global->__pyx_kp_u_Unsupported_device_integer, __pyx_t_3); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 66, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_4);
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
     __pyx_t_5 = 1;
@@ -3112,16 +3232,16 @@ static PyObject *__pyx_f_6cyflow_6tensor_manual_seed(unsigned PY_LONG_LONG __pyx
       __pyx_t_1 = __Pyx_PyObject_FastCall((PyObject*)(((PyTypeObject*)PyExc_ValueError)), __pyx_callargs+__pyx_t_5, (2-__pyx_t_5) | (__pyx_t_5*__Pyx_PY_VECTORCALL_ARGUMENTS_OFFSET));
       __Pyx_XDECREF(__pyx_t_2); __pyx_t_2 = 0;
       __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-      if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 58, __pyx_L1_error)
+      if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 66, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_1);
     }
     __Pyx_Raise(__pyx_t_1, 0, 0, 0);
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-    __PYX_ERR(0, 58, __pyx_L1_error)
+    __PYX_ERR(0, 66, __pyx_L1_error)
     break;
   }
 
-  /* "cyflow/tensor.pyx":52
+  /* "cyflow/tensor.pyx":60
  * CUDA = DEVICE_CUDA
  * 
  * cpdef manual_seed(unsigned long long seed, int device=CPU):             # <<<<<<<<<<<<<<
@@ -3185,48 +3305,48 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
   {
     PyObject ** const __pyx_pyargnames[] = {&__pyx_mstate_global->__pyx_n_u_seed,&__pyx_mstate_global->__pyx_n_u_device,0};
     const Py_ssize_t __pyx_kwds_len = (__pyx_kwds) ? __Pyx_NumKwargs_FASTCALL(__pyx_kwds) : 0;
-    if (unlikely(__pyx_kwds_len < 0)) __PYX_ERR(0, 52, __pyx_L3_error)
+    if (unlikely(__pyx_kwds_len < 0)) __PYX_ERR(0, 60, __pyx_L3_error)
     if (__pyx_kwds_len > 0) {
       switch (__pyx_nargs) {
         case  2:
         values[1] = __Pyx_ArgRef_FASTCALL(__pyx_args, 1);
-        if (!CYTHON_ASSUME_SAFE_MACROS && unlikely(!values[1])) __PYX_ERR(0, 52, __pyx_L3_error)
+        if (!CYTHON_ASSUME_SAFE_MACROS && unlikely(!values[1])) __PYX_ERR(0, 60, __pyx_L3_error)
         CYTHON_FALLTHROUGH;
         case  1:
         values[0] = __Pyx_ArgRef_FASTCALL(__pyx_args, 0);
-        if (!CYTHON_ASSUME_SAFE_MACROS && unlikely(!values[0])) __PYX_ERR(0, 52, __pyx_L3_error)
+        if (!CYTHON_ASSUME_SAFE_MACROS && unlikely(!values[0])) __PYX_ERR(0, 60, __pyx_L3_error)
         CYTHON_FALLTHROUGH;
         case  0: break;
         default: goto __pyx_L5_argtuple_error;
       }
       const Py_ssize_t kwd_pos_args = __pyx_nargs;
-      if (__Pyx_ParseKeywords(__pyx_kwds, __pyx_kwvalues, __pyx_pyargnames, 0, values, kwd_pos_args, __pyx_kwds_len, "manual_seed", 0) < (0)) __PYX_ERR(0, 52, __pyx_L3_error)
+      if (__Pyx_ParseKeywords(__pyx_kwds, __pyx_kwvalues, __pyx_pyargnames, 0, values, kwd_pos_args, __pyx_kwds_len, "manual_seed", 0) < (0)) __PYX_ERR(0, 60, __pyx_L3_error)
       for (Py_ssize_t i = __pyx_nargs; i < 1; i++) {
-        if (unlikely(!values[i])) { __Pyx_RaiseArgtupleInvalid("manual_seed", 0, 1, 2, i); __PYX_ERR(0, 52, __pyx_L3_error) }
+        if (unlikely(!values[i])) { __Pyx_RaiseArgtupleInvalid("manual_seed", 0, 1, 2, i); __PYX_ERR(0, 60, __pyx_L3_error) }
       }
     } else {
       switch (__pyx_nargs) {
         case  2:
         values[1] = __Pyx_ArgRef_FASTCALL(__pyx_args, 1);
-        if (!CYTHON_ASSUME_SAFE_MACROS && unlikely(!values[1])) __PYX_ERR(0, 52, __pyx_L3_error)
+        if (!CYTHON_ASSUME_SAFE_MACROS && unlikely(!values[1])) __PYX_ERR(0, 60, __pyx_L3_error)
         CYTHON_FALLTHROUGH;
         case  1:
         values[0] = __Pyx_ArgRef_FASTCALL(__pyx_args, 0);
-        if (!CYTHON_ASSUME_SAFE_MACROS && unlikely(!values[0])) __PYX_ERR(0, 52, __pyx_L3_error)
+        if (!CYTHON_ASSUME_SAFE_MACROS && unlikely(!values[0])) __PYX_ERR(0, 60, __pyx_L3_error)
         break;
         default: goto __pyx_L5_argtuple_error;
       }
     }
-    __pyx_v_seed = __Pyx_PyLong_As_unsigned_PY_LONG_LONG(values[0]); if (unlikely((__pyx_v_seed == (unsigned PY_LONG_LONG)-1) && PyErr_Occurred())) __PYX_ERR(0, 52, __pyx_L3_error)
+    __pyx_v_seed = __Pyx_PyLong_As_unsigned_PY_LONG_LONG(values[0]); if (unlikely((__pyx_v_seed == (unsigned PY_LONG_LONG)-1) && PyErr_Occurred())) __PYX_ERR(0, 60, __pyx_L3_error)
     if (values[1]) {
-      __pyx_v_device = __Pyx_PyLong_As_int(values[1]); if (unlikely((__pyx_v_device == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 52, __pyx_L3_error)
+      __pyx_v_device = __Pyx_PyLong_As_int(values[1]); if (unlikely((__pyx_v_device == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 60, __pyx_L3_error)
     } else {
       __pyx_v_device = __pyx_mstate_global->__pyx_k_;
     }
   }
   goto __pyx_L6_skip;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("manual_seed", 0, 1, 2, __pyx_nargs); __PYX_ERR(0, 52, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("manual_seed", 0, 1, 2, __pyx_nargs); __PYX_ERR(0, 60, __pyx_L3_error)
   __pyx_L6_skip:;
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L3_error:;
@@ -3259,7 +3379,7 @@ static PyObject *__pyx_pf_6cyflow_6tensor_manual_seed(CYTHON_UNUSED PyObject *__
   __Pyx_XDECREF(__pyx_r);
   __pyx_t_2.__pyx_n = 1;
   __pyx_t_2.device = __pyx_v_device;
-  __pyx_t_1 = __pyx_f_6cyflow_6tensor_manual_seed(__pyx_v_seed, 1, &__pyx_t_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 52, __pyx_L1_error)
+  __pyx_t_1 = __pyx_f_6cyflow_6tensor_manual_seed(__pyx_v_seed, 1, &__pyx_t_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 60, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
@@ -3276,7 +3396,822 @@ static PyObject *__pyx_pf_6cyflow_6tensor_manual_seed(CYTHON_UNUSED PyObject *__
   return __pyx_r;
 }
 
-/* "cyflow/tensor.pyx":63
+/* "cyflow/tensor.pyx":68
+ *         raise ValueError(f"Unsupported device integer: {device}")
+ * 
+ * def _get_nested_list_shape_and_flat(lst):             # <<<<<<<<<<<<<<
+ *     if not isinstance(lst, (list, tuple)):
+ *         raise TypeError("Expected list or tuple")
+*/
+
+/* Python wrapper */
+static PyObject *__pyx_pw_6cyflow_6tensor_3_get_nested_list_shape_and_flat(PyObject *__pyx_self, 
+#if CYTHON_METH_FASTCALL
+PyObject *const *__pyx_args, Py_ssize_t __pyx_nargs, PyObject *__pyx_kwds
+#else
+PyObject *__pyx_args, PyObject *__pyx_kwds
+#endif
+); /*proto*/
+static PyMethodDef __pyx_mdef_6cyflow_6tensor_3_get_nested_list_shape_and_flat = {"_get_nested_list_shape_and_flat", (PyCFunction)(void(*)(void))(__Pyx_PyCFunction_FastCallWithKeywords)__pyx_pw_6cyflow_6tensor_3_get_nested_list_shape_and_flat, __Pyx_METH_FASTCALL|METH_KEYWORDS, 0};
+static PyObject *__pyx_pw_6cyflow_6tensor_3_get_nested_list_shape_and_flat(PyObject *__pyx_self, 
+#if CYTHON_METH_FASTCALL
+PyObject *const *__pyx_args, Py_ssize_t __pyx_nargs, PyObject *__pyx_kwds
+#else
+PyObject *__pyx_args, PyObject *__pyx_kwds
+#endif
+) {
+  PyObject *__pyx_v_lst = 0;
+  #if !CYTHON_METH_FASTCALL
+  CYTHON_UNUSED Py_ssize_t __pyx_nargs;
+  #endif
+  CYTHON_UNUSED PyObject *const *__pyx_kwvalues;
+  PyObject* values[1] = {0};
+  int __pyx_lineno = 0;
+  const char *__pyx_filename = NULL;
+  int __pyx_clineno = 0;
+  PyObject *__pyx_r = 0;
+  __Pyx_RefNannyDeclarations
+  __Pyx_RefNannySetupContext("_get_nested_list_shape_and_flat (wrapper)", 0);
+  #if !CYTHON_METH_FASTCALL
+  #if CYTHON_ASSUME_SAFE_SIZE
+  __pyx_nargs = PyTuple_GET_SIZE(__pyx_args);
+  #else
+  __pyx_nargs = PyTuple_Size(__pyx_args); if (unlikely(__pyx_nargs < 0)) return NULL;
+  #endif
+  #endif
+  __pyx_kwvalues = __Pyx_KwValues_FASTCALL(__pyx_args, __pyx_nargs);
+  {
+    PyObject ** const __pyx_pyargnames[] = {&__pyx_mstate_global->__pyx_n_u_lst,0};
+    const Py_ssize_t __pyx_kwds_len = (__pyx_kwds) ? __Pyx_NumKwargs_FASTCALL(__pyx_kwds) : 0;
+    if (unlikely(__pyx_kwds_len < 0)) __PYX_ERR(0, 68, __pyx_L3_error)
+    if (__pyx_kwds_len > 0) {
+      switch (__pyx_nargs) {
+        case  1:
+        values[0] = __Pyx_ArgRef_FASTCALL(__pyx_args, 0);
+        if (!CYTHON_ASSUME_SAFE_MACROS && unlikely(!values[0])) __PYX_ERR(0, 68, __pyx_L3_error)
+        CYTHON_FALLTHROUGH;
+        case  0: break;
+        default: goto __pyx_L5_argtuple_error;
+      }
+      const Py_ssize_t kwd_pos_args = __pyx_nargs;
+      if (__Pyx_ParseKeywords(__pyx_kwds, __pyx_kwvalues, __pyx_pyargnames, 0, values, kwd_pos_args, __pyx_kwds_len, "_get_nested_list_shape_and_flat", 0) < (0)) __PYX_ERR(0, 68, __pyx_L3_error)
+      for (Py_ssize_t i = __pyx_nargs; i < 1; i++) {
+        if (unlikely(!values[i])) { __Pyx_RaiseArgtupleInvalid("_get_nested_list_shape_and_flat", 1, 1, 1, i); __PYX_ERR(0, 68, __pyx_L3_error) }
+      }
+    } else if (unlikely(__pyx_nargs != 1)) {
+      goto __pyx_L5_argtuple_error;
+    } else {
+      values[0] = __Pyx_ArgRef_FASTCALL(__pyx_args, 0);
+      if (!CYTHON_ASSUME_SAFE_MACROS && unlikely(!values[0])) __PYX_ERR(0, 68, __pyx_L3_error)
+    }
+    __pyx_v_lst = values[0];
+  }
+  goto __pyx_L6_skip;
+  __pyx_L5_argtuple_error:;
+  __Pyx_RaiseArgtupleInvalid("_get_nested_list_shape_and_flat", 1, 1, 1, __pyx_nargs); __PYX_ERR(0, 68, __pyx_L3_error)
+  __pyx_L6_skip:;
+  goto __pyx_L4_argument_unpacking_done;
+  __pyx_L3_error:;
+  for (Py_ssize_t __pyx_temp=0; __pyx_temp < (Py_ssize_t)(sizeof(values)/sizeof(values[0])); ++__pyx_temp) {
+    Py_XDECREF(values[__pyx_temp]);
+  }
+  __Pyx_AddTraceback("cyflow.tensor._get_nested_list_shape_and_flat", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_RefNannyFinishContext();
+  return NULL;
+  __pyx_L4_argument_unpacking_done:;
+  __pyx_r = __pyx_pf_6cyflow_6tensor_2_get_nested_list_shape_and_flat(__pyx_self, __pyx_v_lst);
+
+  /* function exit code */
+  for (Py_ssize_t __pyx_temp=0; __pyx_temp < (Py_ssize_t)(sizeof(values)/sizeof(values[0])); ++__pyx_temp) {
+    Py_XDECREF(values[__pyx_temp]);
+  }
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* "cyflow/tensor.pyx":81
+ * 
+ *     flat = []
+ *     def _flatten(item, depth=0):             # <<<<<<<<<<<<<<
+ *         if isinstance(item, (list, tuple)):
+ *             if depth < len(shape) and len(item) != shape[depth]:
+*/
+
+/* Python wrapper */
+static PyObject *__pyx_pw_6cyflow_6tensor_31_get_nested_list_shape_and_flat_1_flatten(PyObject *__pyx_self, 
+#if CYTHON_METH_FASTCALL
+PyObject *const *__pyx_args, Py_ssize_t __pyx_nargs, PyObject *__pyx_kwds
+#else
+PyObject *__pyx_args, PyObject *__pyx_kwds
+#endif
+); /*proto*/
+static PyMethodDef __pyx_mdef_6cyflow_6tensor_31_get_nested_list_shape_and_flat_1_flatten = {"_flatten", (PyCFunction)(void(*)(void))(__Pyx_PyCFunction_FastCallWithKeywords)__pyx_pw_6cyflow_6tensor_31_get_nested_list_shape_and_flat_1_flatten, __Pyx_METH_FASTCALL|METH_KEYWORDS, 0};
+static PyObject *__pyx_pw_6cyflow_6tensor_31_get_nested_list_shape_and_flat_1_flatten(PyObject *__pyx_self, 
+#if CYTHON_METH_FASTCALL
+PyObject *const *__pyx_args, Py_ssize_t __pyx_nargs, PyObject *__pyx_kwds
+#else
+PyObject *__pyx_args, PyObject *__pyx_kwds
+#endif
+) {
+  PyObject *__pyx_v_item = 0;
+  PyObject *__pyx_v_depth = 0;
+  #if !CYTHON_METH_FASTCALL
+  CYTHON_UNUSED Py_ssize_t __pyx_nargs;
+  #endif
+  CYTHON_UNUSED PyObject *const *__pyx_kwvalues;
+  PyObject* values[2] = {0,0};
+  int __pyx_lineno = 0;
+  const char *__pyx_filename = NULL;
+  int __pyx_clineno = 0;
+  PyObject *__pyx_r = 0;
+  __Pyx_RefNannyDeclarations
+  __Pyx_RefNannySetupContext("_flatten (wrapper)", 0);
+  #if !CYTHON_METH_FASTCALL
+  #if CYTHON_ASSUME_SAFE_SIZE
+  __pyx_nargs = PyTuple_GET_SIZE(__pyx_args);
+  #else
+  __pyx_nargs = PyTuple_Size(__pyx_args); if (unlikely(__pyx_nargs < 0)) return NULL;
+  #endif
+  #endif
+  __pyx_kwvalues = __Pyx_KwValues_FASTCALL(__pyx_args, __pyx_nargs);
+  {
+    PyObject ** const __pyx_pyargnames[] = {&__pyx_mstate_global->__pyx_n_u_item,&__pyx_mstate_global->__pyx_n_u_depth,0};
+    const Py_ssize_t __pyx_kwds_len = (__pyx_kwds) ? __Pyx_NumKwargs_FASTCALL(__pyx_kwds) : 0;
+    if (unlikely(__pyx_kwds_len < 0)) __PYX_ERR(0, 81, __pyx_L3_error)
+    if (__pyx_kwds_len > 0) {
+      switch (__pyx_nargs) {
+        case  2:
+        values[1] = __Pyx_ArgRef_FASTCALL(__pyx_args, 1);
+        if (!CYTHON_ASSUME_SAFE_MACROS && unlikely(!values[1])) __PYX_ERR(0, 81, __pyx_L3_error)
+        CYTHON_FALLTHROUGH;
+        case  1:
+        values[0] = __Pyx_ArgRef_FASTCALL(__pyx_args, 0);
+        if (!CYTHON_ASSUME_SAFE_MACROS && unlikely(!values[0])) __PYX_ERR(0, 81, __pyx_L3_error)
+        CYTHON_FALLTHROUGH;
+        case  0: break;
+        default: goto __pyx_L5_argtuple_error;
+      }
+      const Py_ssize_t kwd_pos_args = __pyx_nargs;
+      if (__Pyx_ParseKeywords(__pyx_kwds, __pyx_kwvalues, __pyx_pyargnames, 0, values, kwd_pos_args, __pyx_kwds_len, "_flatten", 0) < (0)) __PYX_ERR(0, 81, __pyx_L3_error)
+      if (!values[1]) values[1] = __Pyx_NewRef(((PyObject *)((PyObject*)__pyx_mstate_global->__pyx_int_0)));
+      for (Py_ssize_t i = __pyx_nargs; i < 1; i++) {
+        if (unlikely(!values[i])) { __Pyx_RaiseArgtupleInvalid("_flatten", 0, 1, 2, i); __PYX_ERR(0, 81, __pyx_L3_error) }
+      }
+    } else {
+      switch (__pyx_nargs) {
+        case  2:
+        values[1] = __Pyx_ArgRef_FASTCALL(__pyx_args, 1);
+        if (!CYTHON_ASSUME_SAFE_MACROS && unlikely(!values[1])) __PYX_ERR(0, 81, __pyx_L3_error)
+        CYTHON_FALLTHROUGH;
+        case  1:
+        values[0] = __Pyx_ArgRef_FASTCALL(__pyx_args, 0);
+        if (!CYTHON_ASSUME_SAFE_MACROS && unlikely(!values[0])) __PYX_ERR(0, 81, __pyx_L3_error)
+        break;
+        default: goto __pyx_L5_argtuple_error;
+      }
+      if (!values[1]) values[1] = __Pyx_NewRef(((PyObject *)((PyObject*)__pyx_mstate_global->__pyx_int_0)));
+    }
+    __pyx_v_item = values[0];
+    __pyx_v_depth = values[1];
+  }
+  goto __pyx_L6_skip;
+  __pyx_L5_argtuple_error:;
+  __Pyx_RaiseArgtupleInvalid("_flatten", 0, 1, 2, __pyx_nargs); __PYX_ERR(0, 81, __pyx_L3_error)
+  __pyx_L6_skip:;
+  goto __pyx_L4_argument_unpacking_done;
+  __pyx_L3_error:;
+  for (Py_ssize_t __pyx_temp=0; __pyx_temp < (Py_ssize_t)(sizeof(values)/sizeof(values[0])); ++__pyx_temp) {
+    Py_XDECREF(values[__pyx_temp]);
+  }
+  __Pyx_AddTraceback("cyflow.tensor._get_nested_list_shape_and_flat._flatten", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_RefNannyFinishContext();
+  return NULL;
+  __pyx_L4_argument_unpacking_done:;
+  __pyx_r = __pyx_pf_6cyflow_6tensor_31_get_nested_list_shape_and_flat__flatten(__pyx_self, __pyx_v_item, __pyx_v_depth);
+
+  /* function exit code */
+  for (Py_ssize_t __pyx_temp=0; __pyx_temp < (Py_ssize_t)(sizeof(values)/sizeof(values[0])); ++__pyx_temp) {
+    Py_XDECREF(values[__pyx_temp]);
+  }
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+static PyObject *__pyx_pf_6cyflow_6tensor_31_get_nested_list_shape_and_flat__flatten(PyObject *__pyx_self, PyObject *__pyx_v_item, PyObject *__pyx_v_depth) {
+  struct __pyx_obj_6cyflow_6tensor___pyx_scope_struct___get_nested_list_shape_and_flat *__pyx_cur_scope;
+  struct __pyx_obj_6cyflow_6tensor___pyx_scope_struct___get_nested_list_shape_and_flat *__pyx_outer_scope;
+  PyObject *__pyx_v_sub = NULL;
+  PyObject *__pyx_r = NULL;
+  __Pyx_RefNannyDeclarations
+  int __pyx_t_1;
+  int __pyx_t_2;
+  PyObject *__pyx_t_3 = NULL;
+  Py_ssize_t __pyx_t_4;
+  PyObject *__pyx_t_5 = NULL;
+  PyObject *__pyx_t_6 = NULL;
+  PyObject *__pyx_t_7 = NULL;
+  PyObject *__pyx_t_8 = NULL;
+  PyObject *__pyx_t_9[6];
+  PyObject *__pyx_t_10 = NULL;
+  size_t __pyx_t_11;
+  PyObject *(*__pyx_t_12)(PyObject *);
+  int __pyx_t_13;
+  int __pyx_lineno = 0;
+  const char *__pyx_filename = NULL;
+  int __pyx_clineno = 0;
+  __Pyx_RefNannySetupContext("_flatten", 0);
+  __pyx_outer_scope = (struct __pyx_obj_6cyflow_6tensor___pyx_scope_struct___get_nested_list_shape_and_flat *) __Pyx_CyFunction_GetClosure(__pyx_self);
+  __pyx_cur_scope = __pyx_outer_scope;
+
+  /* "cyflow/tensor.pyx":82
+ *     flat = []
+ *     def _flatten(item, depth=0):
+ *         if isinstance(item, (list, tuple)):             # <<<<<<<<<<<<<<
+ *             if depth < len(shape) and len(item) != shape[depth]:
+ *                 raise ValueError(
+*/
+  __pyx_t_2 = PyList_Check(__pyx_v_item); 
+  if (!__pyx_t_2) {
+  } else {
+    __pyx_t_1 = __pyx_t_2;
+    goto __pyx_L4_bool_binop_done;
+  }
+  __pyx_t_2 = PyTuple_Check(__pyx_v_item); 
+  __pyx_t_1 = __pyx_t_2;
+  __pyx_L4_bool_binop_done:;
+  if (__pyx_t_1) {
+
+    /* "cyflow/tensor.pyx":83
+ *     def _flatten(item, depth=0):
+ *         if isinstance(item, (list, tuple)):
+ *             if depth < len(shape) and len(item) != shape[depth]:             # <<<<<<<<<<<<<<
+ *                 raise ValueError(
+ *                     f"Inconsistent list dimension at depth {depth}: expected {shape[depth]}, got {len(item)}"
+*/
+    if (unlikely(!__pyx_cur_scope->__pyx_v_shape)) { __Pyx_RaiseClosureNameError("shape"); __PYX_ERR(0, 83, __pyx_L1_error) }
+    __pyx_t_3 = __pyx_cur_scope->__pyx_v_shape;
+    __Pyx_INCREF(__pyx_t_3);
+    if (unlikely(__pyx_t_3 == Py_None)) {
+      PyErr_SetString(PyExc_TypeError, "object of type 'NoneType' has no len()");
+      __PYX_ERR(0, 83, __pyx_L1_error)
+    }
+    __pyx_t_4 = __Pyx_PyList_GET_SIZE(__pyx_t_3); if (unlikely(__pyx_t_4 == ((Py_ssize_t)-1))) __PYX_ERR(0, 83, __pyx_L1_error)
+    __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+    __pyx_t_3 = PyLong_FromSsize_t(__pyx_t_4); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 83, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_3);
+    __pyx_t_5 = PyObject_RichCompare(__pyx_v_depth, __pyx_t_3, Py_LT); __Pyx_XGOTREF(__pyx_t_5); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 83, __pyx_L1_error)
+    __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+    __pyx_t_2 = __Pyx_PyObject_IsTrue(__pyx_t_5); if (unlikely((__pyx_t_2 < 0))) __PYX_ERR(0, 83, __pyx_L1_error)
+    __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
+    if (__pyx_t_2) {
+    } else {
+      __pyx_t_1 = __pyx_t_2;
+      goto __pyx_L7_bool_binop_done;
+    }
+    __pyx_t_4 = PyObject_Length(__pyx_v_item); if (unlikely(__pyx_t_4 == ((Py_ssize_t)-1))) __PYX_ERR(0, 83, __pyx_L1_error)
+    __pyx_t_5 = PyLong_FromSsize_t(__pyx_t_4); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 83, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_5);
+    if (unlikely(!__pyx_cur_scope->__pyx_v_shape)) { __Pyx_RaiseClosureNameError("shape"); __PYX_ERR(0, 83, __pyx_L1_error) }
+    if (unlikely(__pyx_cur_scope->__pyx_v_shape == Py_None)) {
+      PyErr_SetString(PyExc_TypeError, "'NoneType' object is not subscriptable");
+      __PYX_ERR(0, 83, __pyx_L1_error)
+    }
+    __pyx_t_3 = __Pyx_PyObject_GetItem(__pyx_cur_scope->__pyx_v_shape, __pyx_v_depth); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 83, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_3);
+    __pyx_t_6 = PyObject_RichCompare(__pyx_t_5, __pyx_t_3, Py_NE); __Pyx_XGOTREF(__pyx_t_6); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 83, __pyx_L1_error)
+    __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
+    __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+    __pyx_t_2 = __Pyx_PyObject_IsTrue(__pyx_t_6); if (unlikely((__pyx_t_2 < 0))) __PYX_ERR(0, 83, __pyx_L1_error)
+    __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
+    __pyx_t_1 = __pyx_t_2;
+    __pyx_L7_bool_binop_done:;
+    if (unlikely(__pyx_t_1)) {
+
+      /* "cyflow/tensor.pyx":84
+ *         if isinstance(item, (list, tuple)):
+ *             if depth < len(shape) and len(item) != shape[depth]:
+ *                 raise ValueError(             # <<<<<<<<<<<<<<
+ *                     f"Inconsistent list dimension at depth {depth}: expected {shape[depth]}, got {len(item)}"
+ *                 )
+*/
+      __pyx_t_3 = NULL;
+
+      /* "cyflow/tensor.pyx":85
+ *             if depth < len(shape) and len(item) != shape[depth]:
+ *                 raise ValueError(
+ *                     f"Inconsistent list dimension at depth {depth}: expected {shape[depth]}, got {len(item)}"             # <<<<<<<<<<<<<<
+ *                 )
+ *             for sub in item:
+*/
+      __pyx_t_5 = __Pyx_PyObject_FormatSimple(__pyx_v_depth, __pyx_mstate_global->__pyx_empty_unicode); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 85, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_5);
+      if (unlikely(!__pyx_cur_scope->__pyx_v_shape)) { __Pyx_RaiseClosureNameError("shape"); __PYX_ERR(0, 85, __pyx_L1_error) }
+      if (unlikely(__pyx_cur_scope->__pyx_v_shape == Py_None)) {
+        PyErr_SetString(PyExc_TypeError, "'NoneType' object is not subscriptable");
+        __PYX_ERR(0, 85, __pyx_L1_error)
+      }
+      __pyx_t_7 = __Pyx_PyObject_GetItem(__pyx_cur_scope->__pyx_v_shape, __pyx_v_depth); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 85, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_7);
+      __pyx_t_8 = __Pyx_PyObject_FormatSimple(__pyx_t_7, __pyx_mstate_global->__pyx_empty_unicode); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 85, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_8);
+      __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
+      __pyx_t_4 = PyObject_Length(__pyx_v_item); if (unlikely(__pyx_t_4 == ((Py_ssize_t)-1))) __PYX_ERR(0, 85, __pyx_L1_error)
+      __pyx_t_7 = __Pyx_PyUnicode_From_Py_ssize_t(__pyx_t_4, 0, ' ', 'd'); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 85, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_7);
+      __pyx_t_9[0] = __pyx_mstate_global->__pyx_kp_u_Inconsistent_list_dimension_at_d;
+      __pyx_t_9[1] = __pyx_t_5;
+      __pyx_t_9[2] = __pyx_mstate_global->__pyx_kp_u_expected;
+      __pyx_t_9[3] = __pyx_t_8;
+      __pyx_t_9[4] = __pyx_mstate_global->__pyx_kp_u_got;
+      __pyx_t_9[5] = __pyx_t_7;
+      __pyx_t_10 = __Pyx_PyUnicode_Join(__pyx_t_9, 6, 37 + __Pyx_PyUnicode_GET_LENGTH(__pyx_t_5) + 11 + __Pyx_PyUnicode_GET_LENGTH(__pyx_t_8) + 6 + __Pyx_PyUnicode_GET_LENGTH(__pyx_t_7), 127 | __Pyx_PyUnicode_MAX_CHAR_VALUE(__pyx_t_5) | __Pyx_PyUnicode_MAX_CHAR_VALUE(__pyx_t_8));
+      if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 85, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_10);
+      __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
+      __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
+      __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
+      __pyx_t_11 = 1;
+      {
+        PyObject *__pyx_callargs[2] = {__pyx_t_3, __pyx_t_10};
+        __pyx_t_6 = __Pyx_PyObject_FastCall((PyObject*)(((PyTypeObject*)PyExc_ValueError)), __pyx_callargs+__pyx_t_11, (2-__pyx_t_11) | (__pyx_t_11*__Pyx_PY_VECTORCALL_ARGUMENTS_OFFSET));
+        __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
+        __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
+        if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 84, __pyx_L1_error)
+        __Pyx_GOTREF(__pyx_t_6);
+      }
+      __Pyx_Raise(__pyx_t_6, 0, 0, 0);
+      __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
+      __PYX_ERR(0, 84, __pyx_L1_error)
+
+      /* "cyflow/tensor.pyx":83
+ *     def _flatten(item, depth=0):
+ *         if isinstance(item, (list, tuple)):
+ *             if depth < len(shape) and len(item) != shape[depth]:             # <<<<<<<<<<<<<<
+ *                 raise ValueError(
+ *                     f"Inconsistent list dimension at depth {depth}: expected {shape[depth]}, got {len(item)}"
+*/
+    }
+
+    /* "cyflow/tensor.pyx":87
+ *                     f"Inconsistent list dimension at depth {depth}: expected {shape[depth]}, got {len(item)}"
+ *                 )
+ *             for sub in item:             # <<<<<<<<<<<<<<
+ *                 _flatten(sub, depth + 1)
+ *         elif isinstance(item, (int, float)):
+*/
+    if (likely(PyList_CheckExact(__pyx_v_item)) || PyTuple_CheckExact(__pyx_v_item)) {
+      __pyx_t_6 = __pyx_v_item; __Pyx_INCREF(__pyx_t_6);
+      __pyx_t_4 = 0;
+      __pyx_t_12 = NULL;
+    } else {
+      __pyx_t_4 = -1; __pyx_t_6 = PyObject_GetIter(__pyx_v_item); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 87, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_6);
+      __pyx_t_12 = (CYTHON_COMPILING_IN_LIMITED_API) ? PyIter_Next : __Pyx_PyObject_GetIterNextFunc(__pyx_t_6); if (unlikely(!__pyx_t_12)) __PYX_ERR(0, 87, __pyx_L1_error)
+    }
+    for (;;) {
+      if (likely(!__pyx_t_12)) {
+        if (likely(PyList_CheckExact(__pyx_t_6))) {
+          {
+            Py_ssize_t __pyx_temp = __Pyx_PyList_GET_SIZE(__pyx_t_6);
+            #if !CYTHON_ASSUME_SAFE_SIZE
+            if (unlikely((__pyx_temp < 0))) __PYX_ERR(0, 87, __pyx_L1_error)
+            #endif
+            if (__pyx_t_4 >= __pyx_temp) break;
+          }
+          __pyx_t_10 = __Pyx_PyList_GetItemRefFast(__pyx_t_6, __pyx_t_4, __Pyx_ReferenceSharing_OwnStrongReference);
+          ++__pyx_t_4;
+        } else {
+          {
+            Py_ssize_t __pyx_temp = __Pyx_PyTuple_GET_SIZE(__pyx_t_6);
+            #if !CYTHON_ASSUME_SAFE_SIZE
+            if (unlikely((__pyx_temp < 0))) __PYX_ERR(0, 87, __pyx_L1_error)
+            #endif
+            if (__pyx_t_4 >= __pyx_temp) break;
+          }
+          #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
+          __pyx_t_10 = __Pyx_NewRef(PyTuple_GET_ITEM(__pyx_t_6, __pyx_t_4));
+          #else
+          __pyx_t_10 = __Pyx_PySequence_ITEM(__pyx_t_6, __pyx_t_4);
+          #endif
+          ++__pyx_t_4;
+        }
+        if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 87, __pyx_L1_error)
+      } else {
+        __pyx_t_10 = __pyx_t_12(__pyx_t_6);
+        if (unlikely(!__pyx_t_10)) {
+          PyObject* exc_type = PyErr_Occurred();
+          if (exc_type) {
+            if (unlikely(!__Pyx_PyErr_GivenExceptionMatches(exc_type, PyExc_StopIteration))) __PYX_ERR(0, 87, __pyx_L1_error)
+            PyErr_Clear();
+          }
+          break;
+        }
+      }
+      __Pyx_GOTREF(__pyx_t_10);
+      __Pyx_XDECREF_SET(__pyx_v_sub, __pyx_t_10);
+      __pyx_t_10 = 0;
+
+      /* "cyflow/tensor.pyx":88
+ *                 )
+ *             for sub in item:
+ *                 _flatten(sub, depth + 1)             # <<<<<<<<<<<<<<
+ *         elif isinstance(item, (int, float)):
+ *             flat.append(float(item))
+*/
+      __pyx_t_10 = __Pyx_PyLong_AddObjC(__pyx_v_depth, __pyx_mstate_global->__pyx_int_1, 1, 0, 0); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 88, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_10);
+      if (unlikely(!__pyx_cur_scope->__pyx_v__flatten)) { __Pyx_RaiseClosureNameError("_flatten"); __PYX_ERR(0, 88, __pyx_L1_error) }
+      __pyx_t_3 = __pyx_pf_6cyflow_6tensor_31_get_nested_list_shape_and_flat__flatten(__pyx_cur_scope->__pyx_v__flatten, __pyx_v_sub, __pyx_t_10); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 88, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_3);
+      __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
+      __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+
+      /* "cyflow/tensor.pyx":87
+ *                     f"Inconsistent list dimension at depth {depth}: expected {shape[depth]}, got {len(item)}"
+ *                 )
+ *             for sub in item:             # <<<<<<<<<<<<<<
+ *                 _flatten(sub, depth + 1)
+ *         elif isinstance(item, (int, float)):
+*/
+    }
+    __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
+
+    /* "cyflow/tensor.pyx":82
+ *     flat = []
+ *     def _flatten(item, depth=0):
+ *         if isinstance(item, (list, tuple)):             # <<<<<<<<<<<<<<
+ *             if depth < len(shape) and len(item) != shape[depth]:
+ *                 raise ValueError(
+*/
+    goto __pyx_L3;
+  }
+
+  /* "cyflow/tensor.pyx":89
+ *             for sub in item:
+ *                 _flatten(sub, depth + 1)
+ *         elif isinstance(item, (int, float)):             # <<<<<<<<<<<<<<
+ *             flat.append(float(item))
+ *         else:
+*/
+  __pyx_t_2 = PyLong_Check(__pyx_v_item); 
+  if (!__pyx_t_2) {
+  } else {
+    __pyx_t_1 = __pyx_t_2;
+    goto __pyx_L12_bool_binop_done;
+  }
+  __pyx_t_2 = PyFloat_Check(__pyx_v_item); 
+  __pyx_t_1 = __pyx_t_2;
+  __pyx_L12_bool_binop_done:;
+  if (likely(__pyx_t_1)) {
+
+    /* "cyflow/tensor.pyx":90
+ *                 _flatten(sub, depth + 1)
+ *         elif isinstance(item, (int, float)):
+ *             flat.append(float(item))             # <<<<<<<<<<<<<<
+ *         else:
+ *             raise TypeError(f"Invalid element type in list: {type(item).__name__}")
+*/
+    if (unlikely(!__pyx_cur_scope->__pyx_v_flat)) { __Pyx_RaiseClosureNameError("flat"); __PYX_ERR(0, 90, __pyx_L1_error) }
+    if (unlikely(__pyx_cur_scope->__pyx_v_flat == Py_None)) {
+      PyErr_Format(PyExc_AttributeError, "'NoneType' object has no attribute '%.30s'", "append");
+      __PYX_ERR(0, 90, __pyx_L1_error)
+    }
+    __pyx_t_6 = __Pyx_PyNumber_Float(__pyx_v_item); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 90, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_6);
+    __pyx_t_13 = __Pyx_PyList_Append(__pyx_cur_scope->__pyx_v_flat, __pyx_t_6); if (unlikely(__pyx_t_13 == ((int)-1))) __PYX_ERR(0, 90, __pyx_L1_error)
+    __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
+
+    /* "cyflow/tensor.pyx":89
+ *             for sub in item:
+ *                 _flatten(sub, depth + 1)
+ *         elif isinstance(item, (int, float)):             # <<<<<<<<<<<<<<
+ *             flat.append(float(item))
+ *         else:
+*/
+    goto __pyx_L3;
+  }
+
+  /* "cyflow/tensor.pyx":92
+ *             flat.append(float(item))
+ *         else:
+ *             raise TypeError(f"Invalid element type in list: {type(item).__name__}")             # <<<<<<<<<<<<<<
+ * 
+ *     _flatten(lst)
+*/
+  /*else*/ {
+    __pyx_t_3 = NULL;
+    __pyx_t_10 = __Pyx_PyObject_GetAttrStr(((PyObject *)Py_TYPE(__pyx_v_item)), __pyx_mstate_global->__pyx_n_u_name); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 92, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_10);
+    __pyx_t_7 = __Pyx_PyObject_FormatSimple(__pyx_t_10, __pyx_mstate_global->__pyx_empty_unicode); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 92, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_7);
+    __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
+    __pyx_t_10 = __Pyx_PyUnicode_Concat(__pyx_mstate_global->__pyx_kp_u_Invalid_element_type_in_list, __pyx_t_7); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 92, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_10);
+    __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
+    __pyx_t_11 = 1;
+    {
+      PyObject *__pyx_callargs[2] = {__pyx_t_3, __pyx_t_10};
+      __pyx_t_6 = __Pyx_PyObject_FastCall((PyObject*)(((PyTypeObject*)PyExc_TypeError)), __pyx_callargs+__pyx_t_11, (2-__pyx_t_11) | (__pyx_t_11*__Pyx_PY_VECTORCALL_ARGUMENTS_OFFSET));
+      __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
+      __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
+      if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 92, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_6);
+    }
+    __Pyx_Raise(__pyx_t_6, 0, 0, 0);
+    __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
+    __PYX_ERR(0, 92, __pyx_L1_error)
+  }
+  __pyx_L3:;
+
+  /* "cyflow/tensor.pyx":81
+ * 
+ *     flat = []
+ *     def _flatten(item, depth=0):             # <<<<<<<<<<<<<<
+ *         if isinstance(item, (list, tuple)):
+ *             if depth < len(shape) and len(item) != shape[depth]:
+*/
+
+  /* function exit code */
+  __pyx_r = Py_None; __Pyx_INCREF(Py_None);
+  goto __pyx_L0;
+  __pyx_L1_error:;
+  __Pyx_XDECREF(__pyx_t_3);
+  __Pyx_XDECREF(__pyx_t_5);
+  __Pyx_XDECREF(__pyx_t_6);
+  __Pyx_XDECREF(__pyx_t_7);
+  __Pyx_XDECREF(__pyx_t_8);
+  __Pyx_XDECREF(__pyx_t_10);
+  __Pyx_AddTraceback("cyflow.tensor._get_nested_list_shape_and_flat._flatten", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __pyx_r = NULL;
+  __pyx_L0:;
+  __Pyx_XDECREF(__pyx_v_sub);
+  __Pyx_XGIVEREF(__pyx_r);
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* "cyflow/tensor.pyx":68
+ *         raise ValueError(f"Unsupported device integer: {device}")
+ * 
+ * def _get_nested_list_shape_and_flat(lst):             # <<<<<<<<<<<<<<
+ *     if not isinstance(lst, (list, tuple)):
+ *         raise TypeError("Expected list or tuple")
+*/
+
+static PyObject *__pyx_pf_6cyflow_6tensor_2_get_nested_list_shape_and_flat(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_lst) {
+  struct __pyx_obj_6cyflow_6tensor___pyx_scope_struct___get_nested_list_shape_and_flat *__pyx_cur_scope;
+  PyObject *__pyx_v_curr = NULL;
+  PyObject *__pyx_r = NULL;
+  __Pyx_RefNannyDeclarations
+  int __pyx_t_1;
+  int __pyx_t_2;
+  PyObject *__pyx_t_3 = NULL;
+  PyObject *__pyx_t_4 = NULL;
+  size_t __pyx_t_5;
+  Py_ssize_t __pyx_t_6;
+  int __pyx_t_7;
+  int __pyx_lineno = 0;
+  const char *__pyx_filename = NULL;
+  int __pyx_clineno = 0;
+  __Pyx_RefNannySetupContext("_get_nested_list_shape_and_flat", 0);
+  __pyx_cur_scope = (struct __pyx_obj_6cyflow_6tensor___pyx_scope_struct___get_nested_list_shape_and_flat *)__pyx_tp_new_6cyflow_6tensor___pyx_scope_struct___get_nested_list_shape_and_flat(__pyx_mstate_global->__pyx_ptype_6cyflow_6tensor___pyx_scope_struct___get_nested_list_shape_and_flat, __pyx_mstate_global->__pyx_empty_tuple, NULL);
+  if (unlikely(!__pyx_cur_scope)) {
+    __pyx_cur_scope = ((struct __pyx_obj_6cyflow_6tensor___pyx_scope_struct___get_nested_list_shape_and_flat *)Py_None);
+    __Pyx_INCREF(Py_None);
+    __PYX_ERR(0, 68, __pyx_L1_error)
+  } else {
+    __Pyx_GOTREF((PyObject *)__pyx_cur_scope);
+  }
+
+  /* "cyflow/tensor.pyx":69
+ * 
+ * def _get_nested_list_shape_and_flat(lst):
+ *     if not isinstance(lst, (list, tuple)):             # <<<<<<<<<<<<<<
+ *         raise TypeError("Expected list or tuple")
+ * 
+*/
+  __pyx_t_2 = PyList_Check(__pyx_v_lst); 
+  if (!__pyx_t_2) {
+  } else {
+    __pyx_t_1 = __pyx_t_2;
+    goto __pyx_L4_bool_binop_done;
+  }
+  __pyx_t_2 = PyTuple_Check(__pyx_v_lst); 
+  __pyx_t_1 = __pyx_t_2;
+  __pyx_L4_bool_binop_done:;
+  __pyx_t_2 = (!__pyx_t_1);
+  if (unlikely(__pyx_t_2)) {
+
+    /* "cyflow/tensor.pyx":70
+ * def _get_nested_list_shape_and_flat(lst):
+ *     if not isinstance(lst, (list, tuple)):
+ *         raise TypeError("Expected list or tuple")             # <<<<<<<<<<<<<<
+ * 
+ *     shape = []
+*/
+    __pyx_t_4 = NULL;
+    __pyx_t_5 = 1;
+    {
+      PyObject *__pyx_callargs[2] = {__pyx_t_4, __pyx_mstate_global->__pyx_kp_u_Expected_list_or_tuple};
+      __pyx_t_3 = __Pyx_PyObject_FastCall((PyObject*)(((PyTypeObject*)PyExc_TypeError)), __pyx_callargs+__pyx_t_5, (2-__pyx_t_5) | (__pyx_t_5*__Pyx_PY_VECTORCALL_ARGUMENTS_OFFSET));
+      __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
+      if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 70, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_3);
+    }
+    __Pyx_Raise(__pyx_t_3, 0, 0, 0);
+    __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+    __PYX_ERR(0, 70, __pyx_L1_error)
+
+    /* "cyflow/tensor.pyx":69
+ * 
+ * def _get_nested_list_shape_and_flat(lst):
+ *     if not isinstance(lst, (list, tuple)):             # <<<<<<<<<<<<<<
+ *         raise TypeError("Expected list or tuple")
+ * 
+*/
+  }
+
+  /* "cyflow/tensor.pyx":72
+ *         raise TypeError("Expected list or tuple")
+ * 
+ *     shape = []             # <<<<<<<<<<<<<<
+ *     curr = lst
+ *     while isinstance(curr, (list, tuple)):
+*/
+  __pyx_t_3 = PyList_New(0); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 72, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_3);
+  __Pyx_GIVEREF(__pyx_t_3);
+  __pyx_cur_scope->__pyx_v_shape = ((PyObject*)__pyx_t_3);
+  __pyx_t_3 = 0;
+
+  /* "cyflow/tensor.pyx":73
+ * 
+ *     shape = []
+ *     curr = lst             # <<<<<<<<<<<<<<
+ *     while isinstance(curr, (list, tuple)):
+ *         shape.append(len(curr))
+*/
+  __Pyx_INCREF(__pyx_v_lst);
+  __pyx_v_curr = __pyx_v_lst;
+
+  /* "cyflow/tensor.pyx":74
+ *     shape = []
+ *     curr = lst
+ *     while isinstance(curr, (list, tuple)):             # <<<<<<<<<<<<<<
+ *         shape.append(len(curr))
+ *         if len(curr) == 0:
+*/
+  while (1) {
+    __pyx_t_1 = PyList_Check(__pyx_v_curr); 
+    if (!__pyx_t_1) {
+    } else {
+      __pyx_t_2 = __pyx_t_1;
+      goto __pyx_L8_bool_binop_done;
+    }
+    __pyx_t_1 = PyTuple_Check(__pyx_v_curr); 
+    __pyx_t_2 = __pyx_t_1;
+    __pyx_L8_bool_binop_done:;
+    if (!__pyx_t_2) break;
+
+    /* "cyflow/tensor.pyx":75
+ *     curr = lst
+ *     while isinstance(curr, (list, tuple)):
+ *         shape.append(len(curr))             # <<<<<<<<<<<<<<
+ *         if len(curr) == 0:
+ *             break
+*/
+    __pyx_t_6 = PyObject_Length(__pyx_v_curr); if (unlikely(__pyx_t_6 == ((Py_ssize_t)-1))) __PYX_ERR(0, 75, __pyx_L1_error)
+    __pyx_t_3 = PyLong_FromSsize_t(__pyx_t_6); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 75, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_3);
+    __pyx_t_7 = __Pyx_PyList_Append(__pyx_cur_scope->__pyx_v_shape, __pyx_t_3); if (unlikely(__pyx_t_7 == ((int)-1))) __PYX_ERR(0, 75, __pyx_L1_error)
+    __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+
+    /* "cyflow/tensor.pyx":76
+ *     while isinstance(curr, (list, tuple)):
+ *         shape.append(len(curr))
+ *         if len(curr) == 0:             # <<<<<<<<<<<<<<
+ *             break
+ *         curr = curr[0]
+*/
+    __pyx_t_6 = PyObject_Length(__pyx_v_curr); if (unlikely(__pyx_t_6 == ((Py_ssize_t)-1))) __PYX_ERR(0, 76, __pyx_L1_error)
+    __pyx_t_2 = (__pyx_t_6 == 0);
+    if (__pyx_t_2) {
+
+      /* "cyflow/tensor.pyx":77
+ *         shape.append(len(curr))
+ *         if len(curr) == 0:
+ *             break             # <<<<<<<<<<<<<<
+ *         curr = curr[0]
+ * 
+*/
+      goto __pyx_L7_break;
+
+      /* "cyflow/tensor.pyx":76
+ *     while isinstance(curr, (list, tuple)):
+ *         shape.append(len(curr))
+ *         if len(curr) == 0:             # <<<<<<<<<<<<<<
+ *             break
+ *         curr = curr[0]
+*/
+    }
+
+    /* "cyflow/tensor.pyx":78
+ *         if len(curr) == 0:
+ *             break
+ *         curr = curr[0]             # <<<<<<<<<<<<<<
+ * 
+ *     flat = []
+*/
+    __pyx_t_3 = __Pyx_GetItemInt(__pyx_v_curr, 0, long, 1, __Pyx_PyLong_From_long, 0, 0, 1, 1, __Pyx_ReferenceSharing_OwnStrongReference); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 78, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_3);
+    __Pyx_DECREF_SET(__pyx_v_curr, __pyx_t_3);
+    __pyx_t_3 = 0;
+  }
+  __pyx_L7_break:;
+
+  /* "cyflow/tensor.pyx":80
+ *         curr = curr[0]
+ * 
+ *     flat = []             # <<<<<<<<<<<<<<
+ *     def _flatten(item, depth=0):
+ *         if isinstance(item, (list, tuple)):
+*/
+  __pyx_t_3 = PyList_New(0); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 80, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_3);
+  __Pyx_GIVEREF(__pyx_t_3);
+  __pyx_cur_scope->__pyx_v_flat = ((PyObject*)__pyx_t_3);
+  __pyx_t_3 = 0;
+
+  /* "cyflow/tensor.pyx":81
+ * 
+ *     flat = []
+ *     def _flatten(item, depth=0):             # <<<<<<<<<<<<<<
+ *         if isinstance(item, (list, tuple)):
+ *             if depth < len(shape) and len(item) != shape[depth]:
+*/
+  __pyx_t_3 = __Pyx_CyFunction_New(&__pyx_mdef_6cyflow_6tensor_31_get_nested_list_shape_and_flat_1_flatten, 0, __pyx_mstate_global->__pyx_n_u_get_nested_list_shape_and_flat, ((PyObject*)__pyx_cur_scope), __pyx_mstate_global->__pyx_n_u_cyflow_tensor, __pyx_mstate_global->__pyx_d, ((PyObject *)__pyx_mstate_global->__pyx_codeobj_tab[0])); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 81, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_3);
+  __Pyx_CyFunction_SetDefaultsTuple(__pyx_t_3, __pyx_mstate_global->__pyx_tuple[0]);
+  __Pyx_GIVEREF(__pyx_t_3);
+  __pyx_cur_scope->__pyx_v__flatten = __pyx_t_3;
+  __pyx_t_3 = 0;
+
+  /* "cyflow/tensor.pyx":94
+ *             raise TypeError(f"Invalid element type in list: {type(item).__name__}")
+ * 
+ *     _flatten(lst)             # <<<<<<<<<<<<<<
+ *     return tuple(shape), flat
+ * 
+*/
+  __pyx_t_3 = __Pyx_PyObject_CallOneArg(__pyx_cur_scope->__pyx_v__flatten, __pyx_v_lst); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 94, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_3);
+  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+
+  /* "cyflow/tensor.pyx":95
+ * 
+ *     _flatten(lst)
+ *     return tuple(shape), flat             # <<<<<<<<<<<<<<
+ * 
+ * cdef class Tensor:
+*/
+  __Pyx_XDECREF(__pyx_r);
+  __pyx_t_3 = PyList_AsTuple(__pyx_cur_scope->__pyx_v_shape); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 95, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_3);
+  __pyx_t_4 = PyTuple_New(2); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 95, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_4);
+  __Pyx_GIVEREF(__pyx_t_3);
+  if (__Pyx_PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_3) != (0)) __PYX_ERR(0, 95, __pyx_L1_error);
+  __Pyx_INCREF(__pyx_cur_scope->__pyx_v_flat);
+  __Pyx_GIVEREF(__pyx_cur_scope->__pyx_v_flat);
+  if (__Pyx_PyTuple_SET_ITEM(__pyx_t_4, 1, __pyx_cur_scope->__pyx_v_flat) != (0)) __PYX_ERR(0, 95, __pyx_L1_error);
+  __pyx_t_3 = 0;
+  __pyx_r = __pyx_t_4;
+  __pyx_t_4 = 0;
+  goto __pyx_L0;
+
+  /* "cyflow/tensor.pyx":68
+ *         raise ValueError(f"Unsupported device integer: {device}")
+ * 
+ * def _get_nested_list_shape_and_flat(lst):             # <<<<<<<<<<<<<<
+ *     if not isinstance(lst, (list, tuple)):
+ *         raise TypeError("Expected list or tuple")
+*/
+
+  /* function exit code */
+  __pyx_L1_error:;
+  __Pyx_XDECREF(__pyx_t_3);
+  __Pyx_XDECREF(__pyx_t_4);
+  __Pyx_AddTraceback("cyflow.tensor._get_nested_list_shape_and_flat", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __pyx_r = NULL;
+  __pyx_L0:;
+  __Pyx_XDECREF(__pyx_v_curr);
+  __Pyx_DECREF((PyObject *)__pyx_cur_scope);
+  __Pyx_XGIVEREF(__pyx_r);
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* "cyflow/tensor.pyx":100
  *     cdef TensorImpl* _tensor
  * 
  *     def __cinit__(self, shape=None, int device=CPU):             # <<<<<<<<<<<<<<
@@ -3307,32 +4242,32 @@ static int __pyx_pw_6cyflow_6tensor_6Tensor_1__cinit__(PyObject *__pyx_v_self, P
   {
     PyObject ** const __pyx_pyargnames[] = {&__pyx_mstate_global->__pyx_n_u_shape,&__pyx_mstate_global->__pyx_n_u_device,0};
     const Py_ssize_t __pyx_kwds_len = (__pyx_kwds) ? __Pyx_NumKwargs_VARARGS(__pyx_kwds) : 0;
-    if (unlikely(__pyx_kwds_len < 0)) __PYX_ERR(0, 63, __pyx_L3_error)
+    if (unlikely(__pyx_kwds_len < 0)) __PYX_ERR(0, 100, __pyx_L3_error)
     if (__pyx_kwds_len > 0) {
       switch (__pyx_nargs) {
         case  2:
         values[1] = __Pyx_ArgRef_VARARGS(__pyx_args, 1);
-        if (!CYTHON_ASSUME_SAFE_MACROS && unlikely(!values[1])) __PYX_ERR(0, 63, __pyx_L3_error)
+        if (!CYTHON_ASSUME_SAFE_MACROS && unlikely(!values[1])) __PYX_ERR(0, 100, __pyx_L3_error)
         CYTHON_FALLTHROUGH;
         case  1:
         values[0] = __Pyx_ArgRef_VARARGS(__pyx_args, 0);
-        if (!CYTHON_ASSUME_SAFE_MACROS && unlikely(!values[0])) __PYX_ERR(0, 63, __pyx_L3_error)
+        if (!CYTHON_ASSUME_SAFE_MACROS && unlikely(!values[0])) __PYX_ERR(0, 100, __pyx_L3_error)
         CYTHON_FALLTHROUGH;
         case  0: break;
         default: goto __pyx_L5_argtuple_error;
       }
       const Py_ssize_t kwd_pos_args = __pyx_nargs;
-      if (__Pyx_ParseKeywords(__pyx_kwds, __pyx_kwvalues, __pyx_pyargnames, 0, values, kwd_pos_args, __pyx_kwds_len, "__cinit__", 0) < (0)) __PYX_ERR(0, 63, __pyx_L3_error)
+      if (__Pyx_ParseKeywords(__pyx_kwds, __pyx_kwvalues, __pyx_pyargnames, 0, values, kwd_pos_args, __pyx_kwds_len, "__cinit__", 0) < (0)) __PYX_ERR(0, 100, __pyx_L3_error)
       if (!values[0]) values[0] = __Pyx_NewRef(((PyObject *)Py_None));
     } else {
       switch (__pyx_nargs) {
         case  2:
         values[1] = __Pyx_ArgRef_VARARGS(__pyx_args, 1);
-        if (!CYTHON_ASSUME_SAFE_MACROS && unlikely(!values[1])) __PYX_ERR(0, 63, __pyx_L3_error)
+        if (!CYTHON_ASSUME_SAFE_MACROS && unlikely(!values[1])) __PYX_ERR(0, 100, __pyx_L3_error)
         CYTHON_FALLTHROUGH;
         case  1:
         values[0] = __Pyx_ArgRef_VARARGS(__pyx_args, 0);
-        if (!CYTHON_ASSUME_SAFE_MACROS && unlikely(!values[0])) __PYX_ERR(0, 63, __pyx_L3_error)
+        if (!CYTHON_ASSUME_SAFE_MACROS && unlikely(!values[0])) __PYX_ERR(0, 100, __pyx_L3_error)
         CYTHON_FALLTHROUGH;
         case  0: break;
         default: goto __pyx_L5_argtuple_error;
@@ -3341,14 +4276,14 @@ static int __pyx_pw_6cyflow_6tensor_6Tensor_1__cinit__(PyObject *__pyx_v_self, P
     }
     __pyx_v_shape = values[0];
     if (values[1]) {
-      __pyx_v_device = __Pyx_PyLong_As_int(values[1]); if (unlikely((__pyx_v_device == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 63, __pyx_L3_error)
+      __pyx_v_device = __Pyx_PyLong_As_int(values[1]); if (unlikely((__pyx_v_device == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 100, __pyx_L3_error)
     } else {
       __pyx_v_device = __pyx_mstate_global->__pyx_k__2;
     }
   }
   goto __pyx_L6_skip;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("__cinit__", 0, 0, 2, __pyx_nargs); __PYX_ERR(0, 63, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("__cinit__", 0, 0, 2, __pyx_nargs); __PYX_ERR(0, 100, __pyx_L3_error)
   __pyx_L6_skip:;
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L3_error:;
@@ -3398,7 +4333,7 @@ static int __pyx_pf_6cyflow_6tensor_6Tensor___cinit__(struct __pyx_obj_6cyflow_6
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("__cinit__", 0);
 
-  /* "cyflow/tensor.pyx":68
+  /* "cyflow/tensor.pyx":105
  *         cdef int i
  * 
  *         if shape is None:             # <<<<<<<<<<<<<<
@@ -3408,7 +4343,7 @@ static int __pyx_pf_6cyflow_6tensor_6Tensor___cinit__(struct __pyx_obj_6cyflow_6
   __pyx_t_1 = (__pyx_v_shape == Py_None);
   if (__pyx_t_1) {
 
-    /* "cyflow/tensor.pyx":69
+    /* "cyflow/tensor.pyx":106
  * 
  *         if shape is None:
  *             self._tensor = NULL             # <<<<<<<<<<<<<<
@@ -3417,7 +4352,7 @@ static int __pyx_pf_6cyflow_6tensor_6Tensor___cinit__(struct __pyx_obj_6cyflow_6
 */
     __pyx_v_self->_tensor = NULL;
 
-    /* "cyflow/tensor.pyx":70
+    /* "cyflow/tensor.pyx":107
  *         if shape is None:
  *             self._tensor = NULL
  *             return             # <<<<<<<<<<<<<<
@@ -3427,7 +4362,7 @@ static int __pyx_pf_6cyflow_6tensor_6Tensor___cinit__(struct __pyx_obj_6cyflow_6
     __pyx_r = 0;
     goto __pyx_L0;
 
-    /* "cyflow/tensor.pyx":68
+    /* "cyflow/tensor.pyx":105
  *         cdef int i
  * 
  *         if shape is None:             # <<<<<<<<<<<<<<
@@ -3436,17 +4371,17 @@ static int __pyx_pf_6cyflow_6tensor_6Tensor___cinit__(struct __pyx_obj_6cyflow_6
 */
   }
 
-  /* "cyflow/tensor.pyx":72
+  /* "cyflow/tensor.pyx":109
  *             return
  * 
  *         ndim = len(shape)             # <<<<<<<<<<<<<<
  *         c_shape = <int64_t*>malloc(ndim * sizeof(int64_t))
  *         if not c_shape:
 */
-  __pyx_t_2 = PyObject_Length(__pyx_v_shape); if (unlikely(__pyx_t_2 == ((Py_ssize_t)-1))) __PYX_ERR(0, 72, __pyx_L1_error)
+  __pyx_t_2 = PyObject_Length(__pyx_v_shape); if (unlikely(__pyx_t_2 == ((Py_ssize_t)-1))) __PYX_ERR(0, 109, __pyx_L1_error)
   __pyx_v_ndim = __pyx_t_2;
 
-  /* "cyflow/tensor.pyx":73
+  /* "cyflow/tensor.pyx":110
  * 
  *         ndim = len(shape)
  *         c_shape = <int64_t*>malloc(ndim * sizeof(int64_t))             # <<<<<<<<<<<<<<
@@ -3455,7 +4390,7 @@ static int __pyx_pf_6cyflow_6tensor_6Tensor___cinit__(struct __pyx_obj_6cyflow_6
 */
   __pyx_v_c_shape = ((int64_t *)malloc((__pyx_v_ndim * (sizeof(int64_t)))));
 
-  /* "cyflow/tensor.pyx":74
+  /* "cyflow/tensor.pyx":111
  *         ndim = len(shape)
  *         c_shape = <int64_t*>malloc(ndim * sizeof(int64_t))
  *         if not c_shape:             # <<<<<<<<<<<<<<
@@ -3465,7 +4400,7 @@ static int __pyx_pf_6cyflow_6tensor_6Tensor___cinit__(struct __pyx_obj_6cyflow_6
   __pyx_t_1 = (!(__pyx_v_c_shape != 0));
   if (unlikely(__pyx_t_1)) {
 
-    /* "cyflow/tensor.pyx":75
+    /* "cyflow/tensor.pyx":112
  *         c_shape = <int64_t*>malloc(ndim * sizeof(int64_t))
  *         if not c_shape:
  *             raise MemoryError("Failed to allocate shape array")             # <<<<<<<<<<<<<<
@@ -3478,14 +4413,14 @@ static int __pyx_pf_6cyflow_6tensor_6Tensor___cinit__(struct __pyx_obj_6cyflow_6
       PyObject *__pyx_callargs[2] = {__pyx_t_4, __pyx_mstate_global->__pyx_kp_u_Failed_to_allocate_shape_array};
       __pyx_t_3 = __Pyx_PyObject_FastCall((PyObject*)(((PyTypeObject*)PyExc_MemoryError)), __pyx_callargs+__pyx_t_5, (2-__pyx_t_5) | (__pyx_t_5*__Pyx_PY_VECTORCALL_ARGUMENTS_OFFSET));
       __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
-      if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 75, __pyx_L1_error)
+      if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 112, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_3);
     }
     __Pyx_Raise(__pyx_t_3, 0, 0, 0);
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-    __PYX_ERR(0, 75, __pyx_L1_error)
+    __PYX_ERR(0, 112, __pyx_L1_error)
 
-    /* "cyflow/tensor.pyx":74
+    /* "cyflow/tensor.pyx":111
  *         ndim = len(shape)
  *         c_shape = <int64_t*>malloc(ndim * sizeof(int64_t))
  *         if not c_shape:             # <<<<<<<<<<<<<<
@@ -3494,7 +4429,7 @@ static int __pyx_pf_6cyflow_6tensor_6Tensor___cinit__(struct __pyx_obj_6cyflow_6
 */
   }
 
-  /* "cyflow/tensor.pyx":77
+  /* "cyflow/tensor.pyx":114
  *             raise MemoryError("Failed to allocate shape array")
  * 
  *         for i in range(ndim):             # <<<<<<<<<<<<<<
@@ -3506,21 +4441,21 @@ static int __pyx_pf_6cyflow_6tensor_6Tensor___cinit__(struct __pyx_obj_6cyflow_6
   for (__pyx_t_7 = 0; __pyx_t_7 < __pyx_t_6; __pyx_t_7+=1) {
     __pyx_v_i = __pyx_t_7;
 
-    /* "cyflow/tensor.pyx":78
+    /* "cyflow/tensor.pyx":115
  * 
  *         for i in range(ndim):
  *             c_shape[i] = shape[i]             # <<<<<<<<<<<<<<
  * 
  *         try:
 */
-    __pyx_t_3 = __Pyx_GetItemInt(__pyx_v_shape, __pyx_v_i, int, 1, __Pyx_PyLong_From_int, 0, 1, 1, 1, __Pyx_ReferenceSharing_FunctionArgument); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 78, __pyx_L1_error)
+    __pyx_t_3 = __Pyx_GetItemInt(__pyx_v_shape, __pyx_v_i, int, 1, __Pyx_PyLong_From_int, 0, 1, 1, 1, __Pyx_ReferenceSharing_FunctionArgument); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 115, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
-    __pyx_t_8 = __Pyx_PyLong_As_int64_t(__pyx_t_3); if (unlikely((__pyx_t_8 == ((int64_t)-1)) && PyErr_Occurred())) __PYX_ERR(0, 78, __pyx_L1_error)
+    __pyx_t_8 = __Pyx_PyLong_As_int64_t(__pyx_t_3); if (unlikely((__pyx_t_8 == ((int64_t)-1)) && PyErr_Occurred())) __PYX_ERR(0, 115, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
     (__pyx_v_c_shape[__pyx_v_i]) = __pyx_t_8;
   }
 
-  /* "cyflow/tensor.pyx":80
+  /* "cyflow/tensor.pyx":117
  *             c_shape[i] = shape[i]
  * 
  *         try:             # <<<<<<<<<<<<<<
@@ -3529,7 +4464,7 @@ static int __pyx_pf_6cyflow_6tensor_6Tensor___cinit__(struct __pyx_obj_6cyflow_6
 */
   /*try:*/ {
 
-    /* "cyflow/tensor.pyx":81
+    /* "cyflow/tensor.pyx":118
  * 
  *         try:
  *             if device == DEVICE_CPU:             # <<<<<<<<<<<<<<
@@ -3539,7 +4474,7 @@ static int __pyx_pf_6cyflow_6tensor_6Tensor___cinit__(struct __pyx_obj_6cyflow_6
     switch (__pyx_v_device) {
       case DEVICE_CPU:
 
-      /* "cyflow/tensor.pyx":82
+      /* "cyflow/tensor.pyx":119
  *         try:
  *             if device == DEVICE_CPU:
  *                 self._tensor = tensor_create_cpu(c_shape, ndim)             # <<<<<<<<<<<<<<
@@ -3548,7 +4483,7 @@ static int __pyx_pf_6cyflow_6tensor_6Tensor___cinit__(struct __pyx_obj_6cyflow_6
 */
       __pyx_v_self->_tensor = tensor_create_cpu(__pyx_v_c_shape, __pyx_v_ndim);
 
-      /* "cyflow/tensor.pyx":81
+      /* "cyflow/tensor.pyx":118
  * 
  *         try:
  *             if device == DEVICE_CPU:             # <<<<<<<<<<<<<<
@@ -3558,7 +4493,7 @@ static int __pyx_pf_6cyflow_6tensor_6Tensor___cinit__(struct __pyx_obj_6cyflow_6
       break;
       case DEVICE_CUDA:
 
-      /* "cyflow/tensor.pyx":84
+      /* "cyflow/tensor.pyx":121
  *                 self._tensor = tensor_create_cpu(c_shape, ndim)
  *             elif device == DEVICE_CUDA:
  *                 self._tensor = tensor_create_cuda(c_shape, ndim)             # <<<<<<<<<<<<<<
@@ -3567,7 +4502,7 @@ static int __pyx_pf_6cyflow_6tensor_6Tensor___cinit__(struct __pyx_obj_6cyflow_6
 */
       __pyx_v_self->_tensor = tensor_create_cuda(__pyx_v_c_shape, __pyx_v_ndim);
 
-      /* "cyflow/tensor.pyx":83
+      /* "cyflow/tensor.pyx":120
  *             if device == DEVICE_CPU:
  *                 self._tensor = tensor_create_cpu(c_shape, ndim)
  *             elif device == DEVICE_CUDA:             # <<<<<<<<<<<<<<
@@ -3577,7 +4512,7 @@ static int __pyx_pf_6cyflow_6tensor_6Tensor___cinit__(struct __pyx_obj_6cyflow_6
       break;
       default:
 
-      /* "cyflow/tensor.pyx":86
+      /* "cyflow/tensor.pyx":123
  *                 self._tensor = tensor_create_cuda(c_shape, ndim)
  *             else:
  *                 raise ValueError(f"Unsupported device integer: {device}")             # <<<<<<<<<<<<<<
@@ -3585,9 +4520,9 @@ static int __pyx_pf_6cyflow_6tensor_6Tensor___cinit__(struct __pyx_obj_6cyflow_6
  *             if self._tensor is NULL:
 */
       __pyx_t_4 = NULL;
-      __pyx_t_9 = __Pyx_PyUnicode_From_int(__pyx_v_device, 0, ' ', 'd'); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 86, __pyx_L8_error)
+      __pyx_t_9 = __Pyx_PyUnicode_From_int(__pyx_v_device, 0, ' ', 'd'); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 123, __pyx_L8_error)
       __Pyx_GOTREF(__pyx_t_9);
-      __pyx_t_10 = __Pyx_PyUnicode_Concat(__pyx_mstate_global->__pyx_kp_u_Unsupported_device_integer, __pyx_t_9); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 86, __pyx_L8_error)
+      __pyx_t_10 = __Pyx_PyUnicode_Concat(__pyx_mstate_global->__pyx_kp_u_Unsupported_device_integer, __pyx_t_9); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 123, __pyx_L8_error)
       __Pyx_GOTREF(__pyx_t_10);
       __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
       __pyx_t_5 = 1;
@@ -3596,16 +4531,16 @@ static int __pyx_pf_6cyflow_6tensor_6Tensor___cinit__(struct __pyx_obj_6cyflow_6
         __pyx_t_3 = __Pyx_PyObject_FastCall((PyObject*)(((PyTypeObject*)PyExc_ValueError)), __pyx_callargs+__pyx_t_5, (2-__pyx_t_5) | (__pyx_t_5*__Pyx_PY_VECTORCALL_ARGUMENTS_OFFSET));
         __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
         __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
-        if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 86, __pyx_L8_error)
+        if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 123, __pyx_L8_error)
         __Pyx_GOTREF(__pyx_t_3);
       }
       __Pyx_Raise(__pyx_t_3, 0, 0, 0);
       __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-      __PYX_ERR(0, 86, __pyx_L8_error)
+      __PYX_ERR(0, 123, __pyx_L8_error)
       break;
     }
 
-    /* "cyflow/tensor.pyx":88
+    /* "cyflow/tensor.pyx":125
  *                 raise ValueError(f"Unsupported device integer: {device}")
  * 
  *             if self._tensor is NULL:             # <<<<<<<<<<<<<<
@@ -3615,7 +4550,7 @@ static int __pyx_pf_6cyflow_6tensor_6Tensor___cinit__(struct __pyx_obj_6cyflow_6
     __pyx_t_1 = (__pyx_v_self->_tensor == NULL);
     if (unlikely(__pyx_t_1)) {
 
-      /* "cyflow/tensor.pyx":89
+      /* "cyflow/tensor.pyx":126
  * 
  *             if self._tensor is NULL:
  *                 raise MemoryError("Backend failed to allocate TensorImpl")             # <<<<<<<<<<<<<<
@@ -3628,14 +4563,14 @@ static int __pyx_pf_6cyflow_6tensor_6Tensor___cinit__(struct __pyx_obj_6cyflow_6
         PyObject *__pyx_callargs[2] = {__pyx_t_10, __pyx_mstate_global->__pyx_kp_u_Backend_failed_to_allocate_Tenso};
         __pyx_t_3 = __Pyx_PyObject_FastCall((PyObject*)(((PyTypeObject*)PyExc_MemoryError)), __pyx_callargs+__pyx_t_5, (2-__pyx_t_5) | (__pyx_t_5*__Pyx_PY_VECTORCALL_ARGUMENTS_OFFSET));
         __Pyx_XDECREF(__pyx_t_10); __pyx_t_10 = 0;
-        if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 89, __pyx_L8_error)
+        if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 126, __pyx_L8_error)
         __Pyx_GOTREF(__pyx_t_3);
       }
       __Pyx_Raise(__pyx_t_3, 0, 0, 0);
       __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-      __PYX_ERR(0, 89, __pyx_L8_error)
+      __PYX_ERR(0, 126, __pyx_L8_error)
 
-      /* "cyflow/tensor.pyx":88
+      /* "cyflow/tensor.pyx":125
  *                 raise ValueError(f"Unsupported device integer: {device}")
  * 
  *             if self._tensor is NULL:             # <<<<<<<<<<<<<<
@@ -3645,7 +4580,7 @@ static int __pyx_pf_6cyflow_6tensor_6Tensor___cinit__(struct __pyx_obj_6cyflow_6
     }
   }
 
-  /* "cyflow/tensor.pyx":91
+  /* "cyflow/tensor.pyx":128
  *                 raise MemoryError("Backend failed to allocate TensorImpl")
  *         finally:
  *             free(c_shape)             # <<<<<<<<<<<<<<
@@ -3693,7 +4628,7 @@ static int __pyx_pf_6cyflow_6tensor_6Tensor___cinit__(struct __pyx_obj_6cyflow_6
     __pyx_L9:;
   }
 
-  /* "cyflow/tensor.pyx":63
+  /* "cyflow/tensor.pyx":100
  *     cdef TensorImpl* _tensor
  * 
  *     def __cinit__(self, shape=None, int device=CPU):             # <<<<<<<<<<<<<<
@@ -3716,7 +4651,7 @@ static int __pyx_pf_6cyflow_6tensor_6Tensor___cinit__(struct __pyx_obj_6cyflow_6
   return __pyx_r;
 }
 
-/* "cyflow/tensor.pyx":93
+/* "cyflow/tensor.pyx":130
  *             free(c_shape)
  * 
  *     def __dealloc__(self):             # <<<<<<<<<<<<<<
@@ -3740,7 +4675,7 @@ static void __pyx_pw_6cyflow_6tensor_6Tensor_3__dealloc__(PyObject *__pyx_v_self
 static void __pyx_pf_6cyflow_6tensor_6Tensor_2__dealloc__(struct __pyx_obj_6cyflow_6tensor_Tensor *__pyx_v_self) {
   int __pyx_t_1;
 
-  /* "cyflow/tensor.pyx":94
+  /* "cyflow/tensor.pyx":131
  * 
  *     def __dealloc__(self):
  *         if self._tensor is not NULL:             # <<<<<<<<<<<<<<
@@ -3750,7 +4685,7 @@ static void __pyx_pf_6cyflow_6tensor_6Tensor_2__dealloc__(struct __pyx_obj_6cyfl
   __pyx_t_1 = (__pyx_v_self->_tensor != NULL);
   if (__pyx_t_1) {
 
-    /* "cyflow/tensor.pyx":95
+    /* "cyflow/tensor.pyx":132
  *     def __dealloc__(self):
  *         if self._tensor is not NULL:
  *             if self._tensor.storage.device == DEVICE_CPU:             # <<<<<<<<<<<<<<
@@ -3760,7 +4695,7 @@ static void __pyx_pf_6cyflow_6tensor_6Tensor_2__dealloc__(struct __pyx_obj_6cyfl
     switch (__pyx_v_self->_tensor->storage->device) {
       case DEVICE_CPU:
 
-      /* "cyflow/tensor.pyx":96
+      /* "cyflow/tensor.pyx":133
  *         if self._tensor is not NULL:
  *             if self._tensor.storage.device == DEVICE_CPU:
  *                 tensor_free_cpu(self._tensor)             # <<<<<<<<<<<<<<
@@ -3769,7 +4704,7 @@ static void __pyx_pf_6cyflow_6tensor_6Tensor_2__dealloc__(struct __pyx_obj_6cyfl
 */
       tensor_free_cpu(__pyx_v_self->_tensor);
 
-      /* "cyflow/tensor.pyx":95
+      /* "cyflow/tensor.pyx":132
  *     def __dealloc__(self):
  *         if self._tensor is not NULL:
  *             if self._tensor.storage.device == DEVICE_CPU:             # <<<<<<<<<<<<<<
@@ -3779,7 +4714,7 @@ static void __pyx_pf_6cyflow_6tensor_6Tensor_2__dealloc__(struct __pyx_obj_6cyfl
       break;
       case DEVICE_CUDA:
 
-      /* "cyflow/tensor.pyx":98
+      /* "cyflow/tensor.pyx":135
  *                 tensor_free_cpu(self._tensor)
  *             elif self._tensor.storage.device == DEVICE_CUDA:
  *                 tensor_free_cuda(self._tensor)             # <<<<<<<<<<<<<<
@@ -3788,7 +4723,7 @@ static void __pyx_pf_6cyflow_6tensor_6Tensor_2__dealloc__(struct __pyx_obj_6cyfl
 */
       tensor_free_cuda(__pyx_v_self->_tensor);
 
-      /* "cyflow/tensor.pyx":97
+      /* "cyflow/tensor.pyx":134
  *             if self._tensor.storage.device == DEVICE_CPU:
  *                 tensor_free_cpu(self._tensor)
  *             elif self._tensor.storage.device == DEVICE_CUDA:             # <<<<<<<<<<<<<<
@@ -3799,7 +4734,7 @@ static void __pyx_pf_6cyflow_6tensor_6Tensor_2__dealloc__(struct __pyx_obj_6cyfl
       default: break;
     }
 
-    /* "cyflow/tensor.pyx":94
+    /* "cyflow/tensor.pyx":131
  * 
  *     def __dealloc__(self):
  *         if self._tensor is not NULL:             # <<<<<<<<<<<<<<
@@ -3808,7 +4743,7 @@ static void __pyx_pf_6cyflow_6tensor_6Tensor_2__dealloc__(struct __pyx_obj_6cyfl
 */
   }
 
-  /* "cyflow/tensor.pyx":93
+  /* "cyflow/tensor.pyx":130
  *             free(c_shape)
  * 
  *     def __dealloc__(self):             # <<<<<<<<<<<<<<
@@ -3819,7 +4754,7 @@ static void __pyx_pf_6cyflow_6tensor_6Tensor_2__dealloc__(struct __pyx_obj_6cyfl
   /* function exit code */
 }
 
-/* "cyflow/tensor.pyx":100
+/* "cyflow/tensor.pyx":137
  *                 tensor_free_cuda(self._tensor)
  * 
  *     @staticmethod             # <<<<<<<<<<<<<<
@@ -3837,19 +4772,19 @@ static struct __pyx_obj_6cyflow_6tensor_Tensor *__pyx_f_6cyflow_6tensor_6Tensor_
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("_from_c_tensor", 0);
 
-  /* "cyflow/tensor.pyx":102
+  /* "cyflow/tensor.pyx":139
  *     @staticmethod
  *     cdef Tensor _from_c_tensor(TensorImpl* ptr):
  *         cdef Tensor t = Tensor.__new__(Tensor)             # <<<<<<<<<<<<<<
  *         t._tensor = ptr
  *         return t
 */
-  __pyx_t_1 = ((PyObject *)__pyx_tp_new_6cyflow_6tensor_Tensor(((PyTypeObject *)__pyx_mstate_global->__pyx_ptype_6cyflow_6tensor_Tensor), __pyx_mstate_global->__pyx_empty_tuple, NULL)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 102, __pyx_L1_error)
+  __pyx_t_1 = ((PyObject *)__pyx_tp_new_6cyflow_6tensor_Tensor(((PyTypeObject *)__pyx_mstate_global->__pyx_ptype_6cyflow_6tensor_Tensor), __pyx_mstate_global->__pyx_empty_tuple, NULL)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 139, __pyx_L1_error)
   __Pyx_GOTREF((PyObject *)__pyx_t_1);
   __pyx_v_t = ((struct __pyx_obj_6cyflow_6tensor_Tensor *)__pyx_t_1);
   __pyx_t_1 = 0;
 
-  /* "cyflow/tensor.pyx":103
+  /* "cyflow/tensor.pyx":140
  *     cdef Tensor _from_c_tensor(TensorImpl* ptr):
  *         cdef Tensor t = Tensor.__new__(Tensor)
  *         t._tensor = ptr             # <<<<<<<<<<<<<<
@@ -3858,7 +4793,7 @@ static struct __pyx_obj_6cyflow_6tensor_Tensor *__pyx_f_6cyflow_6tensor_6Tensor_
 */
   __pyx_v_t->_tensor = __pyx_v_ptr;
 
-  /* "cyflow/tensor.pyx":104
+  /* "cyflow/tensor.pyx":141
  *         cdef Tensor t = Tensor.__new__(Tensor)
  *         t._tensor = ptr
  *         return t             # <<<<<<<<<<<<<<
@@ -3870,7 +4805,7 @@ static struct __pyx_obj_6cyflow_6tensor_Tensor *__pyx_f_6cyflow_6tensor_6Tensor_
   __pyx_r = __pyx_v_t;
   goto __pyx_L0;
 
-  /* "cyflow/tensor.pyx":100
+  /* "cyflow/tensor.pyx":137
  *                 tensor_free_cuda(self._tensor)
  * 
  *     @staticmethod             # <<<<<<<<<<<<<<
@@ -3890,7 +4825,7 @@ static struct __pyx_obj_6cyflow_6tensor_Tensor *__pyx_f_6cyflow_6tensor_6Tensor_
   return __pyx_r;
 }
 
-/* "cyflow/tensor.pyx":106
+/* "cyflow/tensor.pyx":143
  *         return t
  * 
  *     @property             # <<<<<<<<<<<<<<
@@ -3922,7 +4857,7 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_4ndim___get__(struct __pyx_obj
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("__get__", 0);
 
-  /* "cyflow/tensor.pyx":108
+  /* "cyflow/tensor.pyx":145
  *     @property
  *     def ndim(self):
  *         return self._tensor.ndim             # <<<<<<<<<<<<<<
@@ -3930,13 +4865,13 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_4ndim___get__(struct __pyx_obj
  *     @property
 */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_PyLong_FromSize_t(__pyx_v_self->_tensor->ndim); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 108, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyLong_FromSize_t(__pyx_v_self->_tensor->ndim); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 145, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "cyflow/tensor.pyx":106
+  /* "cyflow/tensor.pyx":143
  *         return t
  * 
  *     @property             # <<<<<<<<<<<<<<
@@ -3955,7 +4890,7 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_4ndim___get__(struct __pyx_obj
   return __pyx_r;
 }
 
-/* "cyflow/tensor.pyx":110
+/* "cyflow/tensor.pyx":147
  *         return self._tensor.ndim
  * 
  *     @property             # <<<<<<<<<<<<<<
@@ -3987,7 +4922,7 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_5numel___get__(struct __pyx_ob
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("__get__", 0);
 
-  /* "cyflow/tensor.pyx":112
+  /* "cyflow/tensor.pyx":149
  *     @property
  *     def numel(self):
  *         return self._tensor.numel             # <<<<<<<<<<<<<<
@@ -3995,13 +4930,13 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_5numel___get__(struct __pyx_ob
  *     @property
 */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_PyLong_FromSize_t(__pyx_v_self->_tensor->numel); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 112, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyLong_FromSize_t(__pyx_v_self->_tensor->numel); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 149, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "cyflow/tensor.pyx":110
+  /* "cyflow/tensor.pyx":147
  *         return self._tensor.ndim
  * 
  *     @property             # <<<<<<<<<<<<<<
@@ -4020,7 +4955,7 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_5numel___get__(struct __pyx_ob
   return __pyx_r;
 }
 
-/* "cyflow/tensor.pyx":114
+/* "cyflow/tensor.pyx":151
  *         return self._tensor.numel
  * 
  *     @property             # <<<<<<<<<<<<<<
@@ -4057,7 +4992,7 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_5shape___get__(struct __pyx_ob
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("__get__", 0);
 
-  /* "cyflow/tensor.pyx":116
+  /* "cyflow/tensor.pyx":153
  *     @property
  *     def shape(self):
  *         return tuple([self._tensor.shape[i] for i in range(self._tensor.ndim)])             # <<<<<<<<<<<<<<
@@ -4066,26 +5001,26 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_5shape___get__(struct __pyx_ob
 */
   __Pyx_XDECREF(__pyx_r);
   { /* enter inner scope */
-    __pyx_t_1 = PyList_New(0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 116, __pyx_L1_error)
+    __pyx_t_1 = PyList_New(0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 153, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     __pyx_t_2 = __pyx_v_self->_tensor->ndim;
     __pyx_t_3 = __pyx_t_2;
     for (__pyx_t_4 = 0; __pyx_t_4 < __pyx_t_3; __pyx_t_4+=1) {
       __pyx_7genexpr__pyx_v_i = __pyx_t_4;
-      __pyx_t_5 = __Pyx_PyLong_From_int64_t((__pyx_v_self->_tensor->shape[__pyx_7genexpr__pyx_v_i])); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 116, __pyx_L1_error)
+      __pyx_t_5 = __Pyx_PyLong_From_int64_t((__pyx_v_self->_tensor->shape[__pyx_7genexpr__pyx_v_i])); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 153, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_5);
-      if (unlikely(__Pyx_ListComp_Append(__pyx_t_1, (PyObject*)__pyx_t_5))) __PYX_ERR(0, 116, __pyx_L1_error)
+      if (unlikely(__Pyx_ListComp_Append(__pyx_t_1, (PyObject*)__pyx_t_5))) __PYX_ERR(0, 153, __pyx_L1_error)
       __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
     }
   } /* exit inner scope */
-  __pyx_t_5 = PyList_AsTuple(((PyObject*)__pyx_t_1)); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 116, __pyx_L1_error)
+  __pyx_t_5 = PyList_AsTuple(((PyObject*)__pyx_t_1)); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 153, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __pyx_r = __pyx_t_5;
   __pyx_t_5 = 0;
   goto __pyx_L0;
 
-  /* "cyflow/tensor.pyx":114
+  /* "cyflow/tensor.pyx":151
  *         return self._tensor.numel
  * 
  *     @property             # <<<<<<<<<<<<<<
@@ -4105,7 +5040,7 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_5shape___get__(struct __pyx_ob
   return __pyx_r;
 }
 
-/* "cyflow/tensor.pyx":118
+/* "cyflow/tensor.pyx":155
  *         return tuple([self._tensor.shape[i] for i in range(self._tensor.ndim)])
  * 
  *     @property             # <<<<<<<<<<<<<<
@@ -4142,7 +5077,7 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_7strides___get__(struct __pyx_
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("__get__", 0);
 
-  /* "cyflow/tensor.pyx":120
+  /* "cyflow/tensor.pyx":157
  *     @property
  *     def strides(self):
  *         return tuple([self._tensor.strides[i] for i in range(self._tensor.ndim)])             # <<<<<<<<<<<<<<
@@ -4151,26 +5086,26 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_7strides___get__(struct __pyx_
 */
   __Pyx_XDECREF(__pyx_r);
   { /* enter inner scope */
-    __pyx_t_1 = PyList_New(0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 120, __pyx_L1_error)
+    __pyx_t_1 = PyList_New(0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 157, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     __pyx_t_2 = __pyx_v_self->_tensor->ndim;
     __pyx_t_3 = __pyx_t_2;
     for (__pyx_t_4 = 0; __pyx_t_4 < __pyx_t_3; __pyx_t_4+=1) {
       __pyx_8genexpr1__pyx_v_i = __pyx_t_4;
-      __pyx_t_5 = __Pyx_PyLong_From_int64_t((__pyx_v_self->_tensor->strides[__pyx_8genexpr1__pyx_v_i])); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 120, __pyx_L1_error)
+      __pyx_t_5 = __Pyx_PyLong_From_int64_t((__pyx_v_self->_tensor->strides[__pyx_8genexpr1__pyx_v_i])); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 157, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_5);
-      if (unlikely(__Pyx_ListComp_Append(__pyx_t_1, (PyObject*)__pyx_t_5))) __PYX_ERR(0, 120, __pyx_L1_error)
+      if (unlikely(__Pyx_ListComp_Append(__pyx_t_1, (PyObject*)__pyx_t_5))) __PYX_ERR(0, 157, __pyx_L1_error)
       __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
     }
   } /* exit inner scope */
-  __pyx_t_5 = PyList_AsTuple(((PyObject*)__pyx_t_1)); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 120, __pyx_L1_error)
+  __pyx_t_5 = PyList_AsTuple(((PyObject*)__pyx_t_1)); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 157, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __pyx_r = __pyx_t_5;
   __pyx_t_5 = 0;
   goto __pyx_L0;
 
-  /* "cyflow/tensor.pyx":118
+  /* "cyflow/tensor.pyx":155
  *         return tuple([self._tensor.shape[i] for i in range(self._tensor.ndim)])
  * 
  *     @property             # <<<<<<<<<<<<<<
@@ -4190,7 +5125,7 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_7strides___get__(struct __pyx_
   return __pyx_r;
 }
 
-/* "cyflow/tensor.pyx":122
+/* "cyflow/tensor.pyx":159
  *         return tuple([self._tensor.strides[i] for i in range(self._tensor.ndim)])
  * 
  *     @property             # <<<<<<<<<<<<<<
@@ -4218,7 +5153,7 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_6device___get__(struct __pyx_o
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__get__", 0);
 
-  /* "cyflow/tensor.pyx":124
+  /* "cyflow/tensor.pyx":161
  *     @property
  *     def device(self):
  *         if self._tensor.storage.device == DEVICE_CPU:             # <<<<<<<<<<<<<<
@@ -4228,7 +5163,7 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_6device___get__(struct __pyx_o
   switch (__pyx_v_self->_tensor->storage->device) {
     case DEVICE_CPU:
 
-    /* "cyflow/tensor.pyx":125
+    /* "cyflow/tensor.pyx":162
  *     def device(self):
  *         if self._tensor.storage.device == DEVICE_CPU:
  *             return "cpu"             # <<<<<<<<<<<<<<
@@ -4240,7 +5175,7 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_6device___get__(struct __pyx_o
     __pyx_r = __pyx_mstate_global->__pyx_n_u_cpu;
     goto __pyx_L0;
 
-    /* "cyflow/tensor.pyx":124
+    /* "cyflow/tensor.pyx":161
  *     @property
  *     def device(self):
  *         if self._tensor.storage.device == DEVICE_CPU:             # <<<<<<<<<<<<<<
@@ -4250,7 +5185,7 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_6device___get__(struct __pyx_o
     break;
     case DEVICE_CUDA:
 
-    /* "cyflow/tensor.pyx":127
+    /* "cyflow/tensor.pyx":164
  *             return "cpu"
  *         elif self._tensor.storage.device == DEVICE_CUDA:
  *             return "cuda"             # <<<<<<<<<<<<<<
@@ -4262,7 +5197,7 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_6device___get__(struct __pyx_o
     __pyx_r = __pyx_mstate_global->__pyx_n_u_cuda;
     goto __pyx_L0;
 
-    /* "cyflow/tensor.pyx":126
+    /* "cyflow/tensor.pyx":163
  *         if self._tensor.storage.device == DEVICE_CPU:
  *             return "cpu"
  *         elif self._tensor.storage.device == DEVICE_CUDA:             # <<<<<<<<<<<<<<
@@ -4273,7 +5208,7 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_6device___get__(struct __pyx_o
     default: break;
   }
 
-  /* "cyflow/tensor.pyx":128
+  /* "cyflow/tensor.pyx":165
  *         elif self._tensor.storage.device == DEVICE_CUDA:
  *             return "cuda"
  *         return "unknown"             # <<<<<<<<<<<<<<
@@ -4285,7 +5220,7 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_6device___get__(struct __pyx_o
   __pyx_r = __pyx_mstate_global->__pyx_n_u_unknown;
   goto __pyx_L0;
 
-  /* "cyflow/tensor.pyx":122
+  /* "cyflow/tensor.pyx":159
  *         return tuple([self._tensor.strides[i] for i in range(self._tensor.ndim)])
  * 
  *     @property             # <<<<<<<<<<<<<<
@@ -4300,7 +5235,7 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_6device___get__(struct __pyx_o
   return __pyx_r;
 }
 
-/* "cyflow/tensor.pyx":130
+/* "cyflow/tensor.pyx":167
  *         return "unknown"
  * 
  *     def __repr__(self):             # <<<<<<<<<<<<<<
@@ -4336,7 +5271,7 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_4__repr__(struct __pyx_obj_6cy
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("__repr__", 0);
 
-  /* "cyflow/tensor.pyx":131
+  /* "cyflow/tensor.pyx":168
  * 
  *     def __repr__(self):
  *         return f"<Tensor shape={self.shape} strides={self.strides} device='{self.device}'>"             # <<<<<<<<<<<<<<
@@ -4344,19 +5279,19 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_4__repr__(struct __pyx_obj_6cy
  *     @property
 */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_mstate_global->__pyx_n_u_shape); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 131, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_mstate_global->__pyx_n_u_shape); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 168, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = __Pyx_PyObject_FormatSimple(__pyx_t_1, __pyx_mstate_global->__pyx_empty_unicode); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 131, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_FormatSimple(__pyx_t_1, __pyx_mstate_global->__pyx_empty_unicode); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 168, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_mstate_global->__pyx_n_u_strides_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 131, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_mstate_global->__pyx_n_u_strides_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 168, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_3 = __Pyx_PyObject_FormatSimple(__pyx_t_1, __pyx_mstate_global->__pyx_empty_unicode); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 131, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyObject_FormatSimple(__pyx_t_1, __pyx_mstate_global->__pyx_empty_unicode); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 168, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_mstate_global->__pyx_n_u_device); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 131, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_mstate_global->__pyx_n_u_device); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 168, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_4 = __Pyx_PyObject_FormatSimple(__pyx_t_1, __pyx_mstate_global->__pyx_empty_unicode); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 131, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_FormatSimple(__pyx_t_1, __pyx_mstate_global->__pyx_empty_unicode); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 168, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __pyx_t_5[0] = __pyx_mstate_global->__pyx_kp_u_Tensor_shape;
@@ -4367,7 +5302,7 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_4__repr__(struct __pyx_obj_6cy
   __pyx_t_5[5] = __pyx_t_4;
   __pyx_t_5[6] = __pyx_mstate_global->__pyx_kp_u__3;
   __pyx_t_1 = __Pyx_PyUnicode_Join(__pyx_t_5, 7, 14 + __Pyx_PyUnicode_GET_LENGTH(__pyx_t_2) + 9 * 2 + __Pyx_PyUnicode_GET_LENGTH(__pyx_t_3) + __Pyx_PyUnicode_GET_LENGTH(__pyx_t_4) + 2, 127 | __Pyx_PyUnicode_MAX_CHAR_VALUE(__pyx_t_2) | __Pyx_PyUnicode_MAX_CHAR_VALUE(__pyx_t_3) | __Pyx_PyUnicode_MAX_CHAR_VALUE(__pyx_t_4));
-  if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 131, __pyx_L1_error)
+  if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 168, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
@@ -4376,7 +5311,7 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_4__repr__(struct __pyx_obj_6cy
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "cyflow/tensor.pyx":130
+  /* "cyflow/tensor.pyx":167
  *         return "unknown"
  * 
  *     def __repr__(self):             # <<<<<<<<<<<<<<
@@ -4398,7 +5333,7 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_4__repr__(struct __pyx_obj_6cy
   return __pyx_r;
 }
 
-/* "cyflow/tensor.pyx":133
+/* "cyflow/tensor.pyx":170
  *         return f"<Tensor shape={self.shape} strides={self.strides} device='{self.device}'>"
  * 
  *     @property             # <<<<<<<<<<<<<<
@@ -4432,7 +5367,7 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_6nbytes___get__(struct __pyx_o
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("__get__", 0);
 
-  /* "cyflow/tensor.pyx":135
+  /* "cyflow/tensor.pyx":172
  *     @property
  *     def nbytes(self):
  *         return self.numel * sizeof(float)             # <<<<<<<<<<<<<<
@@ -4440,11 +5375,11 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_6nbytes___get__(struct __pyx_o
  *     def fill_uniform(self):
 */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_mstate_global->__pyx_n_u_numel); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 135, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_mstate_global->__pyx_n_u_numel); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 172, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = __Pyx_PyLong_FromSize_t((sizeof(float))); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 135, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyLong_FromSize_t((sizeof(float))); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 172, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_3 = PyNumber_Multiply(__pyx_t_1, __pyx_t_2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 135, __pyx_L1_error)
+  __pyx_t_3 = PyNumber_Multiply(__pyx_t_1, __pyx_t_2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 172, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
@@ -4452,7 +5387,7 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_6nbytes___get__(struct __pyx_o
   __pyx_t_3 = 0;
   goto __pyx_L0;
 
-  /* "cyflow/tensor.pyx":133
+  /* "cyflow/tensor.pyx":170
  *         return f"<Tensor shape={self.shape} strides={self.strides} device='{self.device}'>"
  * 
  *     @property             # <<<<<<<<<<<<<<
@@ -4473,7 +5408,7 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_6nbytes___get__(struct __pyx_o
   return __pyx_r;
 }
 
-/* "cyflow/tensor.pyx":137
+/* "cyflow/tensor.pyx":174
  *         return self.numel * sizeof(float)
  * 
  *     def fill_uniform(self):             # <<<<<<<<<<<<<<
@@ -4528,7 +5463,7 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_6fill_uniform(struct __pyx_obj
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("fill_uniform", 0);
 
-  /* "cyflow/tensor.pyx":138
+  /* "cyflow/tensor.pyx":175
  * 
  *     def fill_uniform(self):
  *         if self._tensor.storage.device == DEVICE_CPU:             # <<<<<<<<<<<<<<
@@ -4538,7 +5473,7 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_6fill_uniform(struct __pyx_obj
   switch (__pyx_v_self->_tensor->storage->device) {
     case DEVICE_CPU:
 
-    /* "cyflow/tensor.pyx":139
+    /* "cyflow/tensor.pyx":176
  *     def fill_uniform(self):
  *         if self._tensor.storage.device == DEVICE_CPU:
  *             tensor_fill_uniform_cpu(self._tensor)             # <<<<<<<<<<<<<<
@@ -4547,7 +5482,7 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_6fill_uniform(struct __pyx_obj
 */
     tensor_fill_uniform_cpu(__pyx_v_self->_tensor);
 
-    /* "cyflow/tensor.pyx":138
+    /* "cyflow/tensor.pyx":175
  * 
  *     def fill_uniform(self):
  *         if self._tensor.storage.device == DEVICE_CPU:             # <<<<<<<<<<<<<<
@@ -4557,27 +5492,27 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_6fill_uniform(struct __pyx_obj
     break;
     case DEVICE_CUDA:
 
-    /* "cyflow/tensor.pyx":141
+    /* "cyflow/tensor.pyx":178
  *             tensor_fill_uniform_cpu(self._tensor)
  *         elif self._tensor.storage.device == DEVICE_CUDA:
  *             tensor_fill_uniform_cuda(self._tensor)             # <<<<<<<<<<<<<<
- * 
- *     def view(self, *shape) -> Tensor:
+ *     cdef _fill_scalar(self, float val):
+ *         cdef size_t numel = self._tensor.numel
 */
     tensor_fill_uniform_cuda(__pyx_v_self->_tensor);
 
-    /* "cyflow/tensor.pyx":140
+    /* "cyflow/tensor.pyx":177
  *         if self._tensor.storage.device == DEVICE_CPU:
  *             tensor_fill_uniform_cpu(self._tensor)
  *         elif self._tensor.storage.device == DEVICE_CUDA:             # <<<<<<<<<<<<<<
  *             tensor_fill_uniform_cuda(self._tensor)
- * 
+ *     cdef _fill_scalar(self, float val):
 */
     break;
     default: break;
   }
 
-  /* "cyflow/tensor.pyx":137
+  /* "cyflow/tensor.pyx":174
  *         return self.numel * sizeof(float)
  * 
  *     def fill_uniform(self):             # <<<<<<<<<<<<<<
@@ -4592,8 +5527,2338 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_6fill_uniform(struct __pyx_obj
   return __pyx_r;
 }
 
-/* "cyflow/tensor.pyx":143
+/* "cyflow/tensor.pyx":179
+ *         elif self._tensor.storage.device == DEVICE_CUDA:
  *             tensor_fill_uniform_cuda(self._tensor)
+ *     cdef _fill_scalar(self, float val):             # <<<<<<<<<<<<<<
+ *         cdef size_t numel = self._tensor.numel
+ *         cdef size_t ndim = self._tensor.ndim
+*/
+
+static PyObject *__pyx_f_6cyflow_6tensor_6Tensor__fill_scalar(struct __pyx_obj_6cyflow_6tensor_Tensor *__pyx_v_self, float __pyx_v_val) {
+  size_t __pyx_v_numel;
+  size_t __pyx_v_ndim;
+  int64_t *__pyx_v_shape;
+  int64_t *__pyx_v_strides;
+  int64_t __pyx_v_offset;
+  int __pyx_v_device;
+  float *__pyx_v_target_ptr;
+  int64_t *__pyx_v_indices;
+  CYTHON_UNUSED size_t __pyx_v_elem_i;
+  size_t __pyx_v_k;
+  int64_t __pyx_v_cur_offset;
+  PyObject *__pyx_r = NULL;
+  __Pyx_RefNannyDeclarations
+  size_t __pyx_t_1;
+  int64_t *__pyx_t_2;
+  DeviceType __pyx_t_3;
+  int __pyx_t_4;
+  PyObject *__pyx_t_5 = NULL;
+  PyObject *__pyx_t_6 = NULL;
+  size_t __pyx_t_7;
+  size_t __pyx_t_8;
+  size_t __pyx_t_9;
+  size_t __pyx_t_10;
+  size_t __pyx_t_11;
+  int __pyx_lineno = 0;
+  const char *__pyx_filename = NULL;
+  int __pyx_clineno = 0;
+  __Pyx_RefNannySetupContext("_fill_scalar", 0);
+
+  /* "cyflow/tensor.pyx":180
+ *             tensor_fill_uniform_cuda(self._tensor)
+ *     cdef _fill_scalar(self, float val):
+ *         cdef size_t numel = self._tensor.numel             # <<<<<<<<<<<<<<
+ *         cdef size_t ndim = self._tensor.ndim
+ *         cdef int64_t* shape = self._tensor.shape
+*/
+  __pyx_t_1 = __pyx_v_self->_tensor->numel;
+  __pyx_v_numel = __pyx_t_1;
+
+  /* "cyflow/tensor.pyx":181
+ *     cdef _fill_scalar(self, float val):
+ *         cdef size_t numel = self._tensor.numel
+ *         cdef size_t ndim = self._tensor.ndim             # <<<<<<<<<<<<<<
+ *         cdef int64_t* shape = self._tensor.shape
+ *         cdef int64_t* strides = self._tensor.strides
+*/
+  __pyx_t_1 = __pyx_v_self->_tensor->ndim;
+  __pyx_v_ndim = __pyx_t_1;
+
+  /* "cyflow/tensor.pyx":182
+ *         cdef size_t numel = self._tensor.numel
+ *         cdef size_t ndim = self._tensor.ndim
+ *         cdef int64_t* shape = self._tensor.shape             # <<<<<<<<<<<<<<
+ *         cdef int64_t* strides = self._tensor.strides
+ *         cdef int64_t offset = self._tensor.storage_offset
+*/
+  __pyx_t_2 = __pyx_v_self->_tensor->shape;
+  __pyx_v_shape = __pyx_t_2;
+
+  /* "cyflow/tensor.pyx":183
+ *         cdef size_t ndim = self._tensor.ndim
+ *         cdef int64_t* shape = self._tensor.shape
+ *         cdef int64_t* strides = self._tensor.strides             # <<<<<<<<<<<<<<
+ *         cdef int64_t offset = self._tensor.storage_offset
+ *         cdef int device = self._tensor.storage.device
+*/
+  __pyx_t_2 = __pyx_v_self->_tensor->strides;
+  __pyx_v_strides = __pyx_t_2;
+
+  /* "cyflow/tensor.pyx":184
+ *         cdef int64_t* shape = self._tensor.shape
+ *         cdef int64_t* strides = self._tensor.strides
+ *         cdef int64_t offset = self._tensor.storage_offset             # <<<<<<<<<<<<<<
+ *         cdef int device = self._tensor.storage.device
+ * 
+*/
+  __pyx_t_1 = __pyx_v_self->_tensor->storage_offset;
+  __pyx_v_offset = __pyx_t_1;
+
+  /* "cyflow/tensor.pyx":185
+ *         cdef int64_t* strides = self._tensor.strides
+ *         cdef int64_t offset = self._tensor.storage_offset
+ *         cdef int device = self._tensor.storage.device             # <<<<<<<<<<<<<<
+ * 
+ *         cdef float* target_ptr = NULL
+*/
+  __pyx_t_3 = __pyx_v_self->_tensor->storage->device;
+  __pyx_v_device = __pyx_t_3;
+
+  /* "cyflow/tensor.pyx":187
+ *         cdef int device = self._tensor.storage.device
+ * 
+ *         cdef float* target_ptr = NULL             # <<<<<<<<<<<<<<
+ *         cdef int64_t* indices = NULL
+ *         cdef size_t elem_i, k
+*/
+  __pyx_v_target_ptr = NULL;
+
+  /* "cyflow/tensor.pyx":188
+ * 
+ *         cdef float* target_ptr = NULL
+ *         cdef int64_t* indices = NULL             # <<<<<<<<<<<<<<
+ *         cdef size_t elem_i, k
+ *         cdef int64_t cur_offset
+*/
+  __pyx_v_indices = NULL;
+
+  /* "cyflow/tensor.pyx":192
+ *         cdef int64_t cur_offset
+ * 
+ *         if numel == 0:             # <<<<<<<<<<<<<<
+ *             return
+ * 
+*/
+  __pyx_t_4 = (__pyx_v_numel == 0);
+  if (__pyx_t_4) {
+
+    /* "cyflow/tensor.pyx":193
+ * 
+ *         if numel == 0:
+ *             return             # <<<<<<<<<<<<<<
+ * 
+ *         if ndim > 0:
+*/
+    __Pyx_XDECREF(__pyx_r);
+    __pyx_r = Py_None; __Pyx_INCREF(Py_None);
+    goto __pyx_L0;
+
+    /* "cyflow/tensor.pyx":192
+ *         cdef int64_t cur_offset
+ * 
+ *         if numel == 0:             # <<<<<<<<<<<<<<
+ *             return
+ * 
+*/
+  }
+
+  /* "cyflow/tensor.pyx":195
+ *             return
+ * 
+ *         if ndim > 0:             # <<<<<<<<<<<<<<
+ *             indices = <int64_t*>calloc(ndim, sizeof(int64_t))
+ *             if not indices:
+*/
+  __pyx_t_4 = (__pyx_v_ndim > 0);
+  if (__pyx_t_4) {
+
+    /* "cyflow/tensor.pyx":196
+ * 
+ *         if ndim > 0:
+ *             indices = <int64_t*>calloc(ndim, sizeof(int64_t))             # <<<<<<<<<<<<<<
+ *             if not indices:
+ *                 raise MemoryError("Failed to allocate index buffer")
+*/
+    __pyx_v_indices = ((int64_t *)calloc(__pyx_v_ndim, (sizeof(int64_t))));
+
+    /* "cyflow/tensor.pyx":197
+ *         if ndim > 0:
+ *             indices = <int64_t*>calloc(ndim, sizeof(int64_t))
+ *             if not indices:             # <<<<<<<<<<<<<<
+ *                 raise MemoryError("Failed to allocate index buffer")
+ * 
+*/
+    __pyx_t_4 = (!(__pyx_v_indices != 0));
+    if (unlikely(__pyx_t_4)) {
+
+      /* "cyflow/tensor.pyx":198
+ *             indices = <int64_t*>calloc(ndim, sizeof(int64_t))
+ *             if not indices:
+ *                 raise MemoryError("Failed to allocate index buffer")             # <<<<<<<<<<<<<<
+ * 
+ *         try:
+*/
+      __pyx_t_6 = NULL;
+      __pyx_t_1 = 1;
+      {
+        PyObject *__pyx_callargs[2] = {__pyx_t_6, __pyx_mstate_global->__pyx_kp_u_Failed_to_allocate_index_buffer};
+        __pyx_t_5 = __Pyx_PyObject_FastCall((PyObject*)(((PyTypeObject*)PyExc_MemoryError)), __pyx_callargs+__pyx_t_1, (2-__pyx_t_1) | (__pyx_t_1*__Pyx_PY_VECTORCALL_ARGUMENTS_OFFSET));
+        __Pyx_XDECREF(__pyx_t_6); __pyx_t_6 = 0;
+        if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 198, __pyx_L1_error)
+        __Pyx_GOTREF(__pyx_t_5);
+      }
+      __Pyx_Raise(__pyx_t_5, 0, 0, 0);
+      __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
+      __PYX_ERR(0, 198, __pyx_L1_error)
+
+      /* "cyflow/tensor.pyx":197
+ *         if ndim > 0:
+ *             indices = <int64_t*>calloc(ndim, sizeof(int64_t))
+ *             if not indices:             # <<<<<<<<<<<<<<
+ *                 raise MemoryError("Failed to allocate index buffer")
+ * 
+*/
+    }
+
+    /* "cyflow/tensor.pyx":195
+ *             return
+ * 
+ *         if ndim > 0:             # <<<<<<<<<<<<<<
+ *             indices = <int64_t*>calloc(ndim, sizeof(int64_t))
+ *             if not indices:
+*/
+  }
+
+  /* "cyflow/tensor.pyx":200
+ *                 raise MemoryError("Failed to allocate index buffer")
+ * 
+ *         try:             # <<<<<<<<<<<<<<
+ *             target_ptr = <float*>self._tensor.storage.data
+ *             for elem_i in range(numel):
+*/
+  /*try:*/ {
+
+    /* "cyflow/tensor.pyx":201
+ * 
+ *         try:
+ *             target_ptr = <float*>self._tensor.storage.data             # <<<<<<<<<<<<<<
+ *             for elem_i in range(numel):
+ *                 cur_offset = offset
+*/
+    __pyx_v_target_ptr = ((float *)__pyx_v_self->_tensor->storage->data);
+
+    /* "cyflow/tensor.pyx":202
+ *         try:
+ *             target_ptr = <float*>self._tensor.storage.data
+ *             for elem_i in range(numel):             # <<<<<<<<<<<<<<
+ *                 cur_offset = offset
+ *                 for k in range(ndim):
+*/
+    __pyx_t_1 = __pyx_v_numel;
+    __pyx_t_7 = __pyx_t_1;
+    for (__pyx_t_8 = 0; __pyx_t_8 < __pyx_t_7; __pyx_t_8+=1) {
+      __pyx_v_elem_i = __pyx_t_8;
+
+      /* "cyflow/tensor.pyx":203
+ *             target_ptr = <float*>self._tensor.storage.data
+ *             for elem_i in range(numel):
+ *                 cur_offset = offset             # <<<<<<<<<<<<<<
+ *                 for k in range(ndim):
+ *                     cur_offset += indices[k] * strides[k]
+*/
+      __pyx_v_cur_offset = __pyx_v_offset;
+
+      /* "cyflow/tensor.pyx":204
+ *             for elem_i in range(numel):
+ *                 cur_offset = offset
+ *                 for k in range(ndim):             # <<<<<<<<<<<<<<
+ *                     cur_offset += indices[k] * strides[k]
+ * 
+*/
+      __pyx_t_9 = __pyx_v_ndim;
+      __pyx_t_10 = __pyx_t_9;
+      for (__pyx_t_11 = 0; __pyx_t_11 < __pyx_t_10; __pyx_t_11+=1) {
+        __pyx_v_k = __pyx_t_11;
+
+        /* "cyflow/tensor.pyx":205
+ *                 cur_offset = offset
+ *                 for k in range(ndim):
+ *                     cur_offset += indices[k] * strides[k]             # <<<<<<<<<<<<<<
+ * 
+ *                 if device == DEVICE_CPU:
+*/
+        __pyx_v_cur_offset = (__pyx_v_cur_offset + ((__pyx_v_indices[__pyx_v_k]) * (__pyx_v_strides[__pyx_v_k])));
+      }
+
+      /* "cyflow/tensor.pyx":207
+ *                     cur_offset += indices[k] * strides[k]
+ * 
+ *                 if device == DEVICE_CPU:             # <<<<<<<<<<<<<<
+ *                     target_ptr[cur_offset] = val
+ *                 elif device == DEVICE_CUDA:
+*/
+      switch (__pyx_v_device) {
+        case DEVICE_CPU:
+
+        /* "cyflow/tensor.pyx":208
+ * 
+ *                 if device == DEVICE_CPU:
+ *                     target_ptr[cur_offset] = val             # <<<<<<<<<<<<<<
+ *                 elif device == DEVICE_CUDA:
+ *                     cudaMemcpy(
+*/
+        (__pyx_v_target_ptr[__pyx_v_cur_offset]) = __pyx_v_val;
+
+        /* "cyflow/tensor.pyx":207
+ *                     cur_offset += indices[k] * strides[k]
+ * 
+ *                 if device == DEVICE_CPU:             # <<<<<<<<<<<<<<
+ *                     target_ptr[cur_offset] = val
+ *                 elif device == DEVICE_CUDA:
+*/
+        break;
+        case DEVICE_CUDA:
+
+        /* "cyflow/tensor.pyx":210
+ *                     target_ptr[cur_offset] = val
+ *                 elif device == DEVICE_CUDA:
+ *                     cudaMemcpy(             # <<<<<<<<<<<<<<
+ *                         target_ptr + cur_offset,
+ *                         &val,
+*/
+        (void)(cudaMemcpy((__pyx_v_target_ptr + __pyx_v_cur_offset), (&__pyx_v_val), (sizeof(float)), cudaMemcpyHostToDevice));
+
+        /* "cyflow/tensor.pyx":209
+ *                 if device == DEVICE_CPU:
+ *                     target_ptr[cur_offset] = val
+ *                 elif device == DEVICE_CUDA:             # <<<<<<<<<<<<<<
+ *                     cudaMemcpy(
+ *                         target_ptr + cur_offset,
+*/
+        break;
+        default: break;
+      }
+
+      /* "cyflow/tensor.pyx":217
+ *                     )
+ * 
+ *                 if ndim > 0:             # <<<<<<<<<<<<<<
+ *                     for k in range(ndim - 1, -1, -1):
+ *                         indices[k] += 1
+*/
+      __pyx_t_4 = (__pyx_v_ndim > 0);
+      if (__pyx_t_4) {
+
+        /* "cyflow/tensor.pyx":218
+ * 
+ *                 if ndim > 0:
+ *                     for k in range(ndim - 1, -1, -1):             # <<<<<<<<<<<<<<
+ *                         indices[k] += 1
+ *                         if indices[k] < shape[k]:
+*/
+        for (__pyx_t_9 = (__pyx_v_ndim - 1) + 1; __pyx_t_9 > -1L + 1; ) { __pyx_t_9-=1;
+          __pyx_v_k = __pyx_t_9;
+
+          /* "cyflow/tensor.pyx":219
+ *                 if ndim > 0:
+ *                     for k in range(ndim - 1, -1, -1):
+ *                         indices[k] += 1             # <<<<<<<<<<<<<<
+ *                         if indices[k] < shape[k]:
+ *                             break
+*/
+          __pyx_t_10 = __pyx_v_k;
+          (__pyx_v_indices[__pyx_t_10]) = ((__pyx_v_indices[__pyx_t_10]) + 1);
+
+          /* "cyflow/tensor.pyx":220
+ *                     for k in range(ndim - 1, -1, -1):
+ *                         indices[k] += 1
+ *                         if indices[k] < shape[k]:             # <<<<<<<<<<<<<<
+ *                             break
+ *                         indices[k] = 0
+*/
+          __pyx_t_4 = ((__pyx_v_indices[__pyx_v_k]) < (__pyx_v_shape[__pyx_v_k]));
+          if (__pyx_t_4) {
+
+            /* "cyflow/tensor.pyx":221
+ *                         indices[k] += 1
+ *                         if indices[k] < shape[k]:
+ *                             break             # <<<<<<<<<<<<<<
+ *                         indices[k] = 0
+ *         finally:
+*/
+            goto __pyx_L15_break;
+
+            /* "cyflow/tensor.pyx":220
+ *                     for k in range(ndim - 1, -1, -1):
+ *                         indices[k] += 1
+ *                         if indices[k] < shape[k]:             # <<<<<<<<<<<<<<
+ *                             break
+ *                         indices[k] = 0
+*/
+          }
+
+          /* "cyflow/tensor.pyx":222
+ *                         if indices[k] < shape[k]:
+ *                             break
+ *                         indices[k] = 0             # <<<<<<<<<<<<<<
+ *         finally:
+ *             if indices:
+*/
+          (__pyx_v_indices[__pyx_v_k]) = 0;
+        }
+        __pyx_L15_break:;
+
+        /* "cyflow/tensor.pyx":217
+ *                     )
+ * 
+ *                 if ndim > 0:             # <<<<<<<<<<<<<<
+ *                     for k in range(ndim - 1, -1, -1):
+ *                         indices[k] += 1
+*/
+      }
+    }
+  }
+
+  /* "cyflow/tensor.pyx":224
+ *                         indices[k] = 0
+ *         finally:
+ *             if indices:             # <<<<<<<<<<<<<<
+ *                 free(indices)
+ * 
+*/
+  /*finally:*/ {
+    /*normal exit:*/{
+      __pyx_t_4 = (__pyx_v_indices != 0);
+      if (__pyx_t_4) {
+
+        /* "cyflow/tensor.pyx":225
+ *         finally:
+ *             if indices:
+ *                 free(indices)             # <<<<<<<<<<<<<<
+ * 
+ *     cdef _fill_from_flat_list(self, list flat_vals):
+*/
+        free(__pyx_v_indices);
+
+        /* "cyflow/tensor.pyx":224
+ *                         indices[k] = 0
+ *         finally:
+ *             if indices:             # <<<<<<<<<<<<<<
+ *                 free(indices)
+ * 
+*/
+      }
+      goto __pyx_L8;
+    }
+    __pyx_L8:;
+  }
+
+  /* "cyflow/tensor.pyx":179
+ *         elif self._tensor.storage.device == DEVICE_CUDA:
+ *             tensor_fill_uniform_cuda(self._tensor)
+ *     cdef _fill_scalar(self, float val):             # <<<<<<<<<<<<<<
+ *         cdef size_t numel = self._tensor.numel
+ *         cdef size_t ndim = self._tensor.ndim
+*/
+
+  /* function exit code */
+  __pyx_r = Py_None; __Pyx_INCREF(Py_None);
+  goto __pyx_L0;
+  __pyx_L1_error:;
+  __Pyx_XDECREF(__pyx_t_5);
+  __Pyx_XDECREF(__pyx_t_6);
+  __Pyx_AddTraceback("cyflow.tensor.Tensor._fill_scalar", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __pyx_r = 0;
+  __pyx_L0:;
+  __Pyx_XGIVEREF(__pyx_r);
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* "cyflow/tensor.pyx":227
+ *                 free(indices)
+ * 
+ *     cdef _fill_from_flat_list(self, list flat_vals):             # <<<<<<<<<<<<<<
+ *         cdef size_t numel = self._tensor.numel
+ *         cdef size_t ndim = self._tensor.ndim
+*/
+
+static PyObject *__pyx_f_6cyflow_6tensor_6Tensor__fill_from_flat_list(struct __pyx_obj_6cyflow_6tensor_Tensor *__pyx_v_self, PyObject *__pyx_v_flat_vals) {
+  size_t __pyx_v_numel;
+  size_t __pyx_v_ndim;
+  int64_t *__pyx_v_shape;
+  int64_t *__pyx_v_strides;
+  int64_t __pyx_v_offset;
+  int __pyx_v_device;
+  float *__pyx_v_target_ptr;
+  int64_t *__pyx_v_indices;
+  size_t __pyx_v_elem_i;
+  size_t __pyx_v_k;
+  int64_t __pyx_v_cur_offset;
+  float __pyx_v_val;
+  PyObject *__pyx_r = NULL;
+  __Pyx_RefNannyDeclarations
+  size_t __pyx_t_1;
+  int64_t *__pyx_t_2;
+  DeviceType __pyx_t_3;
+  Py_ssize_t __pyx_t_4;
+  int __pyx_t_5;
+  PyObject *__pyx_t_6 = NULL;
+  PyObject *__pyx_t_7 = NULL;
+  PyObject *__pyx_t_8 = NULL;
+  PyObject *__pyx_t_9 = NULL;
+  PyObject *__pyx_t_10[4];
+  PyObject *__pyx_t_11 = NULL;
+  size_t __pyx_t_12;
+  size_t __pyx_t_13;
+  double __pyx_t_14;
+  size_t __pyx_t_15;
+  size_t __pyx_t_16;
+  size_t __pyx_t_17;
+  int __pyx_t_18;
+  int __pyx_t_19;
+  char const *__pyx_t_20;
+  PyObject *__pyx_t_21 = NULL;
+  PyObject *__pyx_t_22 = NULL;
+  PyObject *__pyx_t_23 = NULL;
+  PyObject *__pyx_t_24 = NULL;
+  PyObject *__pyx_t_25 = NULL;
+  PyObject *__pyx_t_26 = NULL;
+  int __pyx_lineno = 0;
+  const char *__pyx_filename = NULL;
+  int __pyx_clineno = 0;
+  __Pyx_RefNannySetupContext("_fill_from_flat_list", 0);
+
+  /* "cyflow/tensor.pyx":228
+ * 
+ *     cdef _fill_from_flat_list(self, list flat_vals):
+ *         cdef size_t numel = self._tensor.numel             # <<<<<<<<<<<<<<
+ *         cdef size_t ndim = self._tensor.ndim
+ *         cdef int64_t* shape = self._tensor.shape
+*/
+  __pyx_t_1 = __pyx_v_self->_tensor->numel;
+  __pyx_v_numel = __pyx_t_1;
+
+  /* "cyflow/tensor.pyx":229
+ *     cdef _fill_from_flat_list(self, list flat_vals):
+ *         cdef size_t numel = self._tensor.numel
+ *         cdef size_t ndim = self._tensor.ndim             # <<<<<<<<<<<<<<
+ *         cdef int64_t* shape = self._tensor.shape
+ *         cdef int64_t* strides = self._tensor.strides
+*/
+  __pyx_t_1 = __pyx_v_self->_tensor->ndim;
+  __pyx_v_ndim = __pyx_t_1;
+
+  /* "cyflow/tensor.pyx":230
+ *         cdef size_t numel = self._tensor.numel
+ *         cdef size_t ndim = self._tensor.ndim
+ *         cdef int64_t* shape = self._tensor.shape             # <<<<<<<<<<<<<<
+ *         cdef int64_t* strides = self._tensor.strides
+ *         cdef int64_t offset = self._tensor.storage_offset
+*/
+  __pyx_t_2 = __pyx_v_self->_tensor->shape;
+  __pyx_v_shape = __pyx_t_2;
+
+  /* "cyflow/tensor.pyx":231
+ *         cdef size_t ndim = self._tensor.ndim
+ *         cdef int64_t* shape = self._tensor.shape
+ *         cdef int64_t* strides = self._tensor.strides             # <<<<<<<<<<<<<<
+ *         cdef int64_t offset = self._tensor.storage_offset
+ *         cdef int device = self._tensor.storage.device
+*/
+  __pyx_t_2 = __pyx_v_self->_tensor->strides;
+  __pyx_v_strides = __pyx_t_2;
+
+  /* "cyflow/tensor.pyx":232
+ *         cdef int64_t* shape = self._tensor.shape
+ *         cdef int64_t* strides = self._tensor.strides
+ *         cdef int64_t offset = self._tensor.storage_offset             # <<<<<<<<<<<<<<
+ *         cdef int device = self._tensor.storage.device
+ * 
+*/
+  __pyx_t_1 = __pyx_v_self->_tensor->storage_offset;
+  __pyx_v_offset = __pyx_t_1;
+
+  /* "cyflow/tensor.pyx":233
+ *         cdef int64_t* strides = self._tensor.strides
+ *         cdef int64_t offset = self._tensor.storage_offset
+ *         cdef int device = self._tensor.storage.device             # <<<<<<<<<<<<<<
+ * 
+ *         cdef float* target_ptr = NULL
+*/
+  __pyx_t_3 = __pyx_v_self->_tensor->storage->device;
+  __pyx_v_device = __pyx_t_3;
+
+  /* "cyflow/tensor.pyx":235
+ *         cdef int device = self._tensor.storage.device
+ * 
+ *         cdef float* target_ptr = NULL             # <<<<<<<<<<<<<<
+ *         cdef int64_t* indices = NULL
+ *         cdef size_t elem_i, k
+*/
+  __pyx_v_target_ptr = NULL;
+
+  /* "cyflow/tensor.pyx":236
+ * 
+ *         cdef float* target_ptr = NULL
+ *         cdef int64_t* indices = NULL             # <<<<<<<<<<<<<<
+ *         cdef size_t elem_i, k
+ *         cdef int64_t cur_offset
+*/
+  __pyx_v_indices = NULL;
+
+  /* "cyflow/tensor.pyx":241
+ *         cdef float val
+ * 
+ *         if numel != len(flat_vals):             # <<<<<<<<<<<<<<
+ *             raise ValueError(f"Expected {numel} elements, got {len(flat_vals)}")
+ * 
+*/
+  if (unlikely(__pyx_v_flat_vals == Py_None)) {
+    PyErr_SetString(PyExc_TypeError, "object of type 'NoneType' has no len()");
+    __PYX_ERR(0, 241, __pyx_L1_error)
+  }
+  __pyx_t_4 = __Pyx_PyList_GET_SIZE(__pyx_v_flat_vals); if (unlikely(__pyx_t_4 == ((Py_ssize_t)-1))) __PYX_ERR(0, 241, __pyx_L1_error)
+  __pyx_t_5 = (__pyx_v_numel != __pyx_t_4);
+  if (unlikely(__pyx_t_5)) {
+
+    /* "cyflow/tensor.pyx":242
+ * 
+ *         if numel != len(flat_vals):
+ *             raise ValueError(f"Expected {numel} elements, got {len(flat_vals)}")             # <<<<<<<<<<<<<<
+ * 
+ *         if numel == 0:
+*/
+    __pyx_t_7 = NULL;
+    __pyx_t_8 = __Pyx_PyUnicode_From_size_t(__pyx_v_numel, 0, ' ', 'd'); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 242, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_8);
+    if (unlikely(__pyx_v_flat_vals == Py_None)) {
+      PyErr_SetString(PyExc_TypeError, "object of type 'NoneType' has no len()");
+      __PYX_ERR(0, 242, __pyx_L1_error)
+    }
+    __pyx_t_4 = __Pyx_PyList_GET_SIZE(__pyx_v_flat_vals); if (unlikely(__pyx_t_4 == ((Py_ssize_t)-1))) __PYX_ERR(0, 242, __pyx_L1_error)
+    __pyx_t_9 = __Pyx_PyUnicode_From_Py_ssize_t(__pyx_t_4, 0, ' ', 'd'); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 242, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_9);
+    __pyx_t_10[0] = __pyx_mstate_global->__pyx_kp_u_Expected;
+    __pyx_t_10[1] = __pyx_t_8;
+    __pyx_t_10[2] = __pyx_mstate_global->__pyx_kp_u_elements_got;
+    __pyx_t_10[3] = __pyx_t_9;
+    __pyx_t_11 = __Pyx_PyUnicode_Join(__pyx_t_10, 4, 9 + __Pyx_PyUnicode_GET_LENGTH(__pyx_t_8) + 15 + __Pyx_PyUnicode_GET_LENGTH(__pyx_t_9), 127);
+    if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 242, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_11);
+    __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
+    __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
+    __pyx_t_1 = 1;
+    {
+      PyObject *__pyx_callargs[2] = {__pyx_t_7, __pyx_t_11};
+      __pyx_t_6 = __Pyx_PyObject_FastCall((PyObject*)(((PyTypeObject*)PyExc_ValueError)), __pyx_callargs+__pyx_t_1, (2-__pyx_t_1) | (__pyx_t_1*__Pyx_PY_VECTORCALL_ARGUMENTS_OFFSET));
+      __Pyx_XDECREF(__pyx_t_7); __pyx_t_7 = 0;
+      __Pyx_DECREF(__pyx_t_11); __pyx_t_11 = 0;
+      if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 242, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_6);
+    }
+    __Pyx_Raise(__pyx_t_6, 0, 0, 0);
+    __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
+    __PYX_ERR(0, 242, __pyx_L1_error)
+
+    /* "cyflow/tensor.pyx":241
+ *         cdef float val
+ * 
+ *         if numel != len(flat_vals):             # <<<<<<<<<<<<<<
+ *             raise ValueError(f"Expected {numel} elements, got {len(flat_vals)}")
+ * 
+*/
+  }
+
+  /* "cyflow/tensor.pyx":244
+ *             raise ValueError(f"Expected {numel} elements, got {len(flat_vals)}")
+ * 
+ *         if numel == 0:             # <<<<<<<<<<<<<<
+ *             return
+ * 
+*/
+  __pyx_t_5 = (__pyx_v_numel == 0);
+  if (__pyx_t_5) {
+
+    /* "cyflow/tensor.pyx":245
+ * 
+ *         if numel == 0:
+ *             return             # <<<<<<<<<<<<<<
+ * 
+ *         if ndim > 0:
+*/
+    __Pyx_XDECREF(__pyx_r);
+    __pyx_r = Py_None; __Pyx_INCREF(Py_None);
+    goto __pyx_L0;
+
+    /* "cyflow/tensor.pyx":244
+ *             raise ValueError(f"Expected {numel} elements, got {len(flat_vals)}")
+ * 
+ *         if numel == 0:             # <<<<<<<<<<<<<<
+ *             return
+ * 
+*/
+  }
+
+  /* "cyflow/tensor.pyx":247
+ *             return
+ * 
+ *         if ndim > 0:             # <<<<<<<<<<<<<<
+ *             indices = <int64_t*>calloc(ndim, sizeof(int64_t))
+ *             if not indices:
+*/
+  __pyx_t_5 = (__pyx_v_ndim > 0);
+  if (__pyx_t_5) {
+
+    /* "cyflow/tensor.pyx":248
+ * 
+ *         if ndim > 0:
+ *             indices = <int64_t*>calloc(ndim, sizeof(int64_t))             # <<<<<<<<<<<<<<
+ *             if not indices:
+ *                 raise MemoryError("Failed to allocate index buffer")
+*/
+    __pyx_v_indices = ((int64_t *)calloc(__pyx_v_ndim, (sizeof(int64_t))));
+
+    /* "cyflow/tensor.pyx":249
+ *         if ndim > 0:
+ *             indices = <int64_t*>calloc(ndim, sizeof(int64_t))
+ *             if not indices:             # <<<<<<<<<<<<<<
+ *                 raise MemoryError("Failed to allocate index buffer")
+ * 
+*/
+    __pyx_t_5 = (!(__pyx_v_indices != 0));
+    if (unlikely(__pyx_t_5)) {
+
+      /* "cyflow/tensor.pyx":250
+ *             indices = <int64_t*>calloc(ndim, sizeof(int64_t))
+ *             if not indices:
+ *                 raise MemoryError("Failed to allocate index buffer")             # <<<<<<<<<<<<<<
+ * 
+ *         try:
+*/
+      __pyx_t_11 = NULL;
+      __pyx_t_1 = 1;
+      {
+        PyObject *__pyx_callargs[2] = {__pyx_t_11, __pyx_mstate_global->__pyx_kp_u_Failed_to_allocate_index_buffer};
+        __pyx_t_6 = __Pyx_PyObject_FastCall((PyObject*)(((PyTypeObject*)PyExc_MemoryError)), __pyx_callargs+__pyx_t_1, (2-__pyx_t_1) | (__pyx_t_1*__Pyx_PY_VECTORCALL_ARGUMENTS_OFFSET));
+        __Pyx_XDECREF(__pyx_t_11); __pyx_t_11 = 0;
+        if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 250, __pyx_L1_error)
+        __Pyx_GOTREF(__pyx_t_6);
+      }
+      __Pyx_Raise(__pyx_t_6, 0, 0, 0);
+      __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
+      __PYX_ERR(0, 250, __pyx_L1_error)
+
+      /* "cyflow/tensor.pyx":249
+ *         if ndim > 0:
+ *             indices = <int64_t*>calloc(ndim, sizeof(int64_t))
+ *             if not indices:             # <<<<<<<<<<<<<<
+ *                 raise MemoryError("Failed to allocate index buffer")
+ * 
+*/
+    }
+
+    /* "cyflow/tensor.pyx":247
+ *             return
+ * 
+ *         if ndim > 0:             # <<<<<<<<<<<<<<
+ *             indices = <int64_t*>calloc(ndim, sizeof(int64_t))
+ *             if not indices:
+*/
+  }
+
+  /* "cyflow/tensor.pyx":252
+ *                 raise MemoryError("Failed to allocate index buffer")
+ * 
+ *         try:             # <<<<<<<<<<<<<<
+ *             target_ptr = <float*>self._tensor.storage.data
+ *             for elem_i in range(numel):
+*/
+  /*try:*/ {
+
+    /* "cyflow/tensor.pyx":253
+ * 
+ *         try:
+ *             target_ptr = <float*>self._tensor.storage.data             # <<<<<<<<<<<<<<
+ *             for elem_i in range(numel):
+ *                 val = float(flat_vals[elem_i])
+*/
+    __pyx_v_target_ptr = ((float *)__pyx_v_self->_tensor->storage->data);
+
+    /* "cyflow/tensor.pyx":254
+ *         try:
+ *             target_ptr = <float*>self._tensor.storage.data
+ *             for elem_i in range(numel):             # <<<<<<<<<<<<<<
+ *                 val = float(flat_vals[elem_i])
+ *                 cur_offset = offset
+*/
+    __pyx_t_1 = __pyx_v_numel;
+    __pyx_t_12 = __pyx_t_1;
+    for (__pyx_t_13 = 0; __pyx_t_13 < __pyx_t_12; __pyx_t_13+=1) {
+      __pyx_v_elem_i = __pyx_t_13;
+
+      /* "cyflow/tensor.pyx":255
+ *             target_ptr = <float*>self._tensor.storage.data
+ *             for elem_i in range(numel):
+ *                 val = float(flat_vals[elem_i])             # <<<<<<<<<<<<<<
+ *                 cur_offset = offset
+ *                 for k in range(ndim):
+*/
+      if (unlikely(__pyx_v_flat_vals == Py_None)) {
+        PyErr_SetString(PyExc_TypeError, "'NoneType' object is not subscriptable");
+        __PYX_ERR(0, 255, __pyx_L8_error)
+      }
+      __pyx_t_6 = __Pyx_GetItemInt_List(__pyx_v_flat_vals, __pyx_v_elem_i, size_t, 0, __Pyx_PyLong_FromSize_t, 1, 0, 1, 1, __Pyx_ReferenceSharing_FunctionArgument); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 255, __pyx_L8_error)
+      __Pyx_GOTREF(__pyx_t_6);
+      __pyx_t_14 = __Pyx_PyObject_AsDouble(__pyx_t_6); if (unlikely(__PYX_CHECK_FLOAT_EXCEPTION(__pyx_t_14, ((double)((double)-1))) && PyErr_Occurred())) __PYX_ERR(0, 255, __pyx_L8_error)
+      __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
+      __pyx_v_val = __pyx_t_14;
+
+      /* "cyflow/tensor.pyx":256
+ *             for elem_i in range(numel):
+ *                 val = float(flat_vals[elem_i])
+ *                 cur_offset = offset             # <<<<<<<<<<<<<<
+ *                 for k in range(ndim):
+ *                     cur_offset += indices[k] * strides[k]
+*/
+      __pyx_v_cur_offset = __pyx_v_offset;
+
+      /* "cyflow/tensor.pyx":257
+ *                 val = float(flat_vals[elem_i])
+ *                 cur_offset = offset
+ *                 for k in range(ndim):             # <<<<<<<<<<<<<<
+ *                     cur_offset += indices[k] * strides[k]
+ * 
+*/
+      __pyx_t_15 = __pyx_v_ndim;
+      __pyx_t_16 = __pyx_t_15;
+      for (__pyx_t_17 = 0; __pyx_t_17 < __pyx_t_16; __pyx_t_17+=1) {
+        __pyx_v_k = __pyx_t_17;
+
+        /* "cyflow/tensor.pyx":258
+ *                 cur_offset = offset
+ *                 for k in range(ndim):
+ *                     cur_offset += indices[k] * strides[k]             # <<<<<<<<<<<<<<
+ * 
+ *                 if device == DEVICE_CPU:
+*/
+        __pyx_v_cur_offset = (__pyx_v_cur_offset + ((__pyx_v_indices[__pyx_v_k]) * (__pyx_v_strides[__pyx_v_k])));
+      }
+
+      /* "cyflow/tensor.pyx":260
+ *                     cur_offset += indices[k] * strides[k]
+ * 
+ *                 if device == DEVICE_CPU:             # <<<<<<<<<<<<<<
+ *                     target_ptr[cur_offset] = val
+ *                 elif device == DEVICE_CUDA:
+*/
+      switch (__pyx_v_device) {
+        case DEVICE_CPU:
+
+        /* "cyflow/tensor.pyx":261
+ * 
+ *                 if device == DEVICE_CPU:
+ *                     target_ptr[cur_offset] = val             # <<<<<<<<<<<<<<
+ *                 elif device == DEVICE_CUDA:
+ *                     cudaMemcpy(
+*/
+        (__pyx_v_target_ptr[__pyx_v_cur_offset]) = __pyx_v_val;
+
+        /* "cyflow/tensor.pyx":260
+ *                     cur_offset += indices[k] * strides[k]
+ * 
+ *                 if device == DEVICE_CPU:             # <<<<<<<<<<<<<<
+ *                     target_ptr[cur_offset] = val
+ *                 elif device == DEVICE_CUDA:
+*/
+        break;
+        case DEVICE_CUDA:
+
+        /* "cyflow/tensor.pyx":263
+ *                     target_ptr[cur_offset] = val
+ *                 elif device == DEVICE_CUDA:
+ *                     cudaMemcpy(             # <<<<<<<<<<<<<<
+ *                         target_ptr + cur_offset,
+ *                         &val,
+*/
+        (void)(cudaMemcpy((__pyx_v_target_ptr + __pyx_v_cur_offset), (&__pyx_v_val), (sizeof(float)), cudaMemcpyHostToDevice));
+
+        /* "cyflow/tensor.pyx":262
+ *                 if device == DEVICE_CPU:
+ *                     target_ptr[cur_offset] = val
+ *                 elif device == DEVICE_CUDA:             # <<<<<<<<<<<<<<
+ *                     cudaMemcpy(
+ *                         target_ptr + cur_offset,
+*/
+        break;
+        default: break;
+      }
+
+      /* "cyflow/tensor.pyx":270
+ *                     )
+ * 
+ *                 if ndim > 0:             # <<<<<<<<<<<<<<
+ *                     for k in range(ndim - 1, -1, -1):
+ *                         indices[k] += 1
+*/
+      __pyx_t_5 = (__pyx_v_ndim > 0);
+      if (__pyx_t_5) {
+
+        /* "cyflow/tensor.pyx":271
+ * 
+ *                 if ndim > 0:
+ *                     for k in range(ndim - 1, -1, -1):             # <<<<<<<<<<<<<<
+ *                         indices[k] += 1
+ *                         if indices[k] < shape[k]:
+*/
+        for (__pyx_t_15 = (__pyx_v_ndim - 1) + 1; __pyx_t_15 > -1L + 1; ) { __pyx_t_15-=1;
+          __pyx_v_k = __pyx_t_15;
+
+          /* "cyflow/tensor.pyx":272
+ *                 if ndim > 0:
+ *                     for k in range(ndim - 1, -1, -1):
+ *                         indices[k] += 1             # <<<<<<<<<<<<<<
+ *                         if indices[k] < shape[k]:
+ *                             break
+*/
+          __pyx_t_16 = __pyx_v_k;
+          (__pyx_v_indices[__pyx_t_16]) = ((__pyx_v_indices[__pyx_t_16]) + 1);
+
+          /* "cyflow/tensor.pyx":273
+ *                     for k in range(ndim - 1, -1, -1):
+ *                         indices[k] += 1
+ *                         if indices[k] < shape[k]:             # <<<<<<<<<<<<<<
+ *                             break
+ *                         indices[k] = 0
+*/
+          __pyx_t_5 = ((__pyx_v_indices[__pyx_v_k]) < (__pyx_v_shape[__pyx_v_k]));
+          if (__pyx_t_5) {
+
+            /* "cyflow/tensor.pyx":274
+ *                         indices[k] += 1
+ *                         if indices[k] < shape[k]:
+ *                             break             # <<<<<<<<<<<<<<
+ *                         indices[k] = 0
+ *         finally:
+*/
+            goto __pyx_L16_break;
+
+            /* "cyflow/tensor.pyx":273
+ *                     for k in range(ndim - 1, -1, -1):
+ *                         indices[k] += 1
+ *                         if indices[k] < shape[k]:             # <<<<<<<<<<<<<<
+ *                             break
+ *                         indices[k] = 0
+*/
+          }
+
+          /* "cyflow/tensor.pyx":275
+ *                         if indices[k] < shape[k]:
+ *                             break
+ *                         indices[k] = 0             # <<<<<<<<<<<<<<
+ *         finally:
+ *             if indices:
+*/
+          (__pyx_v_indices[__pyx_v_k]) = 0;
+        }
+        __pyx_L16_break:;
+
+        /* "cyflow/tensor.pyx":270
+ *                     )
+ * 
+ *                 if ndim > 0:             # <<<<<<<<<<<<<<
+ *                     for k in range(ndim - 1, -1, -1):
+ *                         indices[k] += 1
+*/
+      }
+    }
+  }
+
+  /* "cyflow/tensor.pyx":277
+ *                         indices[k] = 0
+ *         finally:
+ *             if indices:             # <<<<<<<<<<<<<<
+ *                 free(indices)
+ * 
+*/
+  /*finally:*/ {
+    /*normal exit:*/{
+      __pyx_t_5 = (__pyx_v_indices != 0);
+      if (__pyx_t_5) {
+
+        /* "cyflow/tensor.pyx":278
+ *         finally:
+ *             if indices:
+ *                 free(indices)             # <<<<<<<<<<<<<<
+ * 
+ *     cdef _copy_from_tensor(self, Tensor src):
+*/
+        free(__pyx_v_indices);
+
+        /* "cyflow/tensor.pyx":277
+ *                         indices[k] = 0
+ *         finally:
+ *             if indices:             # <<<<<<<<<<<<<<
+ *                 free(indices)
+ * 
+*/
+      }
+      goto __pyx_L9;
+    }
+    __pyx_L8_error:;
+    /*exception exit:*/{
+      __Pyx_PyThreadState_declare
+      __Pyx_PyThreadState_assign
+      __pyx_t_21 = 0; __pyx_t_22 = 0; __pyx_t_23 = 0; __pyx_t_24 = 0; __pyx_t_25 = 0; __pyx_t_26 = 0;
+      __Pyx_XDECREF(__pyx_t_11); __pyx_t_11 = 0;
+      __Pyx_XDECREF(__pyx_t_6); __pyx_t_6 = 0;
+      __Pyx_XDECREF(__pyx_t_7); __pyx_t_7 = 0;
+      __Pyx_XDECREF(__pyx_t_8); __pyx_t_8 = 0;
+      __Pyx_XDECREF(__pyx_t_9); __pyx_t_9 = 0;
+       __Pyx_ExceptionSwap(&__pyx_t_24, &__pyx_t_25, &__pyx_t_26);
+      if ( unlikely(__Pyx_GetException(&__pyx_t_21, &__pyx_t_22, &__pyx_t_23) < 0)) __Pyx_ErrFetch(&__pyx_t_21, &__pyx_t_22, &__pyx_t_23);
+      __Pyx_XGOTREF(__pyx_t_21);
+      __Pyx_XGOTREF(__pyx_t_22);
+      __Pyx_XGOTREF(__pyx_t_23);
+      __Pyx_XGOTREF(__pyx_t_24);
+      __Pyx_XGOTREF(__pyx_t_25);
+      __Pyx_XGOTREF(__pyx_t_26);
+      __pyx_t_18 = __pyx_lineno; __pyx_t_19 = __pyx_clineno; __pyx_t_20 = __pyx_filename;
+      {
+        __pyx_t_5 = (__pyx_v_indices != 0);
+        if (__pyx_t_5) {
+
+          /* "cyflow/tensor.pyx":278
+ *         finally:
+ *             if indices:
+ *                 free(indices)             # <<<<<<<<<<<<<<
+ * 
+ *     cdef _copy_from_tensor(self, Tensor src):
+*/
+          free(__pyx_v_indices);
+
+          /* "cyflow/tensor.pyx":277
+ *                         indices[k] = 0
+ *         finally:
+ *             if indices:             # <<<<<<<<<<<<<<
+ *                 free(indices)
+ * 
+*/
+        }
+      }
+      __Pyx_XGIVEREF(__pyx_t_24);
+      __Pyx_XGIVEREF(__pyx_t_25);
+      __Pyx_XGIVEREF(__pyx_t_26);
+      __Pyx_ExceptionReset(__pyx_t_24, __pyx_t_25, __pyx_t_26);
+      __Pyx_XGIVEREF(__pyx_t_21);
+      __Pyx_XGIVEREF(__pyx_t_22);
+      __Pyx_XGIVEREF(__pyx_t_23);
+      __Pyx_ErrRestore(__pyx_t_21, __pyx_t_22, __pyx_t_23);
+      __pyx_t_21 = 0; __pyx_t_22 = 0; __pyx_t_23 = 0; __pyx_t_24 = 0; __pyx_t_25 = 0; __pyx_t_26 = 0;
+      __pyx_lineno = __pyx_t_18; __pyx_clineno = __pyx_t_19; __pyx_filename = __pyx_t_20;
+      goto __pyx_L1_error;
+    }
+    __pyx_L9:;
+  }
+
+  /* "cyflow/tensor.pyx":227
+ *                 free(indices)
+ * 
+ *     cdef _fill_from_flat_list(self, list flat_vals):             # <<<<<<<<<<<<<<
+ *         cdef size_t numel = self._tensor.numel
+ *         cdef size_t ndim = self._tensor.ndim
+*/
+
+  /* function exit code */
+  __pyx_r = Py_None; __Pyx_INCREF(Py_None);
+  goto __pyx_L0;
+  __pyx_L1_error:;
+  __Pyx_XDECREF(__pyx_t_6);
+  __Pyx_XDECREF(__pyx_t_7);
+  __Pyx_XDECREF(__pyx_t_8);
+  __Pyx_XDECREF(__pyx_t_9);
+  __Pyx_XDECREF(__pyx_t_11);
+  __Pyx_AddTraceback("cyflow.tensor.Tensor._fill_from_flat_list", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __pyx_r = 0;
+  __pyx_L0:;
+  __Pyx_XGIVEREF(__pyx_r);
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* "cyflow/tensor.pyx":280
+ *                 free(indices)
+ * 
+ *     cdef _copy_from_tensor(self, Tensor src):             # <<<<<<<<<<<<<<
+ *         cdef size_t numel = self._tensor.numel
+ *         cdef size_t ndim = self._tensor.ndim
+*/
+
+static PyObject *__pyx_f_6cyflow_6tensor_6Tensor__copy_from_tensor(struct __pyx_obj_6cyflow_6tensor_Tensor *__pyx_v_self, struct __pyx_obj_6cyflow_6tensor_Tensor *__pyx_v_src) {
+  size_t __pyx_v_numel;
+  size_t __pyx_v_ndim;
+  int64_t *__pyx_v_shape;
+  int64_t *__pyx_v_strides;
+  int64_t __pyx_v_offset;
+  int __pyx_v_device;
+  size_t __pyx_v_src_ndim;
+  int64_t *__pyx_v_src_strides;
+  int64_t __pyx_v_src_offset;
+  int __pyx_v_src_device;
+  float *__pyx_v_target_ptr;
+  float *__pyx_v_src_ptr;
+  int64_t *__pyx_v_target_indices;
+  int64_t *__pyx_v_src_indices;
+  CYTHON_UNUSED size_t __pyx_v_elem_i;
+  size_t __pyx_v_k;
+  int64_t __pyx_v_cur_target_offset;
+  int64_t __pyx_v_cur_src_offset;
+  PyObject *__pyx_r = NULL;
+  __Pyx_RefNannyDeclarations
+  size_t __pyx_t_1;
+  int64_t *__pyx_t_2;
+  DeviceType __pyx_t_3;
+  PyObject *__pyx_t_4 = NULL;
+  PyObject *__pyx_t_5 = NULL;
+  PyObject *__pyx_t_6 = NULL;
+  int __pyx_t_7;
+  PyObject *__pyx_t_8 = NULL;
+  PyObject *__pyx_t_9 = NULL;
+  PyObject *__pyx_t_10[4];
+  int __pyx_t_11;
+  size_t __pyx_t_12;
+  size_t __pyx_t_13;
+  size_t __pyx_t_14;
+  size_t __pyx_t_15;
+  size_t __pyx_t_16;
+  int __pyx_lineno = 0;
+  const char *__pyx_filename = NULL;
+  int __pyx_clineno = 0;
+  __Pyx_RefNannySetupContext("_copy_from_tensor", 0);
+
+  /* "cyflow/tensor.pyx":281
+ * 
+ *     cdef _copy_from_tensor(self, Tensor src):
+ *         cdef size_t numel = self._tensor.numel             # <<<<<<<<<<<<<<
+ *         cdef size_t ndim = self._tensor.ndim
+ *         cdef int64_t* shape = self._tensor.shape
+*/
+  __pyx_t_1 = __pyx_v_self->_tensor->numel;
+  __pyx_v_numel = __pyx_t_1;
+
+  /* "cyflow/tensor.pyx":282
+ *     cdef _copy_from_tensor(self, Tensor src):
+ *         cdef size_t numel = self._tensor.numel
+ *         cdef size_t ndim = self._tensor.ndim             # <<<<<<<<<<<<<<
+ *         cdef int64_t* shape = self._tensor.shape
+ *         cdef int64_t* strides = self._tensor.strides
+*/
+  __pyx_t_1 = __pyx_v_self->_tensor->ndim;
+  __pyx_v_ndim = __pyx_t_1;
+
+  /* "cyflow/tensor.pyx":283
+ *         cdef size_t numel = self._tensor.numel
+ *         cdef size_t ndim = self._tensor.ndim
+ *         cdef int64_t* shape = self._tensor.shape             # <<<<<<<<<<<<<<
+ *         cdef int64_t* strides = self._tensor.strides
+ *         cdef int64_t offset = self._tensor.storage_offset
+*/
+  __pyx_t_2 = __pyx_v_self->_tensor->shape;
+  __pyx_v_shape = __pyx_t_2;
+
+  /* "cyflow/tensor.pyx":284
+ *         cdef size_t ndim = self._tensor.ndim
+ *         cdef int64_t* shape = self._tensor.shape
+ *         cdef int64_t* strides = self._tensor.strides             # <<<<<<<<<<<<<<
+ *         cdef int64_t offset = self._tensor.storage_offset
+ *         cdef int device = self._tensor.storage.device
+*/
+  __pyx_t_2 = __pyx_v_self->_tensor->strides;
+  __pyx_v_strides = __pyx_t_2;
+
+  /* "cyflow/tensor.pyx":285
+ *         cdef int64_t* shape = self._tensor.shape
+ *         cdef int64_t* strides = self._tensor.strides
+ *         cdef int64_t offset = self._tensor.storage_offset             # <<<<<<<<<<<<<<
+ *         cdef int device = self._tensor.storage.device
+ * 
+*/
+  __pyx_t_1 = __pyx_v_self->_tensor->storage_offset;
+  __pyx_v_offset = __pyx_t_1;
+
+  /* "cyflow/tensor.pyx":286
+ *         cdef int64_t* strides = self._tensor.strides
+ *         cdef int64_t offset = self._tensor.storage_offset
+ *         cdef int device = self._tensor.storage.device             # <<<<<<<<<<<<<<
+ * 
+ *         cdef size_t src_ndim = src._tensor.ndim
+*/
+  __pyx_t_3 = __pyx_v_self->_tensor->storage->device;
+  __pyx_v_device = __pyx_t_3;
+
+  /* "cyflow/tensor.pyx":288
+ *         cdef int device = self._tensor.storage.device
+ * 
+ *         cdef size_t src_ndim = src._tensor.ndim             # <<<<<<<<<<<<<<
+ *         cdef int64_t* src_strides = src._tensor.strides
+ *         cdef int64_t src_offset = src._tensor.storage_offset
+*/
+  __pyx_t_1 = __pyx_v_src->_tensor->ndim;
+  __pyx_v_src_ndim = __pyx_t_1;
+
+  /* "cyflow/tensor.pyx":289
+ * 
+ *         cdef size_t src_ndim = src._tensor.ndim
+ *         cdef int64_t* src_strides = src._tensor.strides             # <<<<<<<<<<<<<<
+ *         cdef int64_t src_offset = src._tensor.storage_offset
+ *         cdef int src_device = src._tensor.storage.device
+*/
+  __pyx_t_2 = __pyx_v_src->_tensor->strides;
+  __pyx_v_src_strides = __pyx_t_2;
+
+  /* "cyflow/tensor.pyx":290
+ *         cdef size_t src_ndim = src._tensor.ndim
+ *         cdef int64_t* src_strides = src._tensor.strides
+ *         cdef int64_t src_offset = src._tensor.storage_offset             # <<<<<<<<<<<<<<
+ *         cdef int src_device = src._tensor.storage.device
+ * 
+*/
+  __pyx_t_1 = __pyx_v_src->_tensor->storage_offset;
+  __pyx_v_src_offset = __pyx_t_1;
+
+  /* "cyflow/tensor.pyx":291
+ *         cdef int64_t* src_strides = src._tensor.strides
+ *         cdef int64_t src_offset = src._tensor.storage_offset
+ *         cdef int src_device = src._tensor.storage.device             # <<<<<<<<<<<<<<
+ * 
+ *         cdef float* target_ptr = <float*>self._tensor.storage.data
+*/
+  __pyx_t_3 = __pyx_v_src->_tensor->storage->device;
+  __pyx_v_src_device = __pyx_t_3;
+
+  /* "cyflow/tensor.pyx":293
+ *         cdef int src_device = src._tensor.storage.device
+ * 
+ *         cdef float* target_ptr = <float*>self._tensor.storage.data             # <<<<<<<<<<<<<<
+ *         cdef float* src_ptr = <float*>src._tensor.storage.data
+ * 
+*/
+  __pyx_v_target_ptr = ((float *)__pyx_v_self->_tensor->storage->data);
+
+  /* "cyflow/tensor.pyx":294
+ * 
+ *         cdef float* target_ptr = <float*>self._tensor.storage.data
+ *         cdef float* src_ptr = <float*>src._tensor.storage.data             # <<<<<<<<<<<<<<
+ * 
+ *         cdef int64_t* target_indices = NULL
+*/
+  __pyx_v_src_ptr = ((float *)__pyx_v_src->_tensor->storage->data);
+
+  /* "cyflow/tensor.pyx":296
+ *         cdef float* src_ptr = <float*>src._tensor.storage.data
+ * 
+ *         cdef int64_t* target_indices = NULL             # <<<<<<<<<<<<<<
+ *         cdef int64_t* src_indices = NULL
+ *         cdef size_t elem_i, k
+*/
+  __pyx_v_target_indices = NULL;
+
+  /* "cyflow/tensor.pyx":297
+ * 
+ *         cdef int64_t* target_indices = NULL
+ *         cdef int64_t* src_indices = NULL             # <<<<<<<<<<<<<<
+ *         cdef size_t elem_i, k
+ *         cdef int64_t cur_target_offset, cur_src_offset
+*/
+  __pyx_v_src_indices = NULL;
+
+  /* "cyflow/tensor.pyx":301
+ *         cdef int64_t cur_target_offset, cur_src_offset
+ * 
+ *         if self.shape != src.shape:             # <<<<<<<<<<<<<<
+ *             raise ValueError(f"Cannot copy tensor of shape {src.shape} to tensor of shape {self.shape}")
+ * 
+*/
+  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_mstate_global->__pyx_n_u_shape); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 301, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_4);
+  __pyx_t_5 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_src), __pyx_mstate_global->__pyx_n_u_shape); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 301, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_5);
+  __pyx_t_6 = PyObject_RichCompare(__pyx_t_4, __pyx_t_5, Py_NE); __Pyx_XGOTREF(__pyx_t_6); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 301, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+  __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
+  __pyx_t_7 = __Pyx_PyObject_IsTrue(__pyx_t_6); if (unlikely((__pyx_t_7 < 0))) __PYX_ERR(0, 301, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
+  if (unlikely(__pyx_t_7)) {
+
+    /* "cyflow/tensor.pyx":302
+ * 
+ *         if self.shape != src.shape:
+ *             raise ValueError(f"Cannot copy tensor of shape {src.shape} to tensor of shape {self.shape}")             # <<<<<<<<<<<<<<
+ * 
+ *         if device != src_device:
+*/
+    __pyx_t_5 = NULL;
+    __pyx_t_4 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_src), __pyx_mstate_global->__pyx_n_u_shape); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 302, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_4);
+    __pyx_t_8 = __Pyx_PyObject_FormatSimple(__pyx_t_4, __pyx_mstate_global->__pyx_empty_unicode); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 302, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_8);
+    __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+    __pyx_t_4 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_mstate_global->__pyx_n_u_shape); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 302, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_4);
+    __pyx_t_9 = __Pyx_PyObject_FormatSimple(__pyx_t_4, __pyx_mstate_global->__pyx_empty_unicode); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 302, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_9);
+    __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+    __pyx_t_10[0] = __pyx_mstate_global->__pyx_kp_u_Cannot_copy_tensor_of_shape;
+    __pyx_t_10[1] = __pyx_t_8;
+    __pyx_t_10[2] = __pyx_mstate_global->__pyx_kp_u_to_tensor_of_shape;
+    __pyx_t_10[3] = __pyx_t_9;
+    __pyx_t_4 = __Pyx_PyUnicode_Join(__pyx_t_10, 4, 28 + __Pyx_PyUnicode_GET_LENGTH(__pyx_t_8) + 20 + __Pyx_PyUnicode_GET_LENGTH(__pyx_t_9), 127 | __Pyx_PyUnicode_MAX_CHAR_VALUE(__pyx_t_8) | __Pyx_PyUnicode_MAX_CHAR_VALUE(__pyx_t_9));
+    if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 302, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_4);
+    __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
+    __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
+    __pyx_t_1 = 1;
+    {
+      PyObject *__pyx_callargs[2] = {__pyx_t_5, __pyx_t_4};
+      __pyx_t_6 = __Pyx_PyObject_FastCall((PyObject*)(((PyTypeObject*)PyExc_ValueError)), __pyx_callargs+__pyx_t_1, (2-__pyx_t_1) | (__pyx_t_1*__Pyx_PY_VECTORCALL_ARGUMENTS_OFFSET));
+      __Pyx_XDECREF(__pyx_t_5); __pyx_t_5 = 0;
+      __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+      if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 302, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_6);
+    }
+    __Pyx_Raise(__pyx_t_6, 0, 0, 0);
+    __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
+    __PYX_ERR(0, 302, __pyx_L1_error)
+
+    /* "cyflow/tensor.pyx":301
+ *         cdef int64_t cur_target_offset, cur_src_offset
+ * 
+ *         if self.shape != src.shape:             # <<<<<<<<<<<<<<
+ *             raise ValueError(f"Cannot copy tensor of shape {src.shape} to tensor of shape {self.shape}")
+ * 
+*/
+  }
+
+  /* "cyflow/tensor.pyx":304
+ *             raise ValueError(f"Cannot copy tensor of shape {src.shape} to tensor of shape {self.shape}")
+ * 
+ *         if device != src_device:             # <<<<<<<<<<<<<<
+ *             raise ValueError(f"Cannot copy between different devices: {self.device} vs {src.device}")
+ * 
+*/
+  __pyx_t_7 = (__pyx_v_device != __pyx_v_src_device);
+  if (unlikely(__pyx_t_7)) {
+
+    /* "cyflow/tensor.pyx":305
+ * 
+ *         if device != src_device:
+ *             raise ValueError(f"Cannot copy between different devices: {self.device} vs {src.device}")             # <<<<<<<<<<<<<<
+ * 
+ *         if numel == 0:
+*/
+    __pyx_t_4 = NULL;
+    __pyx_t_5 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_mstate_global->__pyx_n_u_device); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 305, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_5);
+    __pyx_t_9 = __Pyx_PyObject_FormatSimple(__pyx_t_5, __pyx_mstate_global->__pyx_empty_unicode); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 305, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_9);
+    __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
+    __pyx_t_5 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_src), __pyx_mstate_global->__pyx_n_u_device); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 305, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_5);
+    __pyx_t_8 = __Pyx_PyObject_FormatSimple(__pyx_t_5, __pyx_mstate_global->__pyx_empty_unicode); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 305, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_8);
+    __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
+    __pyx_t_10[0] = __pyx_mstate_global->__pyx_kp_u_Cannot_copy_between_different_de;
+    __pyx_t_10[1] = __pyx_t_9;
+    __pyx_t_10[2] = __pyx_mstate_global->__pyx_kp_u_vs;
+    __pyx_t_10[3] = __pyx_t_8;
+    __pyx_t_5 = __Pyx_PyUnicode_Join(__pyx_t_10, 4, 39 + __Pyx_PyUnicode_GET_LENGTH(__pyx_t_9) + 4 + __Pyx_PyUnicode_GET_LENGTH(__pyx_t_8), 127 | __Pyx_PyUnicode_MAX_CHAR_VALUE(__pyx_t_9) | __Pyx_PyUnicode_MAX_CHAR_VALUE(__pyx_t_8));
+    if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 305, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_5);
+    __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
+    __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
+    __pyx_t_1 = 1;
+    {
+      PyObject *__pyx_callargs[2] = {__pyx_t_4, __pyx_t_5};
+      __pyx_t_6 = __Pyx_PyObject_FastCall((PyObject*)(((PyTypeObject*)PyExc_ValueError)), __pyx_callargs+__pyx_t_1, (2-__pyx_t_1) | (__pyx_t_1*__Pyx_PY_VECTORCALL_ARGUMENTS_OFFSET));
+      __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
+      __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
+      if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 305, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_6);
+    }
+    __Pyx_Raise(__pyx_t_6, 0, 0, 0);
+    __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
+    __PYX_ERR(0, 305, __pyx_L1_error)
+
+    /* "cyflow/tensor.pyx":304
+ *             raise ValueError(f"Cannot copy tensor of shape {src.shape} to tensor of shape {self.shape}")
+ * 
+ *         if device != src_device:             # <<<<<<<<<<<<<<
+ *             raise ValueError(f"Cannot copy between different devices: {self.device} vs {src.device}")
+ * 
+*/
+  }
+
+  /* "cyflow/tensor.pyx":307
+ *             raise ValueError(f"Cannot copy between different devices: {self.device} vs {src.device}")
+ * 
+ *         if numel == 0:             # <<<<<<<<<<<<<<
+ *             return
+ * 
+*/
+  __pyx_t_7 = (__pyx_v_numel == 0);
+  if (__pyx_t_7) {
+
+    /* "cyflow/tensor.pyx":308
+ * 
+ *         if numel == 0:
+ *             return             # <<<<<<<<<<<<<<
+ * 
+ *         if ndim > 0:
+*/
+    __Pyx_XDECREF(__pyx_r);
+    __pyx_r = Py_None; __Pyx_INCREF(Py_None);
+    goto __pyx_L0;
+
+    /* "cyflow/tensor.pyx":307
+ *             raise ValueError(f"Cannot copy between different devices: {self.device} vs {src.device}")
+ * 
+ *         if numel == 0:             # <<<<<<<<<<<<<<
+ *             return
+ * 
+*/
+  }
+
+  /* "cyflow/tensor.pyx":310
+ *             return
+ * 
+ *         if ndim > 0:             # <<<<<<<<<<<<<<
+ *             target_indices = <int64_t*>calloc(ndim, sizeof(int64_t))
+ *             src_indices = <int64_t*>calloc(src_ndim, sizeof(int64_t))
+*/
+  __pyx_t_7 = (__pyx_v_ndim > 0);
+  if (__pyx_t_7) {
+
+    /* "cyflow/tensor.pyx":311
+ * 
+ *         if ndim > 0:
+ *             target_indices = <int64_t*>calloc(ndim, sizeof(int64_t))             # <<<<<<<<<<<<<<
+ *             src_indices = <int64_t*>calloc(src_ndim, sizeof(int64_t))
+ *             if not target_indices or not src_indices:
+*/
+    __pyx_v_target_indices = ((int64_t *)calloc(__pyx_v_ndim, (sizeof(int64_t))));
+
+    /* "cyflow/tensor.pyx":312
+ *         if ndim > 0:
+ *             target_indices = <int64_t*>calloc(ndim, sizeof(int64_t))
+ *             src_indices = <int64_t*>calloc(src_ndim, sizeof(int64_t))             # <<<<<<<<<<<<<<
+ *             if not target_indices or not src_indices:
+ *                 if target_indices: free(target_indices)
+*/
+    __pyx_v_src_indices = ((int64_t *)calloc(__pyx_v_src_ndim, (sizeof(int64_t))));
+
+    /* "cyflow/tensor.pyx":313
+ *             target_indices = <int64_t*>calloc(ndim, sizeof(int64_t))
+ *             src_indices = <int64_t*>calloc(src_ndim, sizeof(int64_t))
+ *             if not target_indices or not src_indices:             # <<<<<<<<<<<<<<
+ *                 if target_indices: free(target_indices)
+ *                 if src_indices: free(src_indices)
+*/
+    __pyx_t_11 = (!(__pyx_v_target_indices != 0));
+    if (!__pyx_t_11) {
+    } else {
+      __pyx_t_7 = __pyx_t_11;
+      goto __pyx_L8_bool_binop_done;
+    }
+    __pyx_t_11 = (!(__pyx_v_src_indices != 0));
+    __pyx_t_7 = __pyx_t_11;
+    __pyx_L8_bool_binop_done:;
+    if (__pyx_t_7) {
+
+      /* "cyflow/tensor.pyx":314
+ *             src_indices = <int64_t*>calloc(src_ndim, sizeof(int64_t))
+ *             if not target_indices or not src_indices:
+ *                 if target_indices: free(target_indices)             # <<<<<<<<<<<<<<
+ *                 if src_indices: free(src_indices)
+ *                 raise MemoryError("Failed to allocate index buffer")
+*/
+      __pyx_t_7 = (__pyx_v_target_indices != 0);
+      if (__pyx_t_7) {
+        free(__pyx_v_target_indices);
+      }
+
+      /* "cyflow/tensor.pyx":315
+ *             if not target_indices or not src_indices:
+ *                 if target_indices: free(target_indices)
+ *                 if src_indices: free(src_indices)             # <<<<<<<<<<<<<<
+ *                 raise MemoryError("Failed to allocate index buffer")
+ * 
+*/
+      __pyx_t_7 = (__pyx_v_src_indices != 0);
+      if (__pyx_t_7) {
+        free(__pyx_v_src_indices);
+      }
+
+      /* "cyflow/tensor.pyx":316
+ *                 if target_indices: free(target_indices)
+ *                 if src_indices: free(src_indices)
+ *                 raise MemoryError("Failed to allocate index buffer")             # <<<<<<<<<<<<<<
+ * 
+ *         try:
+*/
+      __pyx_t_5 = NULL;
+      __pyx_t_1 = 1;
+      {
+        PyObject *__pyx_callargs[2] = {__pyx_t_5, __pyx_mstate_global->__pyx_kp_u_Failed_to_allocate_index_buffer};
+        __pyx_t_6 = __Pyx_PyObject_FastCall((PyObject*)(((PyTypeObject*)PyExc_MemoryError)), __pyx_callargs+__pyx_t_1, (2-__pyx_t_1) | (__pyx_t_1*__Pyx_PY_VECTORCALL_ARGUMENTS_OFFSET));
+        __Pyx_XDECREF(__pyx_t_5); __pyx_t_5 = 0;
+        if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 316, __pyx_L1_error)
+        __Pyx_GOTREF(__pyx_t_6);
+      }
+      __Pyx_Raise(__pyx_t_6, 0, 0, 0);
+      __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
+      __PYX_ERR(0, 316, __pyx_L1_error)
+
+      /* "cyflow/tensor.pyx":313
+ *             target_indices = <int64_t*>calloc(ndim, sizeof(int64_t))
+ *             src_indices = <int64_t*>calloc(src_ndim, sizeof(int64_t))
+ *             if not target_indices or not src_indices:             # <<<<<<<<<<<<<<
+ *                 if target_indices: free(target_indices)
+ *                 if src_indices: free(src_indices)
+*/
+    }
+
+    /* "cyflow/tensor.pyx":310
+ *             return
+ * 
+ *         if ndim > 0:             # <<<<<<<<<<<<<<
+ *             target_indices = <int64_t*>calloc(ndim, sizeof(int64_t))
+ *             src_indices = <int64_t*>calloc(src_ndim, sizeof(int64_t))
+*/
+  }
+
+  /* "cyflow/tensor.pyx":318
+ *                 raise MemoryError("Failed to allocate index buffer")
+ * 
+ *         try:             # <<<<<<<<<<<<<<
+ *             for elem_i in range(numel):
+ *                 cur_target_offset = offset
+*/
+  /*try:*/ {
+
+    /* "cyflow/tensor.pyx":319
+ * 
+ *         try:
+ *             for elem_i in range(numel):             # <<<<<<<<<<<<<<
+ *                 cur_target_offset = offset
+ *                 for k in range(ndim):
+*/
+    __pyx_t_1 = __pyx_v_numel;
+    __pyx_t_12 = __pyx_t_1;
+    for (__pyx_t_13 = 0; __pyx_t_13 < __pyx_t_12; __pyx_t_13+=1) {
+      __pyx_v_elem_i = __pyx_t_13;
+
+      /* "cyflow/tensor.pyx":320
+ *         try:
+ *             for elem_i in range(numel):
+ *                 cur_target_offset = offset             # <<<<<<<<<<<<<<
+ *                 for k in range(ndim):
+ *                     cur_target_offset += target_indices[k] * strides[k]
+*/
+      __pyx_v_cur_target_offset = __pyx_v_offset;
+
+      /* "cyflow/tensor.pyx":321
+ *             for elem_i in range(numel):
+ *                 cur_target_offset = offset
+ *                 for k in range(ndim):             # <<<<<<<<<<<<<<
+ *                     cur_target_offset += target_indices[k] * strides[k]
+ * 
+*/
+      __pyx_t_14 = __pyx_v_ndim;
+      __pyx_t_15 = __pyx_t_14;
+      for (__pyx_t_16 = 0; __pyx_t_16 < __pyx_t_15; __pyx_t_16+=1) {
+        __pyx_v_k = __pyx_t_16;
+
+        /* "cyflow/tensor.pyx":322
+ *                 cur_target_offset = offset
+ *                 for k in range(ndim):
+ *                     cur_target_offset += target_indices[k] * strides[k]             # <<<<<<<<<<<<<<
+ * 
+ *                 cur_src_offset = src_offset
+*/
+        __pyx_v_cur_target_offset = (__pyx_v_cur_target_offset + ((__pyx_v_target_indices[__pyx_v_k]) * (__pyx_v_strides[__pyx_v_k])));
+      }
+
+      /* "cyflow/tensor.pyx":324
+ *                     cur_target_offset += target_indices[k] * strides[k]
+ * 
+ *                 cur_src_offset = src_offset             # <<<<<<<<<<<<<<
+ *                 for k in range(src_ndim):
+ *                     cur_src_offset += src_indices[k] * src_strides[k]
+*/
+      __pyx_v_cur_src_offset = __pyx_v_src_offset;
+
+      /* "cyflow/tensor.pyx":325
+ * 
+ *                 cur_src_offset = src_offset
+ *                 for k in range(src_ndim):             # <<<<<<<<<<<<<<
+ *                     cur_src_offset += src_indices[k] * src_strides[k]
+ * 
+*/
+      __pyx_t_14 = __pyx_v_src_ndim;
+      __pyx_t_15 = __pyx_t_14;
+      for (__pyx_t_16 = 0; __pyx_t_16 < __pyx_t_15; __pyx_t_16+=1) {
+        __pyx_v_k = __pyx_t_16;
+
+        /* "cyflow/tensor.pyx":326
+ *                 cur_src_offset = src_offset
+ *                 for k in range(src_ndim):
+ *                     cur_src_offset += src_indices[k] * src_strides[k]             # <<<<<<<<<<<<<<
+ * 
+ *                 if device == DEVICE_CPU:
+*/
+        __pyx_v_cur_src_offset = (__pyx_v_cur_src_offset + ((__pyx_v_src_indices[__pyx_v_k]) * (__pyx_v_src_strides[__pyx_v_k])));
+      }
+
+      /* "cyflow/tensor.pyx":328
+ *                     cur_src_offset += src_indices[k] * src_strides[k]
+ * 
+ *                 if device == DEVICE_CPU:             # <<<<<<<<<<<<<<
+ *                     target_ptr[cur_target_offset] = src_ptr[cur_src_offset]
+ *                 elif device == DEVICE_CUDA:
+*/
+      switch (__pyx_v_device) {
+        case DEVICE_CPU:
+
+        /* "cyflow/tensor.pyx":329
+ * 
+ *                 if device == DEVICE_CPU:
+ *                     target_ptr[cur_target_offset] = src_ptr[cur_src_offset]             # <<<<<<<<<<<<<<
+ *                 elif device == DEVICE_CUDA:
+ *                     cudaMemcpy(
+*/
+        (__pyx_v_target_ptr[__pyx_v_cur_target_offset]) = (__pyx_v_src_ptr[__pyx_v_cur_src_offset]);
+
+        /* "cyflow/tensor.pyx":328
+ *                     cur_src_offset += src_indices[k] * src_strides[k]
+ * 
+ *                 if device == DEVICE_CPU:             # <<<<<<<<<<<<<<
+ *                     target_ptr[cur_target_offset] = src_ptr[cur_src_offset]
+ *                 elif device == DEVICE_CUDA:
+*/
+        break;
+        case DEVICE_CUDA:
+
+        /* "cyflow/tensor.pyx":331
+ *                     target_ptr[cur_target_offset] = src_ptr[cur_src_offset]
+ *                 elif device == DEVICE_CUDA:
+ *                     cudaMemcpy(             # <<<<<<<<<<<<<<
+ *                         target_ptr + cur_target_offset,
+ *                         src_ptr + cur_src_offset,
+*/
+        (void)(cudaMemcpy((__pyx_v_target_ptr + __pyx_v_cur_target_offset), (__pyx_v_src_ptr + __pyx_v_cur_src_offset), (sizeof(float)), cudaMemcpyDeviceToDevice));
+
+        /* "cyflow/tensor.pyx":330
+ *                 if device == DEVICE_CPU:
+ *                     target_ptr[cur_target_offset] = src_ptr[cur_src_offset]
+ *                 elif device == DEVICE_CUDA:             # <<<<<<<<<<<<<<
+ *                     cudaMemcpy(
+ *                         target_ptr + cur_target_offset,
+*/
+        break;
+        default: break;
+      }
+
+      /* "cyflow/tensor.pyx":338
+ *                     )
+ * 
+ *                 if ndim > 0:             # <<<<<<<<<<<<<<
+ *                     for k in range(ndim - 1, -1, -1):
+ *                         target_indices[k] += 1
+*/
+      __pyx_t_7 = (__pyx_v_ndim > 0);
+      if (__pyx_t_7) {
+
+        /* "cyflow/tensor.pyx":339
+ * 
+ *                 if ndim > 0:
+ *                     for k in range(ndim - 1, -1, -1):             # <<<<<<<<<<<<<<
+ *                         target_indices[k] += 1
+ *                         if target_indices[k] < shape[k]:
+*/
+        for (__pyx_t_14 = (__pyx_v_ndim - 1) + 1; __pyx_t_14 > -1L + 1; ) { __pyx_t_14-=1;
+          __pyx_v_k = __pyx_t_14;
+
+          /* "cyflow/tensor.pyx":340
+ *                 if ndim > 0:
+ *                     for k in range(ndim - 1, -1, -1):
+ *                         target_indices[k] += 1             # <<<<<<<<<<<<<<
+ *                         if target_indices[k] < shape[k]:
+ *                             break
+*/
+          __pyx_t_15 = __pyx_v_k;
+          (__pyx_v_target_indices[__pyx_t_15]) = ((__pyx_v_target_indices[__pyx_t_15]) + 1);
+
+          /* "cyflow/tensor.pyx":341
+ *                     for k in range(ndim - 1, -1, -1):
+ *                         target_indices[k] += 1
+ *                         if target_indices[k] < shape[k]:             # <<<<<<<<<<<<<<
+ *                             break
+ *                         target_indices[k] = 0
+*/
+          __pyx_t_7 = ((__pyx_v_target_indices[__pyx_v_k]) < (__pyx_v_shape[__pyx_v_k]));
+          if (__pyx_t_7) {
+
+            /* "cyflow/tensor.pyx":342
+ *                         target_indices[k] += 1
+ *                         if target_indices[k] < shape[k]:
+ *                             break             # <<<<<<<<<<<<<<
+ *                         target_indices[k] = 0
+ * 
+*/
+            goto __pyx_L23_break;
+
+            /* "cyflow/tensor.pyx":341
+ *                     for k in range(ndim - 1, -1, -1):
+ *                         target_indices[k] += 1
+ *                         if target_indices[k] < shape[k]:             # <<<<<<<<<<<<<<
+ *                             break
+ *                         target_indices[k] = 0
+*/
+          }
+
+          /* "cyflow/tensor.pyx":343
+ *                         if target_indices[k] < shape[k]:
+ *                             break
+ *                         target_indices[k] = 0             # <<<<<<<<<<<<<<
+ * 
+ *                 if src_ndim > 0:
+*/
+          (__pyx_v_target_indices[__pyx_v_k]) = 0;
+        }
+        __pyx_L23_break:;
+
+        /* "cyflow/tensor.pyx":338
+ *                     )
+ * 
+ *                 if ndim > 0:             # <<<<<<<<<<<<<<
+ *                     for k in range(ndim - 1, -1, -1):
+ *                         target_indices[k] += 1
+*/
+      }
+
+      /* "cyflow/tensor.pyx":345
+ *                         target_indices[k] = 0
+ * 
+ *                 if src_ndim > 0:             # <<<<<<<<<<<<<<
+ *                     for k in range(src_ndim - 1, -1, -1):
+ *                         src_indices[k] += 1
+*/
+      __pyx_t_7 = (__pyx_v_src_ndim > 0);
+      if (__pyx_t_7) {
+
+        /* "cyflow/tensor.pyx":346
+ * 
+ *                 if src_ndim > 0:
+ *                     for k in range(src_ndim - 1, -1, -1):             # <<<<<<<<<<<<<<
+ *                         src_indices[k] += 1
+ *                         if src_indices[k] < src._tensor.shape[k]:
+*/
+        for (__pyx_t_14 = (__pyx_v_src_ndim - 1) + 1; __pyx_t_14 > -1L + 1; ) { __pyx_t_14-=1;
+          __pyx_v_k = __pyx_t_14;
+
+          /* "cyflow/tensor.pyx":347
+ *                 if src_ndim > 0:
+ *                     for k in range(src_ndim - 1, -1, -1):
+ *                         src_indices[k] += 1             # <<<<<<<<<<<<<<
+ *                         if src_indices[k] < src._tensor.shape[k]:
+ *                             break
+*/
+          __pyx_t_15 = __pyx_v_k;
+          (__pyx_v_src_indices[__pyx_t_15]) = ((__pyx_v_src_indices[__pyx_t_15]) + 1);
+
+          /* "cyflow/tensor.pyx":348
+ *                     for k in range(src_ndim - 1, -1, -1):
+ *                         src_indices[k] += 1
+ *                         if src_indices[k] < src._tensor.shape[k]:             # <<<<<<<<<<<<<<
+ *                             break
+ *                         src_indices[k] = 0
+*/
+          __pyx_t_7 = ((__pyx_v_src_indices[__pyx_v_k]) < (__pyx_v_src->_tensor->shape[__pyx_v_k]));
+          if (__pyx_t_7) {
+
+            /* "cyflow/tensor.pyx":349
+ *                         src_indices[k] += 1
+ *                         if src_indices[k] < src._tensor.shape[k]:
+ *                             break             # <<<<<<<<<<<<<<
+ *                         src_indices[k] = 0
+ *         finally:
+*/
+            goto __pyx_L27_break;
+
+            /* "cyflow/tensor.pyx":348
+ *                     for k in range(src_ndim - 1, -1, -1):
+ *                         src_indices[k] += 1
+ *                         if src_indices[k] < src._tensor.shape[k]:             # <<<<<<<<<<<<<<
+ *                             break
+ *                         src_indices[k] = 0
+*/
+          }
+
+          /* "cyflow/tensor.pyx":350
+ *                         if src_indices[k] < src._tensor.shape[k]:
+ *                             break
+ *                         src_indices[k] = 0             # <<<<<<<<<<<<<<
+ *         finally:
+ *             if target_indices: free(target_indices)
+*/
+          (__pyx_v_src_indices[__pyx_v_k]) = 0;
+        }
+        __pyx_L27_break:;
+
+        /* "cyflow/tensor.pyx":345
+ *                         target_indices[k] = 0
+ * 
+ *                 if src_ndim > 0:             # <<<<<<<<<<<<<<
+ *                     for k in range(src_ndim - 1, -1, -1):
+ *                         src_indices[k] += 1
+*/
+      }
+    }
+  }
+
+  /* "cyflow/tensor.pyx":352
+ *                         src_indices[k] = 0
+ *         finally:
+ *             if target_indices: free(target_indices)             # <<<<<<<<<<<<<<
+ *             if src_indices: free(src_indices)
+ * 
+*/
+  /*finally:*/ {
+    /*normal exit:*/{
+      __pyx_t_7 = (__pyx_v_target_indices != 0);
+      if (__pyx_t_7) {
+        free(__pyx_v_target_indices);
+      }
+
+      /* "cyflow/tensor.pyx":353
+ *         finally:
+ *             if target_indices: free(target_indices)
+ *             if src_indices: free(src_indices)             # <<<<<<<<<<<<<<
+ * 
+ *     def __setitem__(self, key, value):
+*/
+      __pyx_t_7 = (__pyx_v_src_indices != 0);
+      if (__pyx_t_7) {
+        free(__pyx_v_src_indices);
+      }
+      goto __pyx_L14;
+    }
+    __pyx_L14:;
+  }
+
+  /* "cyflow/tensor.pyx":280
+ *                 free(indices)
+ * 
+ *     cdef _copy_from_tensor(self, Tensor src):             # <<<<<<<<<<<<<<
+ *         cdef size_t numel = self._tensor.numel
+ *         cdef size_t ndim = self._tensor.ndim
+*/
+
+  /* function exit code */
+  __pyx_r = Py_None; __Pyx_INCREF(Py_None);
+  goto __pyx_L0;
+  __pyx_L1_error:;
+  __Pyx_XDECREF(__pyx_t_4);
+  __Pyx_XDECREF(__pyx_t_5);
+  __Pyx_XDECREF(__pyx_t_6);
+  __Pyx_XDECREF(__pyx_t_8);
+  __Pyx_XDECREF(__pyx_t_9);
+  __Pyx_AddTraceback("cyflow.tensor.Tensor._copy_from_tensor", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __pyx_r = 0;
+  __pyx_L0:;
+  __Pyx_XGIVEREF(__pyx_r);
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* "cyflow/tensor.pyx":355
+ *             if src_indices: free(src_indices)
+ * 
+ *     def __setitem__(self, key, value):             # <<<<<<<<<<<<<<
+ *         # 1. Resolve sub-view for the given key
+ *         cdef Tensor target = self[key]
+*/
+
+/* Python wrapper */
+static int __pyx_pw_6cyflow_6tensor_6Tensor_9__setitem__(PyObject *__pyx_v_self, PyObject *__pyx_v_key, PyObject *__pyx_v_value); /*proto*/
+static int __pyx_pw_6cyflow_6tensor_6Tensor_9__setitem__(PyObject *__pyx_v_self, PyObject *__pyx_v_key, PyObject *__pyx_v_value) {
+  CYTHON_UNUSED PyObject *const *__pyx_kwvalues;
+  int __pyx_r;
+  __Pyx_RefNannyDeclarations
+  __Pyx_RefNannySetupContext("__setitem__ (wrapper)", 0);
+  __pyx_kwvalues = __Pyx_KwValues_VARARGS(__pyx_args, __pyx_nargs);
+  __pyx_r = __pyx_pf_6cyflow_6tensor_6Tensor_8__setitem__(((struct __pyx_obj_6cyflow_6tensor_Tensor *)__pyx_v_self), ((PyObject *)__pyx_v_key), ((PyObject *)__pyx_v_value));
+
+  /* function exit code */
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+static int __pyx_pf_6cyflow_6tensor_6Tensor_8__setitem__(struct __pyx_obj_6cyflow_6tensor_Tensor *__pyx_v_self, PyObject *__pyx_v_key, PyObject *__pyx_v_value) {
+  struct __pyx_obj_6cyflow_6tensor_Tensor *__pyx_v_target = 0;
+  PyObject *__pyx_v_list_shape = NULL;
+  PyObject *__pyx_v_flat_vals = NULL;
+  int __pyx_r;
+  __Pyx_RefNannyDeclarations
+  PyObject *__pyx_t_1 = NULL;
+  int __pyx_t_2;
+  int __pyx_t_3;
+  double __pyx_t_4;
+  PyObject *__pyx_t_5 = NULL;
+  PyObject *__pyx_t_6 = NULL;
+  PyObject *__pyx_t_7 = NULL;
+  PyObject *__pyx_t_8 = NULL;
+  PyObject *__pyx_t_9[4];
+  size_t __pyx_t_10;
+  PyObject *(*__pyx_t_11)(PyObject *);
+  PyObject *__pyx_t_12[3];
+  int __pyx_lineno = 0;
+  const char *__pyx_filename = NULL;
+  int __pyx_clineno = 0;
+  __Pyx_RefNannySetupContext("__setitem__", 0);
+
+  /* "cyflow/tensor.pyx":357
+ *     def __setitem__(self, key, value):
+ *         # 1. Resolve sub-view for the given key
+ *         cdef Tensor target = self[key]             # <<<<<<<<<<<<<<
+ * 
+ *         # 2. Assign scalar float/int
+*/
+  __pyx_t_1 = __Pyx_PyObject_GetItem(((PyObject *)__pyx_v_self), __pyx_v_key); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 357, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  if (!(likely(((__pyx_t_1) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_1, __pyx_mstate_global->__pyx_ptype_6cyflow_6tensor_Tensor))))) __PYX_ERR(0, 357, __pyx_L1_error)
+  __pyx_v_target = ((struct __pyx_obj_6cyflow_6tensor_Tensor *)__pyx_t_1);
+  __pyx_t_1 = 0;
+
+  /* "cyflow/tensor.pyx":360
+ * 
+ *         # 2. Assign scalar float/int
+ *         if isinstance(value, (int, float)):             # <<<<<<<<<<<<<<
+ *             target._fill_scalar(float(value))
+ * 
+*/
+  __pyx_t_3 = PyLong_Check(__pyx_v_value); 
+  if (!__pyx_t_3) {
+  } else {
+    __pyx_t_2 = __pyx_t_3;
+    goto __pyx_L4_bool_binop_done;
+  }
+  __pyx_t_3 = PyFloat_Check(__pyx_v_value); 
+  __pyx_t_2 = __pyx_t_3;
+  __pyx_L4_bool_binop_done:;
+  if (__pyx_t_2) {
+
+    /* "cyflow/tensor.pyx":361
+ *         # 2. Assign scalar float/int
+ *         if isinstance(value, (int, float)):
+ *             target._fill_scalar(float(value))             # <<<<<<<<<<<<<<
+ * 
+ *         # 3. Assign Tensor
+*/
+    __pyx_t_4 = __Pyx_PyObject_AsDouble(__pyx_v_value); if (unlikely(__PYX_CHECK_FLOAT_EXCEPTION(__pyx_t_4, ((double)((double)-1))) && PyErr_Occurred())) __PYX_ERR(0, 361, __pyx_L1_error)
+    __pyx_t_1 = ((struct __pyx_vtabstruct_6cyflow_6tensor_Tensor *)__pyx_v_target->__pyx_vtab)->_fill_scalar(__pyx_v_target, __pyx_t_4); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 361, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_1);
+    __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+
+    /* "cyflow/tensor.pyx":360
+ * 
+ *         # 2. Assign scalar float/int
+ *         if isinstance(value, (int, float)):             # <<<<<<<<<<<<<<
+ *             target._fill_scalar(float(value))
+ * 
+*/
+    goto __pyx_L3;
+  }
+
+  /* "cyflow/tensor.pyx":364
+ * 
+ *         # 3. Assign Tensor
+ *         elif isinstance(value, Tensor):             # <<<<<<<<<<<<<<
+ *             if target.shape != (<Tensor>value).shape:
+ *                 raise ValueError(
+*/
+  __pyx_t_2 = __Pyx_TypeCheck(__pyx_v_value, __pyx_mstate_global->__pyx_ptype_6cyflow_6tensor_Tensor); 
+  if (__pyx_t_2) {
+
+    /* "cyflow/tensor.pyx":365
+ *         # 3. Assign Tensor
+ *         elif isinstance(value, Tensor):
+ *             if target.shape != (<Tensor>value).shape:             # <<<<<<<<<<<<<<
+ *                 raise ValueError(
+ *                     f"Shape mismatch: cannot assign Tensor with shape {(<Tensor>value).shape} to target view with shape {target.shape}"
+*/
+    __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_target), __pyx_mstate_global->__pyx_n_u_shape); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 365, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_1);
+    __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_v_value, __pyx_mstate_global->__pyx_n_u_shape); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 365, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_5);
+    __pyx_t_6 = PyObject_RichCompare(__pyx_t_1, __pyx_t_5, Py_NE); __Pyx_XGOTREF(__pyx_t_6); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 365, __pyx_L1_error)
+    __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+    __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
+    __pyx_t_2 = __Pyx_PyObject_IsTrue(__pyx_t_6); if (unlikely((__pyx_t_2 < 0))) __PYX_ERR(0, 365, __pyx_L1_error)
+    __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
+    if (unlikely(__pyx_t_2)) {
+
+      /* "cyflow/tensor.pyx":366
+ *         elif isinstance(value, Tensor):
+ *             if target.shape != (<Tensor>value).shape:
+ *                 raise ValueError(             # <<<<<<<<<<<<<<
+ *                     f"Shape mismatch: cannot assign Tensor with shape {(<Tensor>value).shape} to target view with shape {target.shape}"
+ *                 )
+*/
+      __pyx_t_5 = NULL;
+
+      /* "cyflow/tensor.pyx":367
+ *             if target.shape != (<Tensor>value).shape:
+ *                 raise ValueError(
+ *                     f"Shape mismatch: cannot assign Tensor with shape {(<Tensor>value).shape} to target view with shape {target.shape}"             # <<<<<<<<<<<<<<
+ *                 )
+ *             target._copy_from_tensor(<Tensor>value)
+*/
+      __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_value, __pyx_mstate_global->__pyx_n_u_shape); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 367, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_1);
+      __pyx_t_7 = __Pyx_PyObject_FormatSimple(__pyx_t_1, __pyx_mstate_global->__pyx_empty_unicode); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 367, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_7);
+      __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+      __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_target), __pyx_mstate_global->__pyx_n_u_shape); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 367, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_1);
+      __pyx_t_8 = __Pyx_PyObject_FormatSimple(__pyx_t_1, __pyx_mstate_global->__pyx_empty_unicode); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 367, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_8);
+      __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+      __pyx_t_9[0] = __pyx_mstate_global->__pyx_kp_u_Shape_mismatch_cannot_assign_Ten;
+      __pyx_t_9[1] = __pyx_t_7;
+      __pyx_t_9[2] = __pyx_mstate_global->__pyx_kp_u_to_target_view_with_shape;
+      __pyx_t_9[3] = __pyx_t_8;
+      __pyx_t_1 = __Pyx_PyUnicode_Join(__pyx_t_9, 4, 48 + __Pyx_PyUnicode_GET_LENGTH(__pyx_t_7) + 27 + __Pyx_PyUnicode_GET_LENGTH(__pyx_t_8), 127 | __Pyx_PyUnicode_MAX_CHAR_VALUE(__pyx_t_7) | __Pyx_PyUnicode_MAX_CHAR_VALUE(__pyx_t_8));
+      if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 367, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_1);
+      __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
+      __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
+      __pyx_t_10 = 1;
+      {
+        PyObject *__pyx_callargs[2] = {__pyx_t_5, __pyx_t_1};
+        __pyx_t_6 = __Pyx_PyObject_FastCall((PyObject*)(((PyTypeObject*)PyExc_ValueError)), __pyx_callargs+__pyx_t_10, (2-__pyx_t_10) | (__pyx_t_10*__Pyx_PY_VECTORCALL_ARGUMENTS_OFFSET));
+        __Pyx_XDECREF(__pyx_t_5); __pyx_t_5 = 0;
+        __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+        if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 366, __pyx_L1_error)
+        __Pyx_GOTREF(__pyx_t_6);
+      }
+      __Pyx_Raise(__pyx_t_6, 0, 0, 0);
+      __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
+      __PYX_ERR(0, 366, __pyx_L1_error)
+
+      /* "cyflow/tensor.pyx":365
+ *         # 3. Assign Tensor
+ *         elif isinstance(value, Tensor):
+ *             if target.shape != (<Tensor>value).shape:             # <<<<<<<<<<<<<<
+ *                 raise ValueError(
+ *                     f"Shape mismatch: cannot assign Tensor with shape {(<Tensor>value).shape} to target view with shape {target.shape}"
+*/
+    }
+
+    /* "cyflow/tensor.pyx":369
+ *                     f"Shape mismatch: cannot assign Tensor with shape {(<Tensor>value).shape} to target view with shape {target.shape}"
+ *                 )
+ *             target._copy_from_tensor(<Tensor>value)             # <<<<<<<<<<<<<<
+ * 
+ *         # 4. Assign Python list / tuple
+*/
+    __pyx_t_6 = ((struct __pyx_vtabstruct_6cyflow_6tensor_Tensor *)__pyx_v_target->__pyx_vtab)->_copy_from_tensor(__pyx_v_target, ((struct __pyx_obj_6cyflow_6tensor_Tensor *)__pyx_v_value)); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 369, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_6);
+    __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
+
+    /* "cyflow/tensor.pyx":364
+ * 
+ *         # 3. Assign Tensor
+ *         elif isinstance(value, Tensor):             # <<<<<<<<<<<<<<
+ *             if target.shape != (<Tensor>value).shape:
+ *                 raise ValueError(
+*/
+    goto __pyx_L3;
+  }
+
+  /* "cyflow/tensor.pyx":372
+ * 
+ *         # 4. Assign Python list / tuple
+ *         elif isinstance(value, (list, tuple)):             # <<<<<<<<<<<<<<
+ *             list_shape, flat_vals = _get_nested_list_shape_and_flat(value)
+ * 
+*/
+  __pyx_t_3 = PyList_Check(__pyx_v_value); 
+  if (!__pyx_t_3) {
+  } else {
+    __pyx_t_2 = __pyx_t_3;
+    goto __pyx_L7_bool_binop_done;
+  }
+  __pyx_t_3 = PyTuple_Check(__pyx_v_value); 
+  __pyx_t_2 = __pyx_t_3;
+  __pyx_L7_bool_binop_done:;
+  if (likely(__pyx_t_2)) {
+
+    /* "cyflow/tensor.pyx":373
+ *         # 4. Assign Python list / tuple
+ *         elif isinstance(value, (list, tuple)):
+ *             list_shape, flat_vals = _get_nested_list_shape_and_flat(value)             # <<<<<<<<<<<<<<
+ * 
+ *             if target.shape != list_shape:
+*/
+    __pyx_t_1 = NULL;
+    __Pyx_GetModuleGlobalName(__pyx_t_5, __pyx_mstate_global->__pyx_n_u_get_nested_list_shape_and_flat_2); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 373, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_5);
+    __pyx_t_10 = 1;
+    #if CYTHON_UNPACK_METHODS
+    if (unlikely(PyMethod_Check(__pyx_t_5))) {
+      __pyx_t_1 = PyMethod_GET_SELF(__pyx_t_5);
+      assert(__pyx_t_1);
+      PyObject* __pyx__function = PyMethod_GET_FUNCTION(__pyx_t_5);
+      __Pyx_INCREF(__pyx_t_1);
+      __Pyx_INCREF(__pyx__function);
+      __Pyx_DECREF_SET(__pyx_t_5, __pyx__function);
+      __pyx_t_10 = 0;
+    }
+    #endif
+    {
+      PyObject *__pyx_callargs[2] = {__pyx_t_1, __pyx_v_value};
+      __pyx_t_6 = __Pyx_PyObject_FastCall((PyObject*)__pyx_t_5, __pyx_callargs+__pyx_t_10, (2-__pyx_t_10) | (__pyx_t_10*__Pyx_PY_VECTORCALL_ARGUMENTS_OFFSET));
+      __Pyx_XDECREF(__pyx_t_1); __pyx_t_1 = 0;
+      __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
+      if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 373, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_6);
+    }
+    if ((likely(PyTuple_CheckExact(__pyx_t_6))) || (PyList_CheckExact(__pyx_t_6))) {
+      PyObject* sequence = __pyx_t_6;
+      Py_ssize_t size = __Pyx_PySequence_SIZE(sequence);
+      if (unlikely(size != 2)) {
+        if (size > 2) __Pyx_RaiseTooManyValuesError(2);
+        else if (size >= 0) __Pyx_RaiseNeedMoreValuesError(size);
+        __PYX_ERR(0, 373, __pyx_L1_error)
+      }
+      #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
+      if (likely(PyTuple_CheckExact(sequence))) {
+        __pyx_t_5 = PyTuple_GET_ITEM(sequence, 0);
+        __Pyx_INCREF(__pyx_t_5);
+        __pyx_t_1 = PyTuple_GET_ITEM(sequence, 1);
+        __Pyx_INCREF(__pyx_t_1);
+      } else {
+        __pyx_t_5 = __Pyx_PyList_GetItemRefFast(sequence, 0, __Pyx_ReferenceSharing_SharedReference);
+        if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 373, __pyx_L1_error)
+        __Pyx_XGOTREF(__pyx_t_5);
+        __pyx_t_1 = __Pyx_PyList_GetItemRefFast(sequence, 1, __Pyx_ReferenceSharing_SharedReference);
+        if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 373, __pyx_L1_error)
+        __Pyx_XGOTREF(__pyx_t_1);
+      }
+      #else
+      __pyx_t_5 = __Pyx_PySequence_ITEM(sequence, 0); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 373, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_5);
+      __pyx_t_1 = __Pyx_PySequence_ITEM(sequence, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 373, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_1);
+      #endif
+      __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
+    } else {
+      Py_ssize_t index = -1;
+      __pyx_t_8 = PyObject_GetIter(__pyx_t_6); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 373, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_8);
+      __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
+      __pyx_t_11 = (CYTHON_COMPILING_IN_LIMITED_API) ? PyIter_Next : __Pyx_PyObject_GetIterNextFunc(__pyx_t_8);
+      index = 0; __pyx_t_5 = __pyx_t_11(__pyx_t_8); if (unlikely(!__pyx_t_5)) goto __pyx_L9_unpacking_failed;
+      __Pyx_GOTREF(__pyx_t_5);
+      index = 1; __pyx_t_1 = __pyx_t_11(__pyx_t_8); if (unlikely(!__pyx_t_1)) goto __pyx_L9_unpacking_failed;
+      __Pyx_GOTREF(__pyx_t_1);
+      if (__Pyx_IternextUnpackEndCheck(__pyx_t_11(__pyx_t_8), 2) < (0)) __PYX_ERR(0, 373, __pyx_L1_error)
+      __pyx_t_11 = NULL;
+      __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
+      goto __pyx_L10_unpacking_done;
+      __pyx_L9_unpacking_failed:;
+      __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
+      __pyx_t_11 = NULL;
+      if (__Pyx_IterFinish() == 0) __Pyx_RaiseNeedMoreValuesError(index);
+      __PYX_ERR(0, 373, __pyx_L1_error)
+      __pyx_L10_unpacking_done:;
+    }
+    __pyx_v_list_shape = __pyx_t_5;
+    __pyx_t_5 = 0;
+    __pyx_v_flat_vals = __pyx_t_1;
+    __pyx_t_1 = 0;
+
+    /* "cyflow/tensor.pyx":375
+ *             list_shape, flat_vals = _get_nested_list_shape_and_flat(value)
+ * 
+ *             if target.shape != list_shape:             # <<<<<<<<<<<<<<
+ *                 raise ValueError(
+ *                     f"Shape mismatch: cannot assign list with shape {list_shape} to target view with shape {target.shape}"
+*/
+    __pyx_t_6 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_target), __pyx_mstate_global->__pyx_n_u_shape); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 375, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_6);
+    __pyx_t_1 = PyObject_RichCompare(__pyx_t_6, __pyx_v_list_shape, Py_NE); __Pyx_XGOTREF(__pyx_t_1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 375, __pyx_L1_error)
+    __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
+    __pyx_t_2 = __Pyx_PyObject_IsTrue(__pyx_t_1); if (unlikely((__pyx_t_2 < 0))) __PYX_ERR(0, 375, __pyx_L1_error)
+    __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+    if (unlikely(__pyx_t_2)) {
+
+      /* "cyflow/tensor.pyx":376
+ * 
+ *             if target.shape != list_shape:
+ *                 raise ValueError(             # <<<<<<<<<<<<<<
+ *                     f"Shape mismatch: cannot assign list with shape {list_shape} to target view with shape {target.shape}"
+ *                 )
+*/
+      __pyx_t_6 = NULL;
+
+      /* "cyflow/tensor.pyx":377
+ *             if target.shape != list_shape:
+ *                 raise ValueError(
+ *                     f"Shape mismatch: cannot assign list with shape {list_shape} to target view with shape {target.shape}"             # <<<<<<<<<<<<<<
+ *                 )
+ * 
+*/
+      __pyx_t_5 = __Pyx_PyObject_FormatSimple(__pyx_v_list_shape, __pyx_mstate_global->__pyx_empty_unicode); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 377, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_5);
+      __pyx_t_8 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_target), __pyx_mstate_global->__pyx_n_u_shape); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 377, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_8);
+      __pyx_t_7 = __Pyx_PyObject_FormatSimple(__pyx_t_8, __pyx_mstate_global->__pyx_empty_unicode); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 377, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_7);
+      __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
+      __pyx_t_9[0] = __pyx_mstate_global->__pyx_kp_u_Shape_mismatch_cannot_assign_lis;
+      __pyx_t_9[1] = __pyx_t_5;
+      __pyx_t_9[2] = __pyx_mstate_global->__pyx_kp_u_to_target_view_with_shape;
+      __pyx_t_9[3] = __pyx_t_7;
+      __pyx_t_8 = __Pyx_PyUnicode_Join(__pyx_t_9, 4, 46 + __Pyx_PyUnicode_GET_LENGTH(__pyx_t_5) + 27 + __Pyx_PyUnicode_GET_LENGTH(__pyx_t_7), 127 | __Pyx_PyUnicode_MAX_CHAR_VALUE(__pyx_t_5) | __Pyx_PyUnicode_MAX_CHAR_VALUE(__pyx_t_7));
+      if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 377, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_8);
+      __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
+      __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
+      __pyx_t_10 = 1;
+      {
+        PyObject *__pyx_callargs[2] = {__pyx_t_6, __pyx_t_8};
+        __pyx_t_1 = __Pyx_PyObject_FastCall((PyObject*)(((PyTypeObject*)PyExc_ValueError)), __pyx_callargs+__pyx_t_10, (2-__pyx_t_10) | (__pyx_t_10*__Pyx_PY_VECTORCALL_ARGUMENTS_OFFSET));
+        __Pyx_XDECREF(__pyx_t_6); __pyx_t_6 = 0;
+        __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
+        if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 376, __pyx_L1_error)
+        __Pyx_GOTREF(__pyx_t_1);
+      }
+      __Pyx_Raise(__pyx_t_1, 0, 0, 0);
+      __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+      __PYX_ERR(0, 376, __pyx_L1_error)
+
+      /* "cyflow/tensor.pyx":375
+ *             list_shape, flat_vals = _get_nested_list_shape_and_flat(value)
+ * 
+ *             if target.shape != list_shape:             # <<<<<<<<<<<<<<
+ *                 raise ValueError(
+ *                     f"Shape mismatch: cannot assign list with shape {list_shape} to target view with shape {target.shape}"
+*/
+    }
+
+    /* "cyflow/tensor.pyx":380
+ *                 )
+ * 
+ *             target._fill_from_flat_list(flat_vals)             # <<<<<<<<<<<<<<
+ * 
+ *         else:
+*/
+    __pyx_t_1 = __pyx_v_flat_vals;
+    __Pyx_INCREF(__pyx_t_1);
+    if (!(likely(PyList_CheckExact(__pyx_t_1))||((__pyx_t_1) == Py_None) || __Pyx_RaiseUnexpectedTypeError("list", __pyx_t_1))) __PYX_ERR(0, 380, __pyx_L1_error)
+    __pyx_t_8 = ((struct __pyx_vtabstruct_6cyflow_6tensor_Tensor *)__pyx_v_target->__pyx_vtab)->_fill_from_flat_list(__pyx_v_target, ((PyObject*)__pyx_t_1)); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 380, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_8);
+    __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+    __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
+
+    /* "cyflow/tensor.pyx":372
+ * 
+ *         # 4. Assign Python list / tuple
+ *         elif isinstance(value, (list, tuple)):             # <<<<<<<<<<<<<<
+ *             list_shape, flat_vals = _get_nested_list_shape_and_flat(value)
+ * 
+*/
+    goto __pyx_L3;
+  }
+
+  /* "cyflow/tensor.pyx":383
+ * 
+ *         else:
+ *             raise TypeError(f"Cannot assign value of type {type(value).__name__} to Tensor")             # <<<<<<<<<<<<<<
+ * 
+ *     def view(self, *shape) -> Tensor:
+*/
+  /*else*/ {
+    __pyx_t_1 = NULL;
+    __pyx_t_6 = __Pyx_PyObject_GetAttrStr(((PyObject *)Py_TYPE(__pyx_v_value)), __pyx_mstate_global->__pyx_n_u_name); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 383, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_6);
+    __pyx_t_7 = __Pyx_PyObject_FormatSimple(__pyx_t_6, __pyx_mstate_global->__pyx_empty_unicode); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 383, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_7);
+    __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
+    __pyx_t_12[0] = __pyx_mstate_global->__pyx_kp_u_Cannot_assign_value_of_type;
+    __pyx_t_12[1] = __pyx_t_7;
+    __pyx_t_12[2] = __pyx_mstate_global->__pyx_kp_u_to_Tensor;
+    __pyx_t_6 = __Pyx_PyUnicode_Join(__pyx_t_12, 3, 28 + __Pyx_PyUnicode_GET_LENGTH(__pyx_t_7) + 10, 127 | __Pyx_PyUnicode_MAX_CHAR_VALUE(__pyx_t_7));
+    if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 383, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_6);
+    __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
+    __pyx_t_10 = 1;
+    {
+      PyObject *__pyx_callargs[2] = {__pyx_t_1, __pyx_t_6};
+      __pyx_t_8 = __Pyx_PyObject_FastCall((PyObject*)(((PyTypeObject*)PyExc_TypeError)), __pyx_callargs+__pyx_t_10, (2-__pyx_t_10) | (__pyx_t_10*__Pyx_PY_VECTORCALL_ARGUMENTS_OFFSET));
+      __Pyx_XDECREF(__pyx_t_1); __pyx_t_1 = 0;
+      __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
+      if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 383, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_8);
+    }
+    __Pyx_Raise(__pyx_t_8, 0, 0, 0);
+    __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
+    __PYX_ERR(0, 383, __pyx_L1_error)
+  }
+  __pyx_L3:;
+
+  /* "cyflow/tensor.pyx":355
+ *             if src_indices: free(src_indices)
+ * 
+ *     def __setitem__(self, key, value):             # <<<<<<<<<<<<<<
+ *         # 1. Resolve sub-view for the given key
+ *         cdef Tensor target = self[key]
+*/
+
+  /* function exit code */
+  __pyx_r = 0;
+  goto __pyx_L0;
+  __pyx_L1_error:;
+  __Pyx_XDECREF(__pyx_t_1);
+  __Pyx_XDECREF(__pyx_t_5);
+  __Pyx_XDECREF(__pyx_t_6);
+  __Pyx_XDECREF(__pyx_t_7);
+  __Pyx_XDECREF(__pyx_t_8);
+  __Pyx_AddTraceback("cyflow.tensor.Tensor.__setitem__", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __pyx_r = -1;
+  __pyx_L0:;
+  __Pyx_XDECREF((PyObject *)__pyx_v_target);
+  __Pyx_XDECREF(__pyx_v_list_shape);
+  __Pyx_XDECREF(__pyx_v_flat_vals);
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* "cyflow/tensor.pyx":385
+ *             raise TypeError(f"Cannot assign value of type {type(value).__name__} to Tensor")
  * 
  *     def view(self, *shape) -> Tensor:             # <<<<<<<<<<<<<<
  *         cdef size_t target_numel = 1
@@ -4601,9 +7866,9 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_6fill_uniform(struct __pyx_obj
 */
 
 /* Python wrapper */
-static struct __pyx_obj_6cyflow_6tensor_Tensor *__pyx_pw_6cyflow_6tensor_6Tensor_9view(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static PyMethodDef __pyx_mdef_6cyflow_6tensor_6Tensor_9view = {"view", (PyCFunction)(void(*)(void))(PyCFunctionWithKeywords)__pyx_pw_6cyflow_6tensor_6Tensor_9view, METH_VARARGS|METH_KEYWORDS, 0};
-static struct __pyx_obj_6cyflow_6tensor_Tensor *__pyx_pw_6cyflow_6tensor_6Tensor_9view(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static struct __pyx_obj_6cyflow_6tensor_Tensor *__pyx_pw_6cyflow_6tensor_6Tensor_11view(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyMethodDef __pyx_mdef_6cyflow_6tensor_6Tensor_11view = {"view", (PyCFunction)(void(*)(void))(PyCFunctionWithKeywords)__pyx_pw_6cyflow_6tensor_6Tensor_11view, METH_VARARGS|METH_KEYWORDS, 0};
+static struct __pyx_obj_6cyflow_6tensor_Tensor *__pyx_pw_6cyflow_6tensor_6Tensor_11view(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   PyObject *__pyx_v_shape = 0;
   CYTHON_UNUSED Py_ssize_t __pyx_nargs;
   CYTHON_UNUSED PyObject *const *__pyx_kwvalues;
@@ -4621,7 +7886,7 @@ static struct __pyx_obj_6cyflow_6tensor_Tensor *__pyx_pw_6cyflow_6tensor_6Tensor
   if (unlikely(__pyx_kwds_len > 0)) {__Pyx_RejectKeywords("view", __pyx_kwds); return NULL;}
   __Pyx_INCREF(__pyx_args);
   __pyx_v_shape = __pyx_args;
-  __pyx_r = __pyx_pf_6cyflow_6tensor_6Tensor_8view(((struct __pyx_obj_6cyflow_6tensor_Tensor *)__pyx_v_self), __pyx_v_shape);
+  __pyx_r = __pyx_pf_6cyflow_6tensor_6Tensor_10view(((struct __pyx_obj_6cyflow_6tensor_Tensor *)__pyx_v_self), __pyx_v_shape);
 
   /* function exit code */
   __Pyx_DECREF(__pyx_v_shape);
@@ -4629,7 +7894,7 @@ static struct __pyx_obj_6cyflow_6tensor_Tensor *__pyx_pw_6cyflow_6tensor_6Tensor
   return __pyx_r;
 }
 
-static struct __pyx_obj_6cyflow_6tensor_Tensor *__pyx_pf_6cyflow_6tensor_6Tensor_8view(struct __pyx_obj_6cyflow_6tensor_Tensor *__pyx_v_self, PyObject *__pyx_v_shape) {
+static struct __pyx_obj_6cyflow_6tensor_Tensor *__pyx_pf_6cyflow_6tensor_6Tensor_10view(struct __pyx_obj_6cyflow_6tensor_Tensor *__pyx_v_self, PyObject *__pyx_v_shape) {
   size_t __pyx_v_target_numel;
   size_t __pyx_v_ndim;
   int64_t *__pyx_v_c_shape;
@@ -4658,7 +7923,7 @@ static struct __pyx_obj_6cyflow_6tensor_Tensor *__pyx_pf_6cyflow_6tensor_6Tensor
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("view", 0);
 
-  /* "cyflow/tensor.pyx":144
+  /* "cyflow/tensor.pyx":386
  * 
  *     def view(self, *shape) -> Tensor:
  *         cdef size_t target_numel = 1             # <<<<<<<<<<<<<<
@@ -4667,7 +7932,7 @@ static struct __pyx_obj_6cyflow_6tensor_Tensor *__pyx_pf_6cyflow_6tensor_6Tensor
 */
   __pyx_v_target_numel = 1;
 
-  /* "cyflow/tensor.pyx":147
+  /* "cyflow/tensor.pyx":389
  *         cdef size_t ndim
  *         cdef int64_t* c_shape
  *         cdef TensorImpl* new_impl = NULL             # <<<<<<<<<<<<<<
@@ -4676,21 +7941,21 @@ static struct __pyx_obj_6cyflow_6tensor_Tensor *__pyx_pf_6cyflow_6tensor_6Tensor
 */
   __pyx_v_new_impl = NULL;
 
-  /* "cyflow/tensor.pyx":150
+  /* "cyflow/tensor.pyx":392
  *         cdef int i
  * 
  *         if len(shape) == 1 and isinstance(shape[0], (tuple, list)):             # <<<<<<<<<<<<<<
  *             target_shape = tuple(shape[0])
  *         else:
 */
-  __pyx_t_2 = __Pyx_PyTuple_GET_SIZE(__pyx_v_shape); if (unlikely(__pyx_t_2 == ((Py_ssize_t)-1))) __PYX_ERR(0, 150, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyTuple_GET_SIZE(__pyx_v_shape); if (unlikely(__pyx_t_2 == ((Py_ssize_t)-1))) __PYX_ERR(0, 392, __pyx_L1_error)
   __pyx_t_3 = (__pyx_t_2 == 1);
   if (__pyx_t_3) {
   } else {
     __pyx_t_1 = __pyx_t_3;
     goto __pyx_L4_bool_binop_done;
   }
-  __pyx_t_4 = __Pyx_GetItemInt_Tuple(__pyx_v_shape, 0, long, 1, __Pyx_PyLong_From_long, 0, 0, 1, 1, __Pyx_ReferenceSharing_FunctionArgument); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 150, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_GetItemInt_Tuple(__pyx_v_shape, 0, long, 1, __Pyx_PyLong_From_long, 0, 0, 1, 1, __Pyx_ReferenceSharing_FunctionArgument); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 392, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __pyx_t_5 = PyTuple_Check(__pyx_t_4); 
   if (!__pyx_t_5) {
@@ -4706,22 +7971,22 @@ static struct __pyx_obj_6cyflow_6tensor_Tensor *__pyx_pf_6cyflow_6tensor_6Tensor
   __pyx_L4_bool_binop_done:;
   if (__pyx_t_1) {
 
-    /* "cyflow/tensor.pyx":151
+    /* "cyflow/tensor.pyx":393
  * 
  *         if len(shape) == 1 and isinstance(shape[0], (tuple, list)):
  *             target_shape = tuple(shape[0])             # <<<<<<<<<<<<<<
  *         else:
  *             target_shape = tuple(shape)
 */
-    __pyx_t_4 = __Pyx_GetItemInt_Tuple(__pyx_v_shape, 0, long, 1, __Pyx_PyLong_From_long, 0, 0, 1, 1, __Pyx_ReferenceSharing_FunctionArgument); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 151, __pyx_L1_error)
+    __pyx_t_4 = __Pyx_GetItemInt_Tuple(__pyx_v_shape, 0, long, 1, __Pyx_PyLong_From_long, 0, 0, 1, 1, __Pyx_ReferenceSharing_FunctionArgument); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 393, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_4);
-    __pyx_t_6 = __Pyx_PySequence_Tuple(__pyx_t_4); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 151, __pyx_L1_error)
+    __pyx_t_6 = __Pyx_PySequence_Tuple(__pyx_t_4); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 393, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_6);
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
     __pyx_v_target_shape = ((PyObject*)__pyx_t_6);
     __pyx_t_6 = 0;
 
-    /* "cyflow/tensor.pyx":150
+    /* "cyflow/tensor.pyx":392
  *         cdef int i
  * 
  *         if len(shape) == 1 and isinstance(shape[0], (tuple, list)):             # <<<<<<<<<<<<<<
@@ -4731,7 +7996,7 @@ static struct __pyx_obj_6cyflow_6tensor_Tensor *__pyx_pf_6cyflow_6tensor_6Tensor
     goto __pyx_L3;
   }
 
-  /* "cyflow/tensor.pyx":153
+  /* "cyflow/tensor.pyx":395
  *             target_shape = tuple(shape[0])
  *         else:
  *             target_shape = tuple(shape)             # <<<<<<<<<<<<<<
@@ -4744,7 +8009,7 @@ static struct __pyx_obj_6cyflow_6tensor_Tensor *__pyx_pf_6cyflow_6tensor_6Tensor
   }
   __pyx_L3:;
 
-  /* "cyflow/tensor.pyx":155
+  /* "cyflow/tensor.pyx":397
  *             target_shape = tuple(shape)
  * 
  *         for dim in target_shape:             # <<<<<<<<<<<<<<
@@ -4757,7 +8022,7 @@ static struct __pyx_obj_6cyflow_6tensor_Tensor *__pyx_pf_6cyflow_6tensor_6Tensor
     {
       Py_ssize_t __pyx_temp = __Pyx_PyTuple_GET_SIZE(__pyx_t_6);
       #if !CYTHON_ASSUME_SAFE_SIZE
-      if (unlikely((__pyx_temp < 0))) __PYX_ERR(0, 155, __pyx_L1_error)
+      if (unlikely((__pyx_temp < 0))) __PYX_ERR(0, 397, __pyx_L1_error)
       #endif
       if (__pyx_t_2 >= __pyx_temp) break;
     }
@@ -4767,28 +8032,28 @@ static struct __pyx_obj_6cyflow_6tensor_Tensor *__pyx_pf_6cyflow_6tensor_6Tensor
     __pyx_t_4 = __Pyx_PySequence_ITEM(__pyx_t_6, __pyx_t_2);
     #endif
     ++__pyx_t_2;
-    if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 155, __pyx_L1_error)
+    if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 397, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_4);
     __Pyx_XDECREF_SET(__pyx_v_dim, __pyx_t_4);
     __pyx_t_4 = 0;
 
-    /* "cyflow/tensor.pyx":156
+    /* "cyflow/tensor.pyx":398
  * 
  *         for dim in target_shape:
  *             target_numel *= dim             # <<<<<<<<<<<<<<
  * 
  *         if target_numel != self.numel:
 */
-    __pyx_t_4 = __Pyx_PyLong_FromSize_t(__pyx_v_target_numel); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 156, __pyx_L1_error)
+    __pyx_t_4 = __Pyx_PyLong_FromSize_t(__pyx_v_target_numel); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 398, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_4);
-    __pyx_t_7 = PyNumber_InPlaceMultiply(__pyx_t_4, __pyx_v_dim); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 156, __pyx_L1_error)
+    __pyx_t_7 = PyNumber_InPlaceMultiply(__pyx_t_4, __pyx_v_dim); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 398, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_7);
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-    __pyx_t_8 = __Pyx_PyLong_As_size_t(__pyx_t_7); if (unlikely((__pyx_t_8 == (size_t)-1) && PyErr_Occurred())) __PYX_ERR(0, 156, __pyx_L1_error)
+    __pyx_t_8 = __Pyx_PyLong_As_size_t(__pyx_t_7); if (unlikely((__pyx_t_8 == (size_t)-1) && PyErr_Occurred())) __PYX_ERR(0, 398, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
     __pyx_v_target_numel = __pyx_t_8;
 
-    /* "cyflow/tensor.pyx":155
+    /* "cyflow/tensor.pyx":397
  *             target_shape = tuple(shape)
  * 
  *         for dim in target_shape:             # <<<<<<<<<<<<<<
@@ -4798,25 +8063,25 @@ static struct __pyx_obj_6cyflow_6tensor_Tensor *__pyx_pf_6cyflow_6tensor_6Tensor
   }
   __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
 
-  /* "cyflow/tensor.pyx":158
+  /* "cyflow/tensor.pyx":400
  *             target_numel *= dim
  * 
  *         if target_numel != self.numel:             # <<<<<<<<<<<<<<
  *             raise ValueError(f"Cannot reshape tensor of size {self.numel} into shape {target_shape}")
  * 
 */
-  __pyx_t_6 = __Pyx_PyLong_FromSize_t(__pyx_v_target_numel); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 158, __pyx_L1_error)
+  __pyx_t_6 = __Pyx_PyLong_FromSize_t(__pyx_v_target_numel); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 400, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_6);
-  __pyx_t_7 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_mstate_global->__pyx_n_u_numel); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 158, __pyx_L1_error)
+  __pyx_t_7 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_mstate_global->__pyx_n_u_numel); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 400, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_7);
-  __pyx_t_4 = PyObject_RichCompare(__pyx_t_6, __pyx_t_7, Py_NE); __Pyx_XGOTREF(__pyx_t_4); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 158, __pyx_L1_error)
+  __pyx_t_4 = PyObject_RichCompare(__pyx_t_6, __pyx_t_7, Py_NE); __Pyx_XGOTREF(__pyx_t_4); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 400, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
   __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
-  __pyx_t_1 = __Pyx_PyObject_IsTrue(__pyx_t_4); if (unlikely((__pyx_t_1 < 0))) __PYX_ERR(0, 158, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_IsTrue(__pyx_t_4); if (unlikely((__pyx_t_1 < 0))) __PYX_ERR(0, 400, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   if (unlikely(__pyx_t_1)) {
 
-    /* "cyflow/tensor.pyx":159
+    /* "cyflow/tensor.pyx":401
  * 
  *         if target_numel != self.numel:
  *             raise ValueError(f"Cannot reshape tensor of size {self.numel} into shape {target_shape}")             # <<<<<<<<<<<<<<
@@ -4824,19 +8089,19 @@ static struct __pyx_obj_6cyflow_6tensor_Tensor *__pyx_pf_6cyflow_6tensor_6Tensor
  *         ndim = len(target_shape)
 */
     __pyx_t_7 = NULL;
-    __pyx_t_6 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_mstate_global->__pyx_n_u_numel); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 159, __pyx_L1_error)
+    __pyx_t_6 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_mstate_global->__pyx_n_u_numel); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 401, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_6);
-    __pyx_t_9 = __Pyx_PyObject_FormatSimple(__pyx_t_6, __pyx_mstate_global->__pyx_empty_unicode); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 159, __pyx_L1_error)
+    __pyx_t_9 = __Pyx_PyObject_FormatSimple(__pyx_t_6, __pyx_mstate_global->__pyx_empty_unicode); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 401, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_9);
     __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-    __pyx_t_6 = __Pyx_PyObject_FormatSimple(__pyx_v_target_shape, __pyx_mstate_global->__pyx_empty_unicode); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 159, __pyx_L1_error)
+    __pyx_t_6 = __Pyx_PyObject_FormatSimple(__pyx_v_target_shape, __pyx_mstate_global->__pyx_empty_unicode); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 401, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_6);
     __pyx_t_10[0] = __pyx_mstate_global->__pyx_kp_u_Cannot_reshape_tensor_of_size;
     __pyx_t_10[1] = __pyx_t_9;
     __pyx_t_10[2] = __pyx_mstate_global->__pyx_kp_u_into_shape;
     __pyx_t_10[3] = __pyx_t_6;
     __pyx_t_11 = __Pyx_PyUnicode_Join(__pyx_t_10, 4, 30 + __Pyx_PyUnicode_GET_LENGTH(__pyx_t_9) + 12 + __Pyx_PyUnicode_GET_LENGTH(__pyx_t_6), 127 | __Pyx_PyUnicode_MAX_CHAR_VALUE(__pyx_t_9) | __Pyx_PyUnicode_MAX_CHAR_VALUE(__pyx_t_6));
-    if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 159, __pyx_L1_error)
+    if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 401, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_11);
     __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
     __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
@@ -4846,14 +8111,14 @@ static struct __pyx_obj_6cyflow_6tensor_Tensor *__pyx_pf_6cyflow_6tensor_6Tensor
       __pyx_t_4 = __Pyx_PyObject_FastCall((PyObject*)(((PyTypeObject*)PyExc_ValueError)), __pyx_callargs+__pyx_t_8, (2-__pyx_t_8) | (__pyx_t_8*__Pyx_PY_VECTORCALL_ARGUMENTS_OFFSET));
       __Pyx_XDECREF(__pyx_t_7); __pyx_t_7 = 0;
       __Pyx_DECREF(__pyx_t_11); __pyx_t_11 = 0;
-      if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 159, __pyx_L1_error)
+      if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 401, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_4);
     }
     __Pyx_Raise(__pyx_t_4, 0, 0, 0);
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-    __PYX_ERR(0, 159, __pyx_L1_error)
+    __PYX_ERR(0, 401, __pyx_L1_error)
 
-    /* "cyflow/tensor.pyx":158
+    /* "cyflow/tensor.pyx":400
  *             target_numel *= dim
  * 
  *         if target_numel != self.numel:             # <<<<<<<<<<<<<<
@@ -4862,17 +8127,17 @@ static struct __pyx_obj_6cyflow_6tensor_Tensor *__pyx_pf_6cyflow_6tensor_6Tensor
 */
   }
 
-  /* "cyflow/tensor.pyx":161
+  /* "cyflow/tensor.pyx":403
  *             raise ValueError(f"Cannot reshape tensor of size {self.numel} into shape {target_shape}")
  * 
  *         ndim = len(target_shape)             # <<<<<<<<<<<<<<
  *         c_shape = <int64_t*>malloc(ndim * sizeof(int64_t))
  *         if not c_shape:
 */
-  __pyx_t_2 = __Pyx_PyTuple_GET_SIZE(__pyx_v_target_shape); if (unlikely(__pyx_t_2 == ((Py_ssize_t)-1))) __PYX_ERR(0, 161, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyTuple_GET_SIZE(__pyx_v_target_shape); if (unlikely(__pyx_t_2 == ((Py_ssize_t)-1))) __PYX_ERR(0, 403, __pyx_L1_error)
   __pyx_v_ndim = __pyx_t_2;
 
-  /* "cyflow/tensor.pyx":162
+  /* "cyflow/tensor.pyx":404
  * 
  *         ndim = len(target_shape)
  *         c_shape = <int64_t*>malloc(ndim * sizeof(int64_t))             # <<<<<<<<<<<<<<
@@ -4881,7 +8146,7 @@ static struct __pyx_obj_6cyflow_6tensor_Tensor *__pyx_pf_6cyflow_6tensor_6Tensor
 */
   __pyx_v_c_shape = ((int64_t *)malloc((__pyx_v_ndim * (sizeof(int64_t)))));
 
-  /* "cyflow/tensor.pyx":163
+  /* "cyflow/tensor.pyx":405
  *         ndim = len(target_shape)
  *         c_shape = <int64_t*>malloc(ndim * sizeof(int64_t))
  *         if not c_shape:             # <<<<<<<<<<<<<<
@@ -4891,7 +8156,7 @@ static struct __pyx_obj_6cyflow_6tensor_Tensor *__pyx_pf_6cyflow_6tensor_6Tensor
   __pyx_t_1 = (!(__pyx_v_c_shape != 0));
   if (unlikely(__pyx_t_1)) {
 
-    /* "cyflow/tensor.pyx":164
+    /* "cyflow/tensor.pyx":406
  *         c_shape = <int64_t*>malloc(ndim * sizeof(int64_t))
  *         if not c_shape:
  *             raise MemoryError("Failed to allocate memory for shape array")             # <<<<<<<<<<<<<<
@@ -4904,14 +8169,14 @@ static struct __pyx_obj_6cyflow_6tensor_Tensor *__pyx_pf_6cyflow_6tensor_6Tensor
       PyObject *__pyx_callargs[2] = {__pyx_t_11, __pyx_mstate_global->__pyx_kp_u_Failed_to_allocate_memory_for_sh};
       __pyx_t_4 = __Pyx_PyObject_FastCall((PyObject*)(((PyTypeObject*)PyExc_MemoryError)), __pyx_callargs+__pyx_t_8, (2-__pyx_t_8) | (__pyx_t_8*__Pyx_PY_VECTORCALL_ARGUMENTS_OFFSET));
       __Pyx_XDECREF(__pyx_t_11); __pyx_t_11 = 0;
-      if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 164, __pyx_L1_error)
+      if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 406, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_4);
     }
     __Pyx_Raise(__pyx_t_4, 0, 0, 0);
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-    __PYX_ERR(0, 164, __pyx_L1_error)
+    __PYX_ERR(0, 406, __pyx_L1_error)
 
-    /* "cyflow/tensor.pyx":163
+    /* "cyflow/tensor.pyx":405
  *         ndim = len(target_shape)
  *         c_shape = <int64_t*>malloc(ndim * sizeof(int64_t))
  *         if not c_shape:             # <<<<<<<<<<<<<<
@@ -4920,7 +8185,7 @@ static struct __pyx_obj_6cyflow_6tensor_Tensor *__pyx_pf_6cyflow_6tensor_6Tensor
 */
   }
 
-  /* "cyflow/tensor.pyx":166
+  /* "cyflow/tensor.pyx":408
  *             raise MemoryError("Failed to allocate memory for shape array")
  * 
  *         for i in range(ndim):             # <<<<<<<<<<<<<<
@@ -4932,21 +8197,21 @@ static struct __pyx_obj_6cyflow_6tensor_Tensor *__pyx_pf_6cyflow_6tensor_6Tensor
   for (__pyx_t_13 = 0; __pyx_t_13 < __pyx_t_12; __pyx_t_13+=1) {
     __pyx_v_i = __pyx_t_13;
 
-    /* "cyflow/tensor.pyx":167
+    /* "cyflow/tensor.pyx":409
  * 
  *         for i in range(ndim):
  *             c_shape[i] = target_shape[i]             # <<<<<<<<<<<<<<
  * 
  *         try:
 */
-    __pyx_t_4 = __Pyx_GetItemInt_Tuple(__pyx_v_target_shape, __pyx_v_i, int, 1, __Pyx_PyLong_From_int, 0, 1, 1, 1, __Pyx_ReferenceSharing_OwnStrongReference); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 167, __pyx_L1_error)
+    __pyx_t_4 = __Pyx_GetItemInt_Tuple(__pyx_v_target_shape, __pyx_v_i, int, 1, __Pyx_PyLong_From_int, 0, 1, 1, 1, __Pyx_ReferenceSharing_OwnStrongReference); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 409, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_4);
-    __pyx_t_14 = __Pyx_PyLong_As_int64_t(__pyx_t_4); if (unlikely((__pyx_t_14 == ((int64_t)-1)) && PyErr_Occurred())) __PYX_ERR(0, 167, __pyx_L1_error)
+    __pyx_t_14 = __Pyx_PyLong_As_int64_t(__pyx_t_4); if (unlikely((__pyx_t_14 == ((int64_t)-1)) && PyErr_Occurred())) __PYX_ERR(0, 409, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
     (__pyx_v_c_shape[__pyx_v_i]) = __pyx_t_14;
   }
 
-  /* "cyflow/tensor.pyx":169
+  /* "cyflow/tensor.pyx":411
  *             c_shape[i] = target_shape[i]
  * 
  *         try:             # <<<<<<<<<<<<<<
@@ -4955,7 +8220,7 @@ static struct __pyx_obj_6cyflow_6tensor_Tensor *__pyx_pf_6cyflow_6tensor_6Tensor
 */
   /*try:*/ {
 
-    /* "cyflow/tensor.pyx":170
+    /* "cyflow/tensor.pyx":412
  * 
  *         try:
  *             new_impl = tensor_view(self._tensor, c_shape, ndim)             # <<<<<<<<<<<<<<
@@ -4965,7 +8230,7 @@ static struct __pyx_obj_6cyflow_6tensor_Tensor *__pyx_pf_6cyflow_6tensor_6Tensor
     __pyx_v_new_impl = tensor_view(__pyx_v_self->_tensor, __pyx_v_c_shape, __pyx_v_ndim);
   }
 
-  /* "cyflow/tensor.pyx":172
+  /* "cyflow/tensor.pyx":414
  *             new_impl = tensor_view(self._tensor, c_shape, ndim)
  *         finally:
  *             free(c_shape)             # <<<<<<<<<<<<<<
@@ -4980,7 +8245,7 @@ static struct __pyx_obj_6cyflow_6tensor_Tensor *__pyx_pf_6cyflow_6tensor_6Tensor
     __pyx_L17:;
   }
 
-  /* "cyflow/tensor.pyx":174
+  /* "cyflow/tensor.pyx":416
  *             free(c_shape)
  * 
  *         if new_impl is NULL:             # <<<<<<<<<<<<<<
@@ -4990,7 +8255,7 @@ static struct __pyx_obj_6cyflow_6tensor_Tensor *__pyx_pf_6cyflow_6tensor_6Tensor
   __pyx_t_1 = (__pyx_v_new_impl == NULL);
   if (unlikely(__pyx_t_1)) {
 
-    /* "cyflow/tensor.pyx":175
+    /* "cyflow/tensor.pyx":417
  * 
  *         if new_impl is NULL:
  *             raise RuntimeError("Backend failed to create tensor view")             # <<<<<<<<<<<<<<
@@ -5003,14 +8268,14 @@ static struct __pyx_obj_6cyflow_6tensor_Tensor *__pyx_pf_6cyflow_6tensor_6Tensor
       PyObject *__pyx_callargs[2] = {__pyx_t_11, __pyx_mstate_global->__pyx_kp_u_Backend_failed_to_create_tensor};
       __pyx_t_4 = __Pyx_PyObject_FastCall((PyObject*)(((PyTypeObject*)PyExc_RuntimeError)), __pyx_callargs+__pyx_t_8, (2-__pyx_t_8) | (__pyx_t_8*__Pyx_PY_VECTORCALL_ARGUMENTS_OFFSET));
       __Pyx_XDECREF(__pyx_t_11); __pyx_t_11 = 0;
-      if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 175, __pyx_L1_error)
+      if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 417, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_4);
     }
     __Pyx_Raise(__pyx_t_4, 0, 0, 0);
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-    __PYX_ERR(0, 175, __pyx_L1_error)
+    __PYX_ERR(0, 417, __pyx_L1_error)
 
-    /* "cyflow/tensor.pyx":174
+    /* "cyflow/tensor.pyx":416
  *             free(c_shape)
  * 
  *         if new_impl is NULL:             # <<<<<<<<<<<<<<
@@ -5019,7 +8284,7 @@ static struct __pyx_obj_6cyflow_6tensor_Tensor *__pyx_pf_6cyflow_6tensor_6Tensor
 */
   }
 
-  /* "cyflow/tensor.pyx":177
+  /* "cyflow/tensor.pyx":419
  *             raise RuntimeError("Backend failed to create tensor view")
  * 
  *         return Tensor._from_c_tensor(new_impl)             # <<<<<<<<<<<<<<
@@ -5027,14 +8292,14 @@ static struct __pyx_obj_6cyflow_6tensor_Tensor *__pyx_pf_6cyflow_6tensor_6Tensor
  *     def _set_data_from_list(self, flat_data: list):
 */
   __Pyx_XDECREF((PyObject *)__pyx_r);
-  __pyx_t_4 = ((PyObject *)__pyx_f_6cyflow_6tensor_6Tensor__from_c_tensor(__pyx_v_new_impl)); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 177, __pyx_L1_error)
+  __pyx_t_4 = ((PyObject *)__pyx_f_6cyflow_6tensor_6Tensor__from_c_tensor(__pyx_v_new_impl)); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 419, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __pyx_r = ((struct __pyx_obj_6cyflow_6tensor_Tensor *)__pyx_t_4);
   __pyx_t_4 = 0;
   goto __pyx_L0;
 
-  /* "cyflow/tensor.pyx":143
- *             tensor_fill_uniform_cuda(self._tensor)
+  /* "cyflow/tensor.pyx":385
+ *             raise TypeError(f"Cannot assign value of type {type(value).__name__} to Tensor")
  * 
  *     def view(self, *shape) -> Tensor:             # <<<<<<<<<<<<<<
  *         cdef size_t target_numel = 1
@@ -5058,7 +8323,7 @@ static struct __pyx_obj_6cyflow_6tensor_Tensor *__pyx_pf_6cyflow_6tensor_6Tensor
   return __pyx_r;
 }
 
-/* "cyflow/tensor.pyx":179
+/* "cyflow/tensor.pyx":421
  *         return Tensor._from_c_tensor(new_impl)
  * 
  *     def _set_data_from_list(self, flat_data: list):             # <<<<<<<<<<<<<<
@@ -5067,15 +8332,15 @@ static struct __pyx_obj_6cyflow_6tensor_Tensor *__pyx_pf_6cyflow_6tensor_6Tensor
 */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_6cyflow_6tensor_6Tensor_11_set_data_from_list(PyObject *__pyx_v_self, 
+static PyObject *__pyx_pw_6cyflow_6tensor_6Tensor_13_set_data_from_list(PyObject *__pyx_v_self, 
 #if CYTHON_METH_FASTCALL
 PyObject *const *__pyx_args, Py_ssize_t __pyx_nargs, PyObject *__pyx_kwds
 #else
 PyObject *__pyx_args, PyObject *__pyx_kwds
 #endif
 ); /*proto*/
-static PyMethodDef __pyx_mdef_6cyflow_6tensor_6Tensor_11_set_data_from_list = {"_set_data_from_list", (PyCFunction)(void(*)(void))(__Pyx_PyCFunction_FastCallWithKeywords)__pyx_pw_6cyflow_6tensor_6Tensor_11_set_data_from_list, __Pyx_METH_FASTCALL|METH_KEYWORDS, 0};
-static PyObject *__pyx_pw_6cyflow_6tensor_6Tensor_11_set_data_from_list(PyObject *__pyx_v_self, 
+static PyMethodDef __pyx_mdef_6cyflow_6tensor_6Tensor_13_set_data_from_list = {"_set_data_from_list", (PyCFunction)(void(*)(void))(__Pyx_PyCFunction_FastCallWithKeywords)__pyx_pw_6cyflow_6tensor_6Tensor_13_set_data_from_list, __Pyx_METH_FASTCALL|METH_KEYWORDS, 0};
+static PyObject *__pyx_pw_6cyflow_6tensor_6Tensor_13_set_data_from_list(PyObject *__pyx_v_self, 
 #if CYTHON_METH_FASTCALL
 PyObject *const *__pyx_args, Py_ssize_t __pyx_nargs, PyObject *__pyx_kwds
 #else
@@ -5105,32 +8370,32 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
   {
     PyObject ** const __pyx_pyargnames[] = {&__pyx_mstate_global->__pyx_n_u_flat_data,0};
     const Py_ssize_t __pyx_kwds_len = (__pyx_kwds) ? __Pyx_NumKwargs_FASTCALL(__pyx_kwds) : 0;
-    if (unlikely(__pyx_kwds_len < 0)) __PYX_ERR(0, 179, __pyx_L3_error)
+    if (unlikely(__pyx_kwds_len < 0)) __PYX_ERR(0, 421, __pyx_L3_error)
     if (__pyx_kwds_len > 0) {
       switch (__pyx_nargs) {
         case  1:
         values[0] = __Pyx_ArgRef_FASTCALL(__pyx_args, 0);
-        if (!CYTHON_ASSUME_SAFE_MACROS && unlikely(!values[0])) __PYX_ERR(0, 179, __pyx_L3_error)
+        if (!CYTHON_ASSUME_SAFE_MACROS && unlikely(!values[0])) __PYX_ERR(0, 421, __pyx_L3_error)
         CYTHON_FALLTHROUGH;
         case  0: break;
         default: goto __pyx_L5_argtuple_error;
       }
       const Py_ssize_t kwd_pos_args = __pyx_nargs;
-      if (__Pyx_ParseKeywords(__pyx_kwds, __pyx_kwvalues, __pyx_pyargnames, 0, values, kwd_pos_args, __pyx_kwds_len, "_set_data_from_list", 0) < (0)) __PYX_ERR(0, 179, __pyx_L3_error)
+      if (__Pyx_ParseKeywords(__pyx_kwds, __pyx_kwvalues, __pyx_pyargnames, 0, values, kwd_pos_args, __pyx_kwds_len, "_set_data_from_list", 0) < (0)) __PYX_ERR(0, 421, __pyx_L3_error)
       for (Py_ssize_t i = __pyx_nargs; i < 1; i++) {
-        if (unlikely(!values[i])) { __Pyx_RaiseArgtupleInvalid("_set_data_from_list", 1, 1, 1, i); __PYX_ERR(0, 179, __pyx_L3_error) }
+        if (unlikely(!values[i])) { __Pyx_RaiseArgtupleInvalid("_set_data_from_list", 1, 1, 1, i); __PYX_ERR(0, 421, __pyx_L3_error) }
       }
     } else if (unlikely(__pyx_nargs != 1)) {
       goto __pyx_L5_argtuple_error;
     } else {
       values[0] = __Pyx_ArgRef_FASTCALL(__pyx_args, 0);
-      if (!CYTHON_ASSUME_SAFE_MACROS && unlikely(!values[0])) __PYX_ERR(0, 179, __pyx_L3_error)
+      if (!CYTHON_ASSUME_SAFE_MACROS && unlikely(!values[0])) __PYX_ERR(0, 421, __pyx_L3_error)
     }
     __pyx_v_flat_data = ((PyObject*)values[0]);
   }
   goto __pyx_L6_skip;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("_set_data_from_list", 1, 1, 1, __pyx_nargs); __PYX_ERR(0, 179, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("_set_data_from_list", 1, 1, 1, __pyx_nargs); __PYX_ERR(0, 421, __pyx_L3_error)
   __pyx_L6_skip:;
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L3_error:;
@@ -5141,8 +8406,8 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_flat_data), (&PyList_Type), 0, "flat_data", 2))) __PYX_ERR(0, 179, __pyx_L1_error)
-  __pyx_r = __pyx_pf_6cyflow_6tensor_6Tensor_10_set_data_from_list(((struct __pyx_obj_6cyflow_6tensor_Tensor *)__pyx_v_self), __pyx_v_flat_data);
+  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_flat_data), (&PyList_Type), 0, "flat_data", 2))) __PYX_ERR(0, 421, __pyx_L1_error)
+  __pyx_r = __pyx_pf_6cyflow_6tensor_6Tensor_12_set_data_from_list(((struct __pyx_obj_6cyflow_6tensor_Tensor *)__pyx_v_self), __pyx_v_flat_data);
 
   /* function exit code */
   goto __pyx_L0;
@@ -5161,7 +8426,7 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_10_set_data_from_list(struct __pyx_obj_6cyflow_6tensor_Tensor *__pyx_v_self, PyObject *__pyx_v_flat_data) {
+static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_12_set_data_from_list(struct __pyx_obj_6cyflow_6tensor_Tensor *__pyx_v_self, PyObject *__pyx_v_flat_data) {
   size_t __pyx_v_numel;
   float *__pyx_v_c_data;
   int __pyx_v_i;
@@ -5192,26 +8457,26 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_10_set_data_from_list(struct _
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("_set_data_from_list", 0);
 
-  /* "cyflow/tensor.pyx":184
+  /* "cyflow/tensor.pyx":426
  *         cdef int i
  * 
  *         if len(flat_data) != self.numel:             # <<<<<<<<<<<<<<
  *             raise ValueError(f"Expected {self.numel} elements, got {len(flat_data)}")
  * 
 */
-  __pyx_t_1 = __Pyx_PyList_GET_SIZE(__pyx_v_flat_data); if (unlikely(__pyx_t_1 == ((Py_ssize_t)-1))) __PYX_ERR(0, 184, __pyx_L1_error)
-  __pyx_t_2 = PyLong_FromSsize_t(__pyx_t_1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 184, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyList_GET_SIZE(__pyx_v_flat_data); if (unlikely(__pyx_t_1 == ((Py_ssize_t)-1))) __PYX_ERR(0, 426, __pyx_L1_error)
+  __pyx_t_2 = PyLong_FromSsize_t(__pyx_t_1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 426, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_mstate_global->__pyx_n_u_numel); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 184, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_mstate_global->__pyx_n_u_numel); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 426, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_4 = PyObject_RichCompare(__pyx_t_2, __pyx_t_3, Py_NE); __Pyx_XGOTREF(__pyx_t_4); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 184, __pyx_L1_error)
+  __pyx_t_4 = PyObject_RichCompare(__pyx_t_2, __pyx_t_3, Py_NE); __Pyx_XGOTREF(__pyx_t_4); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 426, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __pyx_t_5 = __Pyx_PyObject_IsTrue(__pyx_t_4); if (unlikely((__pyx_t_5 < 0))) __PYX_ERR(0, 184, __pyx_L1_error)
+  __pyx_t_5 = __Pyx_PyObject_IsTrue(__pyx_t_4); if (unlikely((__pyx_t_5 < 0))) __PYX_ERR(0, 426, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   if (unlikely(__pyx_t_5)) {
 
-    /* "cyflow/tensor.pyx":185
+    /* "cyflow/tensor.pyx":427
  * 
  *         if len(flat_data) != self.numel:
  *             raise ValueError(f"Expected {self.numel} elements, got {len(flat_data)}")             # <<<<<<<<<<<<<<
@@ -5219,20 +8484,20 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_10_set_data_from_list(struct _
  *         numel = self.numel
 */
     __pyx_t_3 = NULL;
-    __pyx_t_2 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_mstate_global->__pyx_n_u_numel); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 185, __pyx_L1_error)
+    __pyx_t_2 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_mstate_global->__pyx_n_u_numel); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 427, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
-    __pyx_t_6 = __Pyx_PyObject_FormatSimple(__pyx_t_2, __pyx_mstate_global->__pyx_empty_unicode); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 185, __pyx_L1_error)
+    __pyx_t_6 = __Pyx_PyObject_FormatSimple(__pyx_t_2, __pyx_mstate_global->__pyx_empty_unicode); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 427, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_6);
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    __pyx_t_1 = __Pyx_PyList_GET_SIZE(__pyx_v_flat_data); if (unlikely(__pyx_t_1 == ((Py_ssize_t)-1))) __PYX_ERR(0, 185, __pyx_L1_error)
-    __pyx_t_2 = __Pyx_PyUnicode_From_Py_ssize_t(__pyx_t_1, 0, ' ', 'd'); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 185, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyList_GET_SIZE(__pyx_v_flat_data); if (unlikely(__pyx_t_1 == ((Py_ssize_t)-1))) __PYX_ERR(0, 427, __pyx_L1_error)
+    __pyx_t_2 = __Pyx_PyUnicode_From_Py_ssize_t(__pyx_t_1, 0, ' ', 'd'); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 427, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
     __pyx_t_7[0] = __pyx_mstate_global->__pyx_kp_u_Expected;
     __pyx_t_7[1] = __pyx_t_6;
     __pyx_t_7[2] = __pyx_mstate_global->__pyx_kp_u_elements_got;
     __pyx_t_7[3] = __pyx_t_2;
     __pyx_t_8 = __Pyx_PyUnicode_Join(__pyx_t_7, 4, 9 + __Pyx_PyUnicode_GET_LENGTH(__pyx_t_6) + 15 + __Pyx_PyUnicode_GET_LENGTH(__pyx_t_2), 127 | __Pyx_PyUnicode_MAX_CHAR_VALUE(__pyx_t_6));
-    if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 185, __pyx_L1_error)
+    if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 427, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_8);
     __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
@@ -5242,14 +8507,14 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_10_set_data_from_list(struct _
       __pyx_t_4 = __Pyx_PyObject_FastCall((PyObject*)(((PyTypeObject*)PyExc_ValueError)), __pyx_callargs+__pyx_t_9, (2-__pyx_t_9) | (__pyx_t_9*__Pyx_PY_VECTORCALL_ARGUMENTS_OFFSET));
       __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
       __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
-      if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 185, __pyx_L1_error)
+      if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 427, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_4);
     }
     __Pyx_Raise(__pyx_t_4, 0, 0, 0);
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-    __PYX_ERR(0, 185, __pyx_L1_error)
+    __PYX_ERR(0, 427, __pyx_L1_error)
 
-    /* "cyflow/tensor.pyx":184
+    /* "cyflow/tensor.pyx":426
  *         cdef int i
  * 
  *         if len(flat_data) != self.numel:             # <<<<<<<<<<<<<<
@@ -5258,20 +8523,20 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_10_set_data_from_list(struct _
 */
   }
 
-  /* "cyflow/tensor.pyx":187
+  /* "cyflow/tensor.pyx":429
  *             raise ValueError(f"Expected {self.numel} elements, got {len(flat_data)}")
  * 
  *         numel = self.numel             # <<<<<<<<<<<<<<
  *         c_data = <float*>malloc(numel * sizeof(float))
  *         if not c_data:
 */
-  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_mstate_global->__pyx_n_u_numel); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 187, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_mstate_global->__pyx_n_u_numel); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 429, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_9 = __Pyx_PyLong_As_size_t(__pyx_t_4); if (unlikely((__pyx_t_9 == (size_t)-1) && PyErr_Occurred())) __PYX_ERR(0, 187, __pyx_L1_error)
+  __pyx_t_9 = __Pyx_PyLong_As_size_t(__pyx_t_4); if (unlikely((__pyx_t_9 == (size_t)-1) && PyErr_Occurred())) __PYX_ERR(0, 429, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   __pyx_v_numel = __pyx_t_9;
 
-  /* "cyflow/tensor.pyx":188
+  /* "cyflow/tensor.pyx":430
  * 
  *         numel = self.numel
  *         c_data = <float*>malloc(numel * sizeof(float))             # <<<<<<<<<<<<<<
@@ -5280,7 +8545,7 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_10_set_data_from_list(struct _
 */
   __pyx_v_c_data = ((float *)malloc((__pyx_v_numel * (sizeof(float)))));
 
-  /* "cyflow/tensor.pyx":189
+  /* "cyflow/tensor.pyx":431
  *         numel = self.numel
  *         c_data = <float*>malloc(numel * sizeof(float))
  *         if not c_data:             # <<<<<<<<<<<<<<
@@ -5290,7 +8555,7 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_10_set_data_from_list(struct _
   __pyx_t_5 = (!(__pyx_v_c_data != 0));
   if (unlikely(__pyx_t_5)) {
 
-    /* "cyflow/tensor.pyx":190
+    /* "cyflow/tensor.pyx":432
  *         c_data = <float*>malloc(numel * sizeof(float))
  *         if not c_data:
  *             raise MemoryError("Failed to allocate temporary data buffer")             # <<<<<<<<<<<<<<
@@ -5303,14 +8568,14 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_10_set_data_from_list(struct _
       PyObject *__pyx_callargs[2] = {__pyx_t_8, __pyx_mstate_global->__pyx_kp_u_Failed_to_allocate_temporary_dat};
       __pyx_t_4 = __Pyx_PyObject_FastCall((PyObject*)(((PyTypeObject*)PyExc_MemoryError)), __pyx_callargs+__pyx_t_9, (2-__pyx_t_9) | (__pyx_t_9*__Pyx_PY_VECTORCALL_ARGUMENTS_OFFSET));
       __Pyx_XDECREF(__pyx_t_8); __pyx_t_8 = 0;
-      if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 190, __pyx_L1_error)
+      if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 432, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_4);
     }
     __Pyx_Raise(__pyx_t_4, 0, 0, 0);
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-    __PYX_ERR(0, 190, __pyx_L1_error)
+    __PYX_ERR(0, 432, __pyx_L1_error)
 
-    /* "cyflow/tensor.pyx":189
+    /* "cyflow/tensor.pyx":431
  *         numel = self.numel
  *         c_data = <float*>malloc(numel * sizeof(float))
  *         if not c_data:             # <<<<<<<<<<<<<<
@@ -5319,7 +8584,7 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_10_set_data_from_list(struct _
 */
   }
 
-  /* "cyflow/tensor.pyx":192
+  /* "cyflow/tensor.pyx":434
  *             raise MemoryError("Failed to allocate temporary data buffer")
  * 
  *         try:             # <<<<<<<<<<<<<<
@@ -5328,7 +8593,7 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_10_set_data_from_list(struct _
 */
   /*try:*/ {
 
-    /* "cyflow/tensor.pyx":193
+    /* "cyflow/tensor.pyx":435
  * 
  *         try:
  *             for i in range(numel):             # <<<<<<<<<<<<<<
@@ -5340,21 +8605,21 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_10_set_data_from_list(struct _
     for (__pyx_t_11 = 0; __pyx_t_11 < __pyx_t_10; __pyx_t_11+=1) {
       __pyx_v_i = __pyx_t_11;
 
-      /* "cyflow/tensor.pyx":194
+      /* "cyflow/tensor.pyx":436
  *         try:
  *             for i in range(numel):
  *                 c_data[i] = float(flat_data[i])             # <<<<<<<<<<<<<<
  * 
  *             if self._tensor.storage.device == DEVICE_CPU:
 */
-      __pyx_t_4 = __Pyx_GetItemInt_List(__pyx_v_flat_data, __pyx_v_i, int, 1, __Pyx_PyLong_From_int, 1, 1, 1, 1, __Pyx_ReferenceSharing_FunctionArgument); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 194, __pyx_L6_error)
+      __pyx_t_4 = __Pyx_GetItemInt_List(__pyx_v_flat_data, __pyx_v_i, int, 1, __Pyx_PyLong_From_int, 1, 1, 1, 1, __Pyx_ReferenceSharing_FunctionArgument); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 436, __pyx_L6_error)
       __Pyx_GOTREF(__pyx_t_4);
-      __pyx_t_12 = __Pyx_PyObject_AsDouble(__pyx_t_4); if (unlikely(__PYX_CHECK_FLOAT_EXCEPTION(__pyx_t_12, ((double)((double)-1))) && PyErr_Occurred())) __PYX_ERR(0, 194, __pyx_L6_error)
+      __pyx_t_12 = __Pyx_PyObject_AsDouble(__pyx_t_4); if (unlikely(__PYX_CHECK_FLOAT_EXCEPTION(__pyx_t_12, ((double)((double)-1))) && PyErr_Occurred())) __PYX_ERR(0, 436, __pyx_L6_error)
       __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
       (__pyx_v_c_data[__pyx_v_i]) = __pyx_t_12;
     }
 
-    /* "cyflow/tensor.pyx":196
+    /* "cyflow/tensor.pyx":438
  *                 c_data[i] = float(flat_data[i])
  * 
  *             if self._tensor.storage.device == DEVICE_CPU:             # <<<<<<<<<<<<<<
@@ -5364,7 +8629,7 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_10_set_data_from_list(struct _
     switch (__pyx_v_self->_tensor->storage->device) {
       case DEVICE_CPU:
 
-      /* "cyflow/tensor.pyx":197
+      /* "cyflow/tensor.pyx":439
  * 
  *             if self._tensor.storage.device == DEVICE_CPU:
  *                 tensor_set_data_cpu(self._tensor, c_data)             # <<<<<<<<<<<<<<
@@ -5373,7 +8638,7 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_10_set_data_from_list(struct _
 */
       tensor_set_data_cpu(__pyx_v_self->_tensor, __pyx_v_c_data);
 
-      /* "cyflow/tensor.pyx":196
+      /* "cyflow/tensor.pyx":438
  *                 c_data[i] = float(flat_data[i])
  * 
  *             if self._tensor.storage.device == DEVICE_CPU:             # <<<<<<<<<<<<<<
@@ -5383,7 +8648,7 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_10_set_data_from_list(struct _
       break;
       case DEVICE_CUDA:
 
-      /* "cyflow/tensor.pyx":199
+      /* "cyflow/tensor.pyx":441
  *                 tensor_set_data_cpu(self._tensor, c_data)
  *             elif self._tensor.storage.device == DEVICE_CUDA:
  *                 tensor_set_data_cuda(self._tensor, c_data)             # <<<<<<<<<<<<<<
@@ -5392,7 +8657,7 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_10_set_data_from_list(struct _
 */
       tensor_set_data_cuda(__pyx_v_self->_tensor, __pyx_v_c_data);
 
-      /* "cyflow/tensor.pyx":198
+      /* "cyflow/tensor.pyx":440
  *             if self._tensor.storage.device == DEVICE_CPU:
  *                 tensor_set_data_cpu(self._tensor, c_data)
  *             elif self._tensor.storage.device == DEVICE_CUDA:             # <<<<<<<<<<<<<<
@@ -5404,7 +8669,7 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_10_set_data_from_list(struct _
     }
   }
 
-  /* "cyflow/tensor.pyx":201
+  /* "cyflow/tensor.pyx":443
  *                 tensor_set_data_cuda(self._tensor, c_data)
  *         finally:
  *             free(c_data)             # <<<<<<<<<<<<<<
@@ -5453,7 +8718,7 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_10_set_data_from_list(struct _
     __pyx_L7:;
   }
 
-  /* "cyflow/tensor.pyx":179
+  /* "cyflow/tensor.pyx":421
  *         return Tensor._from_c_tensor(new_impl)
  * 
  *     def _set_data_from_list(self, flat_data: list):             # <<<<<<<<<<<<<<
@@ -5478,7 +8743,7 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_10_set_data_from_list(struct _
   return __pyx_r;
 }
 
-/* "cyflow/tensor.pyx":203
+/* "cyflow/tensor.pyx":445
  *             free(c_data)
  * 
  *     def __getitem__(self, key):             # <<<<<<<<<<<<<<
@@ -5487,21 +8752,21 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_10_set_data_from_list(struct _
 */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_6cyflow_6tensor_6Tensor_13__getitem__(PyObject *__pyx_v_self, PyObject *__pyx_v_key); /*proto*/
-static PyObject *__pyx_pw_6cyflow_6tensor_6Tensor_13__getitem__(PyObject *__pyx_v_self, PyObject *__pyx_v_key) {
+static PyObject *__pyx_pw_6cyflow_6tensor_6Tensor_15__getitem__(PyObject *__pyx_v_self, PyObject *__pyx_v_key); /*proto*/
+static PyObject *__pyx_pw_6cyflow_6tensor_6Tensor_15__getitem__(PyObject *__pyx_v_self, PyObject *__pyx_v_key) {
   CYTHON_UNUSED PyObject *const *__pyx_kwvalues;
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__getitem__ (wrapper)", 0);
   __pyx_kwvalues = __Pyx_KwValues_VARARGS(__pyx_args, __pyx_nargs);
-  __pyx_r = __pyx_pf_6cyflow_6tensor_6Tensor_12__getitem__(((struct __pyx_obj_6cyflow_6tensor_Tensor *)__pyx_v_self), ((PyObject *)__pyx_v_key));
+  __pyx_r = __pyx_pf_6cyflow_6tensor_6Tensor_14__getitem__(((struct __pyx_obj_6cyflow_6tensor_Tensor *)__pyx_v_self), ((PyObject *)__pyx_v_key));
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_12__getitem__(struct __pyx_obj_6cyflow_6tensor_Tensor *__pyx_v_self, PyObject *__pyx_v_key) {
+static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_14__getitem__(struct __pyx_obj_6cyflow_6tensor_Tensor *__pyx_v_self, PyObject *__pyx_v_key) {
   PyObject *__pyx_v_tuple_key = 0;
   PyObject *__pyx_v_clean_key = 0;
   int __pyx_v_num_none;
@@ -5556,7 +8821,7 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_12__getitem__(struct __pyx_obj
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("__getitem__", 0);
 
-  /* "cyflow/tensor.pyx":206
+  /* "cyflow/tensor.pyx":448
  *         cdef tuple tuple_key
  *         cdef list clean_key
  *         cdef int num_none = 0             # <<<<<<<<<<<<<<
@@ -5565,7 +8830,7 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_12__getitem__(struct __pyx_obj
 */
   __pyx_v_num_none = 0;
 
-  /* "cyflow/tensor.pyx":207
+  /* "cyflow/tensor.pyx":449
  *         cdef list clean_key
  *         cdef int num_none = 0
  *         cdef int num_int = 0             # <<<<<<<<<<<<<<
@@ -5574,7 +8839,7 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_12__getitem__(struct __pyx_obj
 */
   __pyx_v_num_int = 0;
 
-  /* "cyflow/tensor.pyx":208
+  /* "cyflow/tensor.pyx":450
  *         cdef int num_none = 0
  *         cdef int num_int = 0
  *         cdef int num_slice = 0             # <<<<<<<<<<<<<<
@@ -5583,7 +8848,7 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_12__getitem__(struct __pyx_obj
 */
   __pyx_v_num_slice = 0;
 
-  /* "cyflow/tensor.pyx":209
+  /* "cyflow/tensor.pyx":451
  *         cdef int num_int = 0
  *         cdef int num_slice = 0
  *         cdef int explicit_axes = 0             # <<<<<<<<<<<<<<
@@ -5592,7 +8857,7 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_12__getitem__(struct __pyx_obj
 */
   __pyx_v_explicit_axes = 0;
 
-  /* "cyflow/tensor.pyx":210
+  /* "cyflow/tensor.pyx":452
  *         cdef int num_slice = 0
  *         cdef int explicit_axes = 0
  *         cdef bint has_ellipsis = False             # <<<<<<<<<<<<<<
@@ -5601,7 +8866,7 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_12__getitem__(struct __pyx_obj
 */
   __pyx_v_has_ellipsis = 0;
 
-  /* "cyflow/tensor.pyx":211
+  /* "cyflow/tensor.pyx":453
  *         cdef int explicit_axes = 0
  *         cdef bint has_ellipsis = False
  *         cdef int missing_axes = 0             # <<<<<<<<<<<<<<
@@ -5610,7 +8875,7 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_12__getitem__(struct __pyx_obj
 */
   __pyx_v_missing_axes = 0;
 
-  /* "cyflow/tensor.pyx":212
+  /* "cyflow/tensor.pyx":454
  *         cdef bint has_ellipsis = False
  *         cdef int missing_axes = 0
  *         cdef size_t out_ndim = 0             # <<<<<<<<<<<<<<
@@ -5619,7 +8884,7 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_12__getitem__(struct __pyx_obj
 */
   __pyx_v_out_ndim = 0;
 
-  /* "cyflow/tensor.pyx":213
+  /* "cyflow/tensor.pyx":455
  *         cdef int missing_axes = 0
  *         cdef size_t out_ndim = 0
  *         cdef size_t src_dim = 0             # <<<<<<<<<<<<<<
@@ -5628,7 +8893,7 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_12__getitem__(struct __pyx_obj
 */
   __pyx_v_src_dim = 0;
 
-  /* "cyflow/tensor.pyx":214
+  /* "cyflow/tensor.pyx":456
  *         cdef size_t out_ndim = 0
  *         cdef size_t src_dim = 0
  *         cdef size_t dst_dim = 0             # <<<<<<<<<<<<<<
@@ -5637,7 +8902,7 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_12__getitem__(struct __pyx_obj
 */
   __pyx_v_dst_dim = 0;
 
-  /* "cyflow/tensor.pyx":215
+  /* "cyflow/tensor.pyx":457
  *         cdef size_t src_dim = 0
  *         cdef size_t dst_dim = 0
  *         cdef int64_t offset_delta = 0             # <<<<<<<<<<<<<<
@@ -5646,7 +8911,7 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_12__getitem__(struct __pyx_obj
 */
   __pyx_v_offset_delta = 0;
 
-  /* "cyflow/tensor.pyx":216
+  /* "cyflow/tensor.pyx":458
  *         cdef size_t dst_dim = 0
  *         cdef int64_t offset_delta = 0
  *         cdef size_t out_numel = 1             # <<<<<<<<<<<<<<
@@ -5655,7 +8920,7 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_12__getitem__(struct __pyx_obj
 */
   __pyx_v_out_numel = 1;
 
-  /* "cyflow/tensor.pyx":219
+  /* "cyflow/tensor.pyx":461
  *         cdef Py_ssize_t start, stop, step, length, idx
  *         cdef int64_t cur_dim_size, cur_stride
  *         cdef int64_t* c_shape = NULL             # <<<<<<<<<<<<<<
@@ -5664,7 +8929,7 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_12__getitem__(struct __pyx_obj
 */
   __pyx_v_c_shape = NULL;
 
-  /* "cyflow/tensor.pyx":220
+  /* "cyflow/tensor.pyx":462
  *         cdef int64_t cur_dim_size, cur_stride
  *         cdef int64_t* c_shape = NULL
  *         cdef int64_t* c_strides = NULL             # <<<<<<<<<<<<<<
@@ -5673,7 +8938,7 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_12__getitem__(struct __pyx_obj
 */
   __pyx_v_c_strides = NULL;
 
-  /* "cyflow/tensor.pyx":221
+  /* "cyflow/tensor.pyx":463
  *         cdef int64_t* c_shape = NULL
  *         cdef int64_t* c_strides = NULL
  *         cdef TensorImpl* result = NULL             # <<<<<<<<<<<<<<
@@ -5682,7 +8947,7 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_12__getitem__(struct __pyx_obj
 */
   __pyx_v_result = NULL;
 
-  /* "cyflow/tensor.pyx":223
+  /* "cyflow/tensor.pyx":465
  *         cdef TensorImpl* result = NULL
  * 
  *         if not isinstance(key, tuple):             # <<<<<<<<<<<<<<
@@ -5693,22 +8958,22 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_12__getitem__(struct __pyx_obj
   __pyx_t_2 = (!__pyx_t_1);
   if (__pyx_t_2) {
 
-    /* "cyflow/tensor.pyx":224
+    /* "cyflow/tensor.pyx":466
  * 
  *         if not isinstance(key, tuple):
  *             tuple_key = (key,)             # <<<<<<<<<<<<<<
  *         else:
  *             tuple_key = key
 */
-    __pyx_t_3 = PyTuple_New(1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 224, __pyx_L1_error)
+    __pyx_t_3 = PyTuple_New(1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 466, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
     __Pyx_INCREF(__pyx_v_key);
     __Pyx_GIVEREF(__pyx_v_key);
-    if (__Pyx_PyTuple_SET_ITEM(__pyx_t_3, 0, __pyx_v_key) != (0)) __PYX_ERR(0, 224, __pyx_L1_error);
+    if (__Pyx_PyTuple_SET_ITEM(__pyx_t_3, 0, __pyx_v_key) != (0)) __PYX_ERR(0, 466, __pyx_L1_error);
     __pyx_v_tuple_key = ((PyObject*)__pyx_t_3);
     __pyx_t_3 = 0;
 
-    /* "cyflow/tensor.pyx":223
+    /* "cyflow/tensor.pyx":465
  *         cdef TensorImpl* result = NULL
  * 
  *         if not isinstance(key, tuple):             # <<<<<<<<<<<<<<
@@ -5718,7 +8983,7 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_12__getitem__(struct __pyx_obj
     goto __pyx_L3;
   }
 
-  /* "cyflow/tensor.pyx":226
+  /* "cyflow/tensor.pyx":468
  *             tuple_key = (key,)
  *         else:
  *             tuple_key = key             # <<<<<<<<<<<<<<
@@ -5728,13 +8993,13 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_12__getitem__(struct __pyx_obj
   /*else*/ {
     __pyx_t_3 = __pyx_v_key;
     __Pyx_INCREF(__pyx_t_3);
-    if (!(likely(PyTuple_CheckExact(__pyx_t_3))||((__pyx_t_3) == Py_None) || __Pyx_RaiseUnexpectedTypeError("tuple", __pyx_t_3))) __PYX_ERR(0, 226, __pyx_L1_error)
+    if (!(likely(PyTuple_CheckExact(__pyx_t_3))||((__pyx_t_3) == Py_None) || __Pyx_RaiseUnexpectedTypeError("tuple", __pyx_t_3))) __PYX_ERR(0, 468, __pyx_L1_error)
     __pyx_v_tuple_key = ((PyObject*)__pyx_t_3);
     __pyx_t_3 = 0;
   }
   __pyx_L3:;
 
-  /* "cyflow/tensor.pyx":228
+  /* "cyflow/tensor.pyx":470
  *             tuple_key = key
  * 
  *         for item in tuple_key:             # <<<<<<<<<<<<<<
@@ -5743,7 +9008,7 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_12__getitem__(struct __pyx_obj
 */
   if (unlikely(__pyx_v_tuple_key == Py_None)) {
     PyErr_SetString(PyExc_TypeError, "'NoneType' object is not iterable");
-    __PYX_ERR(0, 228, __pyx_L1_error)
+    __PYX_ERR(0, 470, __pyx_L1_error)
   }
   __pyx_t_3 = __pyx_v_tuple_key; __Pyx_INCREF(__pyx_t_3);
   __pyx_t_4 = 0;
@@ -5751,7 +9016,7 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_12__getitem__(struct __pyx_obj
     {
       Py_ssize_t __pyx_temp = __Pyx_PyTuple_GET_SIZE(__pyx_t_3);
       #if !CYTHON_ASSUME_SAFE_SIZE
-      if (unlikely((__pyx_temp < 0))) __PYX_ERR(0, 228, __pyx_L1_error)
+      if (unlikely((__pyx_temp < 0))) __PYX_ERR(0, 470, __pyx_L1_error)
       #endif
       if (__pyx_t_4 >= __pyx_temp) break;
     }
@@ -5761,12 +9026,12 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_12__getitem__(struct __pyx_obj
     __pyx_t_5 = __Pyx_PySequence_ITEM(__pyx_t_3, __pyx_t_4);
     #endif
     ++__pyx_t_4;
-    if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 228, __pyx_L1_error)
+    if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 470, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_5);
     __Pyx_XDECREF_SET(__pyx_v_item, __pyx_t_5);
     __pyx_t_5 = 0;
 
-    /* "cyflow/tensor.pyx":229
+    /* "cyflow/tensor.pyx":471
  * 
  *         for item in tuple_key:
  *             if isinstance(item, (list, Tensor)):             # <<<<<<<<<<<<<<
@@ -5784,7 +9049,7 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_12__getitem__(struct __pyx_obj
     __pyx_L7_bool_binop_done:;
     if (unlikely(__pyx_t_2)) {
 
-      /* "cyflow/tensor.pyx":230
+      /* "cyflow/tensor.pyx":472
  *         for item in tuple_key:
  *             if isinstance(item, (list, Tensor)):
  *                 raise NotImplementedError("Advanced indexing (lists or Tensors) is not supported")             # <<<<<<<<<<<<<<
@@ -5797,14 +9062,14 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_12__getitem__(struct __pyx_obj
         PyObject *__pyx_callargs[2] = {__pyx_t_6, __pyx_mstate_global->__pyx_kp_u_Advanced_indexing_lists_or_Tenso};
         __pyx_t_5 = __Pyx_PyObject_FastCall((PyObject*)(((PyTypeObject*)PyExc_NotImplementedError)), __pyx_callargs+__pyx_t_7, (2-__pyx_t_7) | (__pyx_t_7*__Pyx_PY_VECTORCALL_ARGUMENTS_OFFSET));
         __Pyx_XDECREF(__pyx_t_6); __pyx_t_6 = 0;
-        if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 230, __pyx_L1_error)
+        if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 472, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_5);
       }
       __Pyx_Raise(__pyx_t_5, 0, 0, 0);
       __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-      __PYX_ERR(0, 230, __pyx_L1_error)
+      __PYX_ERR(0, 472, __pyx_L1_error)
 
-      /* "cyflow/tensor.pyx":229
+      /* "cyflow/tensor.pyx":471
  * 
  *         for item in tuple_key:
  *             if isinstance(item, (list, Tensor)):             # <<<<<<<<<<<<<<
@@ -5813,7 +9078,7 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_12__getitem__(struct __pyx_obj
 */
     }
 
-    /* "cyflow/tensor.pyx":231
+    /* "cyflow/tensor.pyx":473
  *             if isinstance(item, (list, Tensor)):
  *                 raise NotImplementedError("Advanced indexing (lists or Tensors) is not supported")
  *             elif item is Ellipsis:             # <<<<<<<<<<<<<<
@@ -5823,7 +9088,7 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_12__getitem__(struct __pyx_obj
     __pyx_t_2 = (__pyx_v_item == __pyx_builtin_Ellipsis);
     if (__pyx_t_2) {
 
-      /* "cyflow/tensor.pyx":232
+      /* "cyflow/tensor.pyx":474
  *                 raise NotImplementedError("Advanced indexing (lists or Tensors) is not supported")
  *             elif item is Ellipsis:
  *                 if has_ellipsis:             # <<<<<<<<<<<<<<
@@ -5832,7 +9097,7 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_12__getitem__(struct __pyx_obj
 */
       if (unlikely(__pyx_v_has_ellipsis)) {
 
-        /* "cyflow/tensor.pyx":233
+        /* "cyflow/tensor.pyx":475
  *             elif item is Ellipsis:
  *                 if has_ellipsis:
  *                     raise IndexError("An index can only have a single ellipsis ('...')")             # <<<<<<<<<<<<<<
@@ -5845,14 +9110,14 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_12__getitem__(struct __pyx_obj
           PyObject *__pyx_callargs[2] = {__pyx_t_6, __pyx_mstate_global->__pyx_kp_u_An_index_can_only_have_a_single};
           __pyx_t_5 = __Pyx_PyObject_FastCall((PyObject*)(((PyTypeObject*)PyExc_IndexError)), __pyx_callargs+__pyx_t_7, (2-__pyx_t_7) | (__pyx_t_7*__Pyx_PY_VECTORCALL_ARGUMENTS_OFFSET));
           __Pyx_XDECREF(__pyx_t_6); __pyx_t_6 = 0;
-          if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 233, __pyx_L1_error)
+          if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 475, __pyx_L1_error)
           __Pyx_GOTREF(__pyx_t_5);
         }
         __Pyx_Raise(__pyx_t_5, 0, 0, 0);
         __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-        __PYX_ERR(0, 233, __pyx_L1_error)
+        __PYX_ERR(0, 475, __pyx_L1_error)
 
-        /* "cyflow/tensor.pyx":232
+        /* "cyflow/tensor.pyx":474
  *                 raise NotImplementedError("Advanced indexing (lists or Tensors) is not supported")
  *             elif item is Ellipsis:
  *                 if has_ellipsis:             # <<<<<<<<<<<<<<
@@ -5861,7 +9126,7 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_12__getitem__(struct __pyx_obj
 */
       }
 
-      /* "cyflow/tensor.pyx":234
+      /* "cyflow/tensor.pyx":476
  *                 if has_ellipsis:
  *                     raise IndexError("An index can only have a single ellipsis ('...')")
  *                 has_ellipsis = True             # <<<<<<<<<<<<<<
@@ -5870,7 +9135,7 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_12__getitem__(struct __pyx_obj
 */
       __pyx_v_has_ellipsis = 1;
 
-      /* "cyflow/tensor.pyx":231
+      /* "cyflow/tensor.pyx":473
  *             if isinstance(item, (list, Tensor)):
  *                 raise NotImplementedError("Advanced indexing (lists or Tensors) is not supported")
  *             elif item is Ellipsis:             # <<<<<<<<<<<<<<
@@ -5880,7 +9145,7 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_12__getitem__(struct __pyx_obj
       goto __pyx_L6;
     }
 
-    /* "cyflow/tensor.pyx":235
+    /* "cyflow/tensor.pyx":477
  *                     raise IndexError("An index can only have a single ellipsis ('...')")
  *                 has_ellipsis = True
  *             elif item is None:             # <<<<<<<<<<<<<<
@@ -5890,7 +9155,7 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_12__getitem__(struct __pyx_obj
     __pyx_t_2 = (__pyx_v_item == Py_None);
     if (__pyx_t_2) {
 
-      /* "cyflow/tensor.pyx":236
+      /* "cyflow/tensor.pyx":478
  *                 has_ellipsis = True
  *             elif item is None:
  *                 num_none += 1             # <<<<<<<<<<<<<<
@@ -5899,7 +9164,7 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_12__getitem__(struct __pyx_obj
 */
       __pyx_v_num_none = (__pyx_v_num_none + 1);
 
-      /* "cyflow/tensor.pyx":235
+      /* "cyflow/tensor.pyx":477
  *                     raise IndexError("An index can only have a single ellipsis ('...')")
  *                 has_ellipsis = True
  *             elif item is None:             # <<<<<<<<<<<<<<
@@ -5909,7 +9174,7 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_12__getitem__(struct __pyx_obj
       goto __pyx_L6;
     }
 
-    /* "cyflow/tensor.pyx":237
+    /* "cyflow/tensor.pyx":479
  *             elif item is None:
  *                 num_none += 1
  *             elif isinstance(item, int):             # <<<<<<<<<<<<<<
@@ -5919,7 +9184,7 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_12__getitem__(struct __pyx_obj
     __pyx_t_2 = PyLong_Check(__pyx_v_item); 
     if (__pyx_t_2) {
 
-      /* "cyflow/tensor.pyx":238
+      /* "cyflow/tensor.pyx":480
  *                 num_none += 1
  *             elif isinstance(item, int):
  *                 num_int += 1             # <<<<<<<<<<<<<<
@@ -5928,7 +9193,7 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_12__getitem__(struct __pyx_obj
 */
       __pyx_v_num_int = (__pyx_v_num_int + 1);
 
-      /* "cyflow/tensor.pyx":239
+      /* "cyflow/tensor.pyx":481
  *             elif isinstance(item, int):
  *                 num_int += 1
  *                 explicit_axes += 1             # <<<<<<<<<<<<<<
@@ -5937,7 +9202,7 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_12__getitem__(struct __pyx_obj
 */
       __pyx_v_explicit_axes = (__pyx_v_explicit_axes + 1);
 
-      /* "cyflow/tensor.pyx":237
+      /* "cyflow/tensor.pyx":479
  *             elif item is None:
  *                 num_none += 1
  *             elif isinstance(item, int):             # <<<<<<<<<<<<<<
@@ -5947,7 +9212,7 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_12__getitem__(struct __pyx_obj
       goto __pyx_L6;
     }
 
-    /* "cyflow/tensor.pyx":240
+    /* "cyflow/tensor.pyx":482
  *                 num_int += 1
  *                 explicit_axes += 1
  *             elif isinstance(item, slice):             # <<<<<<<<<<<<<<
@@ -5957,7 +9222,7 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_12__getitem__(struct __pyx_obj
     __pyx_t_2 = PySlice_Check(__pyx_v_item); 
     if (likely(__pyx_t_2)) {
 
-      /* "cyflow/tensor.pyx":241
+      /* "cyflow/tensor.pyx":483
  *                 explicit_axes += 1
  *             elif isinstance(item, slice):
  *                 num_slice += 1             # <<<<<<<<<<<<<<
@@ -5966,7 +9231,7 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_12__getitem__(struct __pyx_obj
 */
       __pyx_v_num_slice = (__pyx_v_num_slice + 1);
 
-      /* "cyflow/tensor.pyx":242
+      /* "cyflow/tensor.pyx":484
  *             elif isinstance(item, slice):
  *                 num_slice += 1
  *                 explicit_axes += 1             # <<<<<<<<<<<<<<
@@ -5975,7 +9240,7 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_12__getitem__(struct __pyx_obj
 */
       __pyx_v_explicit_axes = (__pyx_v_explicit_axes + 1);
 
-      /* "cyflow/tensor.pyx":240
+      /* "cyflow/tensor.pyx":482
  *                 num_int += 1
  *                 explicit_axes += 1
  *             elif isinstance(item, slice):             # <<<<<<<<<<<<<<
@@ -5985,7 +9250,7 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_12__getitem__(struct __pyx_obj
       goto __pyx_L6;
     }
 
-    /* "cyflow/tensor.pyx":244
+    /* "cyflow/tensor.pyx":486
  *                 explicit_axes += 1
  *             else:
  *                 raise TypeError(f"Invalid index type: {type(item).__name__}")             # <<<<<<<<<<<<<<
@@ -5994,12 +9259,12 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_12__getitem__(struct __pyx_obj
 */
     /*else*/ {
       __pyx_t_6 = NULL;
-      __pyx_t_8 = __Pyx_PyObject_GetAttrStr(((PyObject *)Py_TYPE(__pyx_v_item)), __pyx_mstate_global->__pyx_n_u_name); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 244, __pyx_L1_error)
+      __pyx_t_8 = __Pyx_PyObject_GetAttrStr(((PyObject *)Py_TYPE(__pyx_v_item)), __pyx_mstate_global->__pyx_n_u_name); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 486, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_8);
-      __pyx_t_9 = __Pyx_PyObject_FormatSimple(__pyx_t_8, __pyx_mstate_global->__pyx_empty_unicode); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 244, __pyx_L1_error)
+      __pyx_t_9 = __Pyx_PyObject_FormatSimple(__pyx_t_8, __pyx_mstate_global->__pyx_empty_unicode); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 486, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_9);
       __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
-      __pyx_t_8 = __Pyx_PyUnicode_Concat(__pyx_mstate_global->__pyx_kp_u_Invalid_index_type, __pyx_t_9); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 244, __pyx_L1_error)
+      __pyx_t_8 = __Pyx_PyUnicode_Concat(__pyx_mstate_global->__pyx_kp_u_Invalid_index_type, __pyx_t_9); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 486, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_8);
       __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
       __pyx_t_7 = 1;
@@ -6008,16 +9273,16 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_12__getitem__(struct __pyx_obj
         __pyx_t_5 = __Pyx_PyObject_FastCall((PyObject*)(((PyTypeObject*)PyExc_TypeError)), __pyx_callargs+__pyx_t_7, (2-__pyx_t_7) | (__pyx_t_7*__Pyx_PY_VECTORCALL_ARGUMENTS_OFFSET));
         __Pyx_XDECREF(__pyx_t_6); __pyx_t_6 = 0;
         __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
-        if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 244, __pyx_L1_error)
+        if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 486, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_5);
       }
       __Pyx_Raise(__pyx_t_5, 0, 0, 0);
       __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-      __PYX_ERR(0, 244, __pyx_L1_error)
+      __PYX_ERR(0, 486, __pyx_L1_error)
     }
     __pyx_L6:;
 
-    /* "cyflow/tensor.pyx":228
+    /* "cyflow/tensor.pyx":470
  *             tuple_key = key
  * 
  *         for item in tuple_key:             # <<<<<<<<<<<<<<
@@ -6027,38 +9292,38 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_12__getitem__(struct __pyx_obj
   }
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
-  /* "cyflow/tensor.pyx":246
+  /* "cyflow/tensor.pyx":488
  *                 raise TypeError(f"Invalid index type: {type(item).__name__}")
  * 
  *         if explicit_axes > self.ndim:             # <<<<<<<<<<<<<<
  *             raise IndexError(f"Too many indices for tensor: tensor is {self.ndim}D, but {explicit_axes} axes were indexed")
  * 
 */
-  __pyx_t_3 = __Pyx_PyLong_From_int(__pyx_v_explicit_axes); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 246, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyLong_From_int(__pyx_v_explicit_axes); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 488, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_5 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_mstate_global->__pyx_n_u_ndim); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 246, __pyx_L1_error)
+  __pyx_t_5 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_mstate_global->__pyx_n_u_ndim); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 488, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
-  __pyx_t_8 = PyObject_RichCompare(__pyx_t_3, __pyx_t_5, Py_GT); __Pyx_XGOTREF(__pyx_t_8); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 246, __pyx_L1_error)
+  __pyx_t_8 = PyObject_RichCompare(__pyx_t_3, __pyx_t_5, Py_GT); __Pyx_XGOTREF(__pyx_t_8); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 488, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-  __pyx_t_2 = __Pyx_PyObject_IsTrue(__pyx_t_8); if (unlikely((__pyx_t_2 < 0))) __PYX_ERR(0, 246, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_IsTrue(__pyx_t_8); if (unlikely((__pyx_t_2 < 0))) __PYX_ERR(0, 488, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
   if (unlikely(__pyx_t_2)) {
 
-    /* "cyflow/tensor.pyx":247
+    /* "cyflow/tensor.pyx":489
  * 
  *         if explicit_axes > self.ndim:
  *             raise IndexError(f"Too many indices for tensor: tensor is {self.ndim}D, but {explicit_axes} axes were indexed")             # <<<<<<<<<<<<<<
  * 
- *         # 3. Expand Ellipsis (...) into explicit slice(None) objects
+ *         clean_key = []
 */
     __pyx_t_5 = NULL;
-    __pyx_t_3 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_mstate_global->__pyx_n_u_ndim); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 247, __pyx_L1_error)
+    __pyx_t_3 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_mstate_global->__pyx_n_u_ndim); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 489, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
-    __pyx_t_6 = __Pyx_PyObject_FormatSimple(__pyx_t_3, __pyx_mstate_global->__pyx_empty_unicode); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 247, __pyx_L1_error)
+    __pyx_t_6 = __Pyx_PyObject_FormatSimple(__pyx_t_3, __pyx_mstate_global->__pyx_empty_unicode); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 489, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_6);
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-    __pyx_t_3 = __Pyx_PyUnicode_From_int(__pyx_v_explicit_axes, 0, ' ', 'd'); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 247, __pyx_L1_error)
+    __pyx_t_3 = __Pyx_PyUnicode_From_int(__pyx_v_explicit_axes, 0, ' ', 'd'); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 489, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
     __pyx_t_10[0] = __pyx_mstate_global->__pyx_kp_u_Too_many_indices_for_tensor_tens;
     __pyx_t_10[1] = __pyx_t_6;
@@ -6066,7 +9331,7 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_12__getitem__(struct __pyx_obj
     __pyx_t_10[3] = __pyx_t_3;
     __pyx_t_10[4] = __pyx_mstate_global->__pyx_kp_u_axes_were_indexed;
     __pyx_t_9 = __Pyx_PyUnicode_Join(__pyx_t_10, 5, 39 + __Pyx_PyUnicode_GET_LENGTH(__pyx_t_6) + 7 + __Pyx_PyUnicode_GET_LENGTH(__pyx_t_3) + 18, 127 | __Pyx_PyUnicode_MAX_CHAR_VALUE(__pyx_t_6));
-    if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 247, __pyx_L1_error)
+    if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 489, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_9);
     __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
@@ -6076,14 +9341,14 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_12__getitem__(struct __pyx_obj
       __pyx_t_8 = __Pyx_PyObject_FastCall((PyObject*)(((PyTypeObject*)PyExc_IndexError)), __pyx_callargs+__pyx_t_7, (2-__pyx_t_7) | (__pyx_t_7*__Pyx_PY_VECTORCALL_ARGUMENTS_OFFSET));
       __Pyx_XDECREF(__pyx_t_5); __pyx_t_5 = 0;
       __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
-      if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 247, __pyx_L1_error)
+      if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 489, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_8);
     }
     __Pyx_Raise(__pyx_t_8, 0, 0, 0);
     __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
-    __PYX_ERR(0, 247, __pyx_L1_error)
+    __PYX_ERR(0, 489, __pyx_L1_error)
 
-    /* "cyflow/tensor.pyx":246
+    /* "cyflow/tensor.pyx":488
  *                 raise TypeError(f"Invalid index type: {type(item).__name__}")
  * 
  *         if explicit_axes > self.ndim:             # <<<<<<<<<<<<<<
@@ -6092,38 +9357,38 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_12__getitem__(struct __pyx_obj
 */
   }
 
-  /* "cyflow/tensor.pyx":250
+  /* "cyflow/tensor.pyx":491
+ *             raise IndexError(f"Too many indices for tensor: tensor is {self.ndim}D, but {explicit_axes} axes were indexed")
  * 
- *         # 3. Expand Ellipsis (...) into explicit slice(None) objects
  *         clean_key = []             # <<<<<<<<<<<<<<
  *         missing_axes = self.ndim - explicit_axes
  * 
 */
-  __pyx_t_8 = PyList_New(0); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 250, __pyx_L1_error)
+  __pyx_t_8 = PyList_New(0); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 491, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_8);
   __pyx_v_clean_key = ((PyObject*)__pyx_t_8);
   __pyx_t_8 = 0;
 
-  /* "cyflow/tensor.pyx":251
- *         # 3. Expand Ellipsis (...) into explicit slice(None) objects
+  /* "cyflow/tensor.pyx":492
+ * 
  *         clean_key = []
  *         missing_axes = self.ndim - explicit_axes             # <<<<<<<<<<<<<<
  * 
  *         for item in tuple_key:
 */
-  __pyx_t_8 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_mstate_global->__pyx_n_u_ndim); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 251, __pyx_L1_error)
+  __pyx_t_8 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_mstate_global->__pyx_n_u_ndim); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 492, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_8);
-  __pyx_t_9 = __Pyx_PyLong_From_int(__pyx_v_explicit_axes); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 251, __pyx_L1_error)
+  __pyx_t_9 = __Pyx_PyLong_From_int(__pyx_v_explicit_axes); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 492, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_9);
-  __pyx_t_5 = PyNumber_Subtract(__pyx_t_8, __pyx_t_9); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 251, __pyx_L1_error)
+  __pyx_t_5 = PyNumber_Subtract(__pyx_t_8, __pyx_t_9); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 492, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
   __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
   __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
-  __pyx_t_11 = __Pyx_PyLong_As_int(__pyx_t_5); if (unlikely((__pyx_t_11 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 251, __pyx_L1_error)
+  __pyx_t_11 = __Pyx_PyLong_As_int(__pyx_t_5); if (unlikely((__pyx_t_11 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 492, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
   __pyx_v_missing_axes = __pyx_t_11;
 
-  /* "cyflow/tensor.pyx":253
+  /* "cyflow/tensor.pyx":494
  *         missing_axes = self.ndim - explicit_axes
  * 
  *         for item in tuple_key:             # <<<<<<<<<<<<<<
@@ -6132,7 +9397,7 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_12__getitem__(struct __pyx_obj
 */
   if (unlikely(__pyx_v_tuple_key == Py_None)) {
     PyErr_SetString(PyExc_TypeError, "'NoneType' object is not iterable");
-    __PYX_ERR(0, 253, __pyx_L1_error)
+    __PYX_ERR(0, 494, __pyx_L1_error)
   }
   __pyx_t_5 = __pyx_v_tuple_key; __Pyx_INCREF(__pyx_t_5);
   __pyx_t_4 = 0;
@@ -6140,7 +9405,7 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_12__getitem__(struct __pyx_obj
     {
       Py_ssize_t __pyx_temp = __Pyx_PyTuple_GET_SIZE(__pyx_t_5);
       #if !CYTHON_ASSUME_SAFE_SIZE
-      if (unlikely((__pyx_temp < 0))) __PYX_ERR(0, 253, __pyx_L1_error)
+      if (unlikely((__pyx_temp < 0))) __PYX_ERR(0, 494, __pyx_L1_error)
       #endif
       if (__pyx_t_4 >= __pyx_temp) break;
     }
@@ -6150,12 +9415,12 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_12__getitem__(struct __pyx_obj
     __pyx_t_9 = __Pyx_PySequence_ITEM(__pyx_t_5, __pyx_t_4);
     #endif
     ++__pyx_t_4;
-    if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 253, __pyx_L1_error)
+    if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 494, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_9);
     __Pyx_XDECREF_SET(__pyx_v_item, __pyx_t_9);
     __pyx_t_9 = 0;
 
-    /* "cyflow/tensor.pyx":254
+    /* "cyflow/tensor.pyx":495
  * 
  *         for item in tuple_key:
  *             if item is Ellipsis:             # <<<<<<<<<<<<<<
@@ -6165,7 +9430,7 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_12__getitem__(struct __pyx_obj
     __pyx_t_2 = (__pyx_v_item == __pyx_builtin_Ellipsis);
     if (__pyx_t_2) {
 
-      /* "cyflow/tensor.pyx":255
+      /* "cyflow/tensor.pyx":496
  *         for item in tuple_key:
  *             if item is Ellipsis:
  *                 for _ in range(missing_axes):             # <<<<<<<<<<<<<<
@@ -6177,17 +9442,17 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_12__getitem__(struct __pyx_obj
       for (__pyx_t_13 = 0; __pyx_t_13 < __pyx_t_12; __pyx_t_13+=1) {
         __pyx_v__ = __pyx_t_13;
 
-        /* "cyflow/tensor.pyx":256
+        /* "cyflow/tensor.pyx":497
  *             if item is Ellipsis:
  *                 for _ in range(missing_axes):
  *                     clean_key.append(slice(None))             # <<<<<<<<<<<<<<
  *             else:
  *                 clean_key.append(item)
 */
-        __pyx_t_14 = __Pyx_PyList_Append(__pyx_v_clean_key, __pyx_mstate_global->__pyx_slice[0]); if (unlikely(__pyx_t_14 == ((int)-1))) __PYX_ERR(0, 256, __pyx_L1_error)
+        __pyx_t_14 = __Pyx_PyList_Append(__pyx_v_clean_key, __pyx_mstate_global->__pyx_slice[0]); if (unlikely(__pyx_t_14 == ((int)-1))) __PYX_ERR(0, 497, __pyx_L1_error)
       }
 
-      /* "cyflow/tensor.pyx":254
+      /* "cyflow/tensor.pyx":495
  * 
  *         for item in tuple_key:
  *             if item is Ellipsis:             # <<<<<<<<<<<<<<
@@ -6197,19 +9462,19 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_12__getitem__(struct __pyx_obj
       goto __pyx_L14;
     }
 
-    /* "cyflow/tensor.pyx":258
+    /* "cyflow/tensor.pyx":499
  *                     clean_key.append(slice(None))
  *             else:
  *                 clean_key.append(item)             # <<<<<<<<<<<<<<
  * 
- *         # 4. Calculate output dimensions and allocate shape/strides memory
+ *         out_ndim = (self.ndim - num_int) + num_none
 */
     /*else*/ {
-      __pyx_t_14 = __Pyx_PyList_Append(__pyx_v_clean_key, __pyx_v_item); if (unlikely(__pyx_t_14 == ((int)-1))) __PYX_ERR(0, 258, __pyx_L1_error)
+      __pyx_t_14 = __Pyx_PyList_Append(__pyx_v_clean_key, __pyx_v_item); if (unlikely(__pyx_t_14 == ((int)-1))) __PYX_ERR(0, 499, __pyx_L1_error)
     }
     __pyx_L14:;
 
-    /* "cyflow/tensor.pyx":253
+    /* "cyflow/tensor.pyx":494
  *         missing_axes = self.ndim - explicit_axes
  * 
  *         for item in tuple_key:             # <<<<<<<<<<<<<<
@@ -6219,32 +9484,32 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_12__getitem__(struct __pyx_obj
   }
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
 
-  /* "cyflow/tensor.pyx":261
+  /* "cyflow/tensor.pyx":501
+ *                 clean_key.append(item)
  * 
- *         # 4. Calculate output dimensions and allocate shape/strides memory
  *         out_ndim = (self.ndim - num_int) + num_none             # <<<<<<<<<<<<<<
  * 
  *         if out_ndim > 0:
 */
-  __pyx_t_5 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_mstate_global->__pyx_n_u_ndim); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 261, __pyx_L1_error)
+  __pyx_t_5 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_mstate_global->__pyx_n_u_ndim); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 501, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
-  __pyx_t_9 = __Pyx_PyLong_From_int(__pyx_v_num_int); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 261, __pyx_L1_error)
+  __pyx_t_9 = __Pyx_PyLong_From_int(__pyx_v_num_int); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 501, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_9);
-  __pyx_t_8 = PyNumber_Subtract(__pyx_t_5, __pyx_t_9); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 261, __pyx_L1_error)
+  __pyx_t_8 = PyNumber_Subtract(__pyx_t_5, __pyx_t_9); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 501, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_8);
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
   __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
-  __pyx_t_9 = __Pyx_PyLong_From_int(__pyx_v_num_none); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 261, __pyx_L1_error)
+  __pyx_t_9 = __Pyx_PyLong_From_int(__pyx_v_num_none); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 501, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_9);
-  __pyx_t_5 = PyNumber_Add(__pyx_t_8, __pyx_t_9); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 261, __pyx_L1_error)
+  __pyx_t_5 = PyNumber_Add(__pyx_t_8, __pyx_t_9); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 501, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
   __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
   __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
-  __pyx_t_7 = __Pyx_PyLong_As_size_t(__pyx_t_5); if (unlikely((__pyx_t_7 == (size_t)-1) && PyErr_Occurred())) __PYX_ERR(0, 261, __pyx_L1_error)
+  __pyx_t_7 = __Pyx_PyLong_As_size_t(__pyx_t_5); if (unlikely((__pyx_t_7 == (size_t)-1) && PyErr_Occurred())) __PYX_ERR(0, 501, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
   __pyx_v_out_ndim = __pyx_t_7;
 
-  /* "cyflow/tensor.pyx":263
+  /* "cyflow/tensor.pyx":503
  *         out_ndim = (self.ndim - num_int) + num_none
  * 
  *         if out_ndim > 0:             # <<<<<<<<<<<<<<
@@ -6254,7 +9519,7 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_12__getitem__(struct __pyx_obj
   __pyx_t_2 = (__pyx_v_out_ndim > 0);
   if (__pyx_t_2) {
 
-    /* "cyflow/tensor.pyx":264
+    /* "cyflow/tensor.pyx":504
  * 
  *         if out_ndim > 0:
  *             c_shape = <int64_t*>malloc(out_ndim * sizeof(int64_t))             # <<<<<<<<<<<<<<
@@ -6263,7 +9528,7 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_12__getitem__(struct __pyx_obj
 */
     __pyx_v_c_shape = ((int64_t *)malloc((__pyx_v_out_ndim * (sizeof(int64_t)))));
 
-    /* "cyflow/tensor.pyx":265
+    /* "cyflow/tensor.pyx":505
  *         if out_ndim > 0:
  *             c_shape = <int64_t*>malloc(out_ndim * sizeof(int64_t))
  *             c_strides = <int64_t*>malloc(out_ndim * sizeof(int64_t))             # <<<<<<<<<<<<<<
@@ -6272,7 +9537,7 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_12__getitem__(struct __pyx_obj
 */
     __pyx_v_c_strides = ((int64_t *)malloc((__pyx_v_out_ndim * (sizeof(int64_t)))));
 
-    /* "cyflow/tensor.pyx":266
+    /* "cyflow/tensor.pyx":506
  *             c_shape = <int64_t*>malloc(out_ndim * sizeof(int64_t))
  *             c_strides = <int64_t*>malloc(out_ndim * sizeof(int64_t))
  *             if not c_shape or not c_strides:             # <<<<<<<<<<<<<<
@@ -6290,7 +9555,7 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_12__getitem__(struct __pyx_obj
     __pyx_L20_bool_binop_done:;
     if (__pyx_t_2) {
 
-      /* "cyflow/tensor.pyx":267
+      /* "cyflow/tensor.pyx":507
  *             c_strides = <int64_t*>malloc(out_ndim * sizeof(int64_t))
  *             if not c_shape or not c_strides:
  *                 if c_shape: free(c_shape)             # <<<<<<<<<<<<<<
@@ -6302,7 +9567,7 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_12__getitem__(struct __pyx_obj
         free(__pyx_v_c_shape);
       }
 
-      /* "cyflow/tensor.pyx":268
+      /* "cyflow/tensor.pyx":508
  *             if not c_shape or not c_strides:
  *                 if c_shape: free(c_shape)
  *                 if c_strides: free(c_strides)             # <<<<<<<<<<<<<<
@@ -6314,12 +9579,12 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_12__getitem__(struct __pyx_obj
         free(__pyx_v_c_strides);
       }
 
-      /* "cyflow/tensor.pyx":269
+      /* "cyflow/tensor.pyx":509
  *                 if c_shape: free(c_shape)
  *                 if c_strides: free(c_strides)
  *                 raise MemoryError("Failed to allocate shape/stride memory for view")             # <<<<<<<<<<<<<<
  * 
- *         # 5. Single-pass loop calculating shapes, strides, and memory offsets
+ *         for item in clean_key:
 */
       __pyx_t_9 = NULL;
       __pyx_t_7 = 1;
@@ -6327,14 +9592,14 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_12__getitem__(struct __pyx_obj
         PyObject *__pyx_callargs[2] = {__pyx_t_9, __pyx_mstate_global->__pyx_kp_u_Failed_to_allocate_shape_stride};
         __pyx_t_5 = __Pyx_PyObject_FastCall((PyObject*)(((PyTypeObject*)PyExc_MemoryError)), __pyx_callargs+__pyx_t_7, (2-__pyx_t_7) | (__pyx_t_7*__Pyx_PY_VECTORCALL_ARGUMENTS_OFFSET));
         __Pyx_XDECREF(__pyx_t_9); __pyx_t_9 = 0;
-        if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 269, __pyx_L1_error)
+        if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 509, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_5);
       }
       __Pyx_Raise(__pyx_t_5, 0, 0, 0);
       __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-      __PYX_ERR(0, 269, __pyx_L1_error)
+      __PYX_ERR(0, 509, __pyx_L1_error)
 
-      /* "cyflow/tensor.pyx":266
+      /* "cyflow/tensor.pyx":506
  *             c_shape = <int64_t*>malloc(out_ndim * sizeof(int64_t))
  *             c_strides = <int64_t*>malloc(out_ndim * sizeof(int64_t))
  *             if not c_shape or not c_strides:             # <<<<<<<<<<<<<<
@@ -6343,7 +9608,7 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_12__getitem__(struct __pyx_obj
 */
     }
 
-    /* "cyflow/tensor.pyx":263
+    /* "cyflow/tensor.pyx":503
  *         out_ndim = (self.ndim - num_int) + num_none
  * 
  *         if out_ndim > 0:             # <<<<<<<<<<<<<<
@@ -6352,12 +9617,12 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_12__getitem__(struct __pyx_obj
 */
   }
 
-  /* "cyflow/tensor.pyx":272
+  /* "cyflow/tensor.pyx":511
+ *                 raise MemoryError("Failed to allocate shape/stride memory for view")
  * 
- *         # 5. Single-pass loop calculating shapes, strides, and memory offsets
  *         for item in clean_key:             # <<<<<<<<<<<<<<
  *             if item is None:
- *                 # Insert a new dimension of size 1 (np.newaxis / unsqueeze)
+ *                 c_shape[dst_dim] = 1
 */
   __pyx_t_5 = __pyx_v_clean_key; __Pyx_INCREF(__pyx_t_5);
   __pyx_t_4 = 0;
@@ -6365,55 +9630,55 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_12__getitem__(struct __pyx_obj
     {
       Py_ssize_t __pyx_temp = __Pyx_PyList_GET_SIZE(__pyx_t_5);
       #if !CYTHON_ASSUME_SAFE_SIZE
-      if (unlikely((__pyx_temp < 0))) __PYX_ERR(0, 272, __pyx_L1_error)
+      if (unlikely((__pyx_temp < 0))) __PYX_ERR(0, 511, __pyx_L1_error)
       #endif
       if (__pyx_t_4 >= __pyx_temp) break;
     }
     __pyx_t_9 = __Pyx_PyList_GetItemRefFast(__pyx_t_5, __pyx_t_4, __Pyx_ReferenceSharing_OwnStrongReference);
     ++__pyx_t_4;
-    if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 272, __pyx_L1_error)
+    if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 511, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_9);
     __Pyx_XDECREF_SET(__pyx_v_item, __pyx_t_9);
     __pyx_t_9 = 0;
 
-    /* "cyflow/tensor.pyx":273
- *         # 5. Single-pass loop calculating shapes, strides, and memory offsets
+    /* "cyflow/tensor.pyx":512
+ * 
  *         for item in clean_key:
  *             if item is None:             # <<<<<<<<<<<<<<
- *                 # Insert a new dimension of size 1 (np.newaxis / unsqueeze)
  *                 c_shape[dst_dim] = 1
+ *                 if src_dim < self.ndim:
 */
     __pyx_t_2 = (__pyx_v_item == Py_None);
     if (__pyx_t_2) {
 
-      /* "cyflow/tensor.pyx":275
+      /* "cyflow/tensor.pyx":513
+ *         for item in clean_key:
  *             if item is None:
- *                 # Insert a new dimension of size 1 (np.newaxis / unsqueeze)
  *                 c_shape[dst_dim] = 1             # <<<<<<<<<<<<<<
  *                 if src_dim < self.ndim:
  *                     c_strides[dst_dim] = self._tensor.strides[src_dim]
 */
       (__pyx_v_c_shape[__pyx_v_dst_dim]) = 1;
 
-      /* "cyflow/tensor.pyx":276
- *                 # Insert a new dimension of size 1 (np.newaxis / unsqueeze)
+      /* "cyflow/tensor.pyx":514
+ *             if item is None:
  *                 c_shape[dst_dim] = 1
  *                 if src_dim < self.ndim:             # <<<<<<<<<<<<<<
  *                     c_strides[dst_dim] = self._tensor.strides[src_dim]
  *                 else:
 */
-      __pyx_t_9 = __Pyx_PyLong_FromSize_t(__pyx_v_src_dim); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 276, __pyx_L1_error)
+      __pyx_t_9 = __Pyx_PyLong_FromSize_t(__pyx_v_src_dim); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 514, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_9);
-      __pyx_t_8 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_mstate_global->__pyx_n_u_ndim); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 276, __pyx_L1_error)
+      __pyx_t_8 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_mstate_global->__pyx_n_u_ndim); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 514, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_8);
-      __pyx_t_3 = PyObject_RichCompare(__pyx_t_9, __pyx_t_8, Py_LT); __Pyx_XGOTREF(__pyx_t_3); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 276, __pyx_L1_error)
+      __pyx_t_3 = PyObject_RichCompare(__pyx_t_9, __pyx_t_8, Py_LT); __Pyx_XGOTREF(__pyx_t_3); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 514, __pyx_L1_error)
       __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
       __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
-      __pyx_t_2 = __Pyx_PyObject_IsTrue(__pyx_t_3); if (unlikely((__pyx_t_2 < 0))) __PYX_ERR(0, 276, __pyx_L1_error)
+      __pyx_t_2 = __Pyx_PyObject_IsTrue(__pyx_t_3); if (unlikely((__pyx_t_2 < 0))) __PYX_ERR(0, 514, __pyx_L1_error)
       __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
       if (__pyx_t_2) {
 
-        /* "cyflow/tensor.pyx":277
+        /* "cyflow/tensor.pyx":515
  *                 c_shape[dst_dim] = 1
  *                 if src_dim < self.ndim:
  *                     c_strides[dst_dim] = self._tensor.strides[src_dim]             # <<<<<<<<<<<<<<
@@ -6422,8 +9687,8 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_12__getitem__(struct __pyx_obj
 */
         (__pyx_v_c_strides[__pyx_v_dst_dim]) = (__pyx_v_self->_tensor->strides[__pyx_v_src_dim]);
 
-        /* "cyflow/tensor.pyx":276
- *                 # Insert a new dimension of size 1 (np.newaxis / unsqueeze)
+        /* "cyflow/tensor.pyx":514
+ *             if item is None:
  *                 c_shape[dst_dim] = 1
  *                 if src_dim < self.ndim:             # <<<<<<<<<<<<<<
  *                     c_strides[dst_dim] = self._tensor.strides[src_dim]
@@ -6432,39 +9697,39 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_12__getitem__(struct __pyx_obj
         goto __pyx_L27;
       }
 
-      /* "cyflow/tensor.pyx":279
+      /* "cyflow/tensor.pyx":517
  *                     c_strides[dst_dim] = self._tensor.strides[src_dim]
  *                 else:
  *                     c_strides[dst_dim] = 1             # <<<<<<<<<<<<<<
  *                 dst_dim += 1
- *                 # src_dim is NOT incremented (doesn't consume source dimension)
+ * 
 */
       /*else*/ {
         (__pyx_v_c_strides[__pyx_v_dst_dim]) = 1;
       }
       __pyx_L27:;
 
-      /* "cyflow/tensor.pyx":280
+      /* "cyflow/tensor.pyx":518
  *                 else:
  *                     c_strides[dst_dim] = 1
  *                 dst_dim += 1             # <<<<<<<<<<<<<<
- *                 # src_dim is NOT incremented (doesn't consume source dimension)
  * 
+ *             elif isinstance(item, int):
 */
       __pyx_v_dst_dim = (__pyx_v_dst_dim + 1);
 
-      /* "cyflow/tensor.pyx":273
- *         # 5. Single-pass loop calculating shapes, strides, and memory offsets
+      /* "cyflow/tensor.pyx":512
+ * 
  *         for item in clean_key:
  *             if item is None:             # <<<<<<<<<<<<<<
- *                 # Insert a new dimension of size 1 (np.newaxis / unsqueeze)
  *                 c_shape[dst_dim] = 1
+ *                 if src_dim < self.ndim:
 */
       goto __pyx_L26;
     }
 
-    /* "cyflow/tensor.pyx":283
- *                 # src_dim is NOT incremented (doesn't consume source dimension)
+    /* "cyflow/tensor.pyx":520
+ *                 dst_dim += 1
  * 
  *             elif isinstance(item, int):             # <<<<<<<<<<<<<<
  *                 cur_dim_size = self._tensor.shape[src_dim]
@@ -6473,7 +9738,7 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_12__getitem__(struct __pyx_obj
     __pyx_t_2 = PyLong_Check(__pyx_v_item); 
     if (__pyx_t_2) {
 
-      /* "cyflow/tensor.pyx":284
+      /* "cyflow/tensor.pyx":521
  * 
  *             elif isinstance(item, int):
  *                 cur_dim_size = self._tensor.shape[src_dim]             # <<<<<<<<<<<<<<
@@ -6482,7 +9747,7 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_12__getitem__(struct __pyx_obj
 */
       __pyx_v_cur_dim_size = (__pyx_v_self->_tensor->shape[__pyx_v_src_dim]);
 
-      /* "cyflow/tensor.pyx":285
+      /* "cyflow/tensor.pyx":522
  *             elif isinstance(item, int):
  *                 cur_dim_size = self._tensor.shape[src_dim]
  *                 cur_stride = self._tensor.strides[src_dim]             # <<<<<<<<<<<<<<
@@ -6491,17 +9756,17 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_12__getitem__(struct __pyx_obj
 */
       __pyx_v_cur_stride = (__pyx_v_self->_tensor->strides[__pyx_v_src_dim]);
 
-      /* "cyflow/tensor.pyx":286
+      /* "cyflow/tensor.pyx":523
  *                 cur_dim_size = self._tensor.shape[src_dim]
  *                 cur_stride = self._tensor.strides[src_dim]
  *                 idx = item             # <<<<<<<<<<<<<<
  *                 if idx < 0:
  *                     idx += cur_dim_size
 */
-      __pyx_t_15 = __Pyx_PyIndex_AsSsize_t(__pyx_v_item); if (unlikely((__pyx_t_15 == (Py_ssize_t)-1) && PyErr_Occurred())) __PYX_ERR(0, 286, __pyx_L1_error)
+      __pyx_t_15 = __Pyx_PyIndex_AsSsize_t(__pyx_v_item); if (unlikely((__pyx_t_15 == (Py_ssize_t)-1) && PyErr_Occurred())) __PYX_ERR(0, 523, __pyx_L1_error)
       __pyx_v_idx = __pyx_t_15;
 
-      /* "cyflow/tensor.pyx":287
+      /* "cyflow/tensor.pyx":524
  *                 cur_stride = self._tensor.strides[src_dim]
  *                 idx = item
  *                 if idx < 0:             # <<<<<<<<<<<<<<
@@ -6511,7 +9776,7 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_12__getitem__(struct __pyx_obj
       __pyx_t_2 = (__pyx_v_idx < 0);
       if (__pyx_t_2) {
 
-        /* "cyflow/tensor.pyx":288
+        /* "cyflow/tensor.pyx":525
  *                 idx = item
  *                 if idx < 0:
  *                     idx += cur_dim_size             # <<<<<<<<<<<<<<
@@ -6520,7 +9785,7 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_12__getitem__(struct __pyx_obj
 */
         __pyx_v_idx = (__pyx_v_idx + __pyx_v_cur_dim_size);
 
-        /* "cyflow/tensor.pyx":287
+        /* "cyflow/tensor.pyx":524
  *                 cur_stride = self._tensor.strides[src_dim]
  *                 idx = item
  *                 if idx < 0:             # <<<<<<<<<<<<<<
@@ -6529,7 +9794,7 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_12__getitem__(struct __pyx_obj
 */
       }
 
-      /* "cyflow/tensor.pyx":289
+      /* "cyflow/tensor.pyx":526
  *                 if idx < 0:
  *                     idx += cur_dim_size
  *                 if idx < 0 or idx >= cur_dim_size:             # <<<<<<<<<<<<<<
@@ -6547,7 +9812,7 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_12__getitem__(struct __pyx_obj
       __pyx_L30_bool_binop_done:;
       if (__pyx_t_2) {
 
-        /* "cyflow/tensor.pyx":290
+        /* "cyflow/tensor.pyx":527
  *                     idx += cur_dim_size
  *                 if idx < 0 or idx >= cur_dim_size:
  *                     if c_shape: free(c_shape)             # <<<<<<<<<<<<<<
@@ -6559,7 +9824,7 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_12__getitem__(struct __pyx_obj
           free(__pyx_v_c_shape);
         }
 
-        /* "cyflow/tensor.pyx":291
+        /* "cyflow/tensor.pyx":528
  *                 if idx < 0 or idx >= cur_dim_size:
  *                     if c_shape: free(c_shape)
  *                     if c_strides: free(c_strides)             # <<<<<<<<<<<<<<
@@ -6571,7 +9836,7 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_12__getitem__(struct __pyx_obj
           free(__pyx_v_c_strides);
         }
 
-        /* "cyflow/tensor.pyx":292
+        /* "cyflow/tensor.pyx":529
  *                     if c_shape: free(c_shape)
  *                     if c_strides: free(c_strides)
  *                     raise IndexError(f"Index {item} is out of bounds for axis {src_dim} with size {cur_dim_size}")             # <<<<<<<<<<<<<<
@@ -6579,11 +9844,11 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_12__getitem__(struct __pyx_obj
  *                 offset_delta += idx * cur_stride
 */
         __pyx_t_8 = NULL;
-        __pyx_t_9 = __Pyx_PyObject_FormatSimple(__pyx_v_item, __pyx_mstate_global->__pyx_empty_unicode); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 292, __pyx_L1_error)
+        __pyx_t_9 = __Pyx_PyObject_FormatSimple(__pyx_v_item, __pyx_mstate_global->__pyx_empty_unicode); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 529, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_9);
-        __pyx_t_6 = __Pyx_PyUnicode_From_size_t(__pyx_v_src_dim, 0, ' ', 'd'); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 292, __pyx_L1_error)
+        __pyx_t_6 = __Pyx_PyUnicode_From_size_t(__pyx_v_src_dim, 0, ' ', 'd'); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 529, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_6);
-        __pyx_t_16 = __Pyx_PyUnicode_From_int64_t(__pyx_v_cur_dim_size, 0, ' ', 'd'); if (unlikely(!__pyx_t_16)) __PYX_ERR(0, 292, __pyx_L1_error)
+        __pyx_t_16 = __Pyx_PyUnicode_From_int64_t(__pyx_v_cur_dim_size, 0, ' ', 'd'); if (unlikely(!__pyx_t_16)) __PYX_ERR(0, 529, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_16);
         __pyx_t_17[0] = __pyx_mstate_global->__pyx_kp_u_Index;
         __pyx_t_17[1] = __pyx_t_9;
@@ -6592,7 +9857,7 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_12__getitem__(struct __pyx_obj
         __pyx_t_17[4] = __pyx_mstate_global->__pyx_kp_u_with_size;
         __pyx_t_17[5] = __pyx_t_16;
         __pyx_t_18 = __Pyx_PyUnicode_Join(__pyx_t_17, 6, 6 + __Pyx_PyUnicode_GET_LENGTH(__pyx_t_9) + 27 + __Pyx_PyUnicode_GET_LENGTH(__pyx_t_6) + 11 + __Pyx_PyUnicode_GET_LENGTH(__pyx_t_16), 127 | __Pyx_PyUnicode_MAX_CHAR_VALUE(__pyx_t_9));
-        if (unlikely(!__pyx_t_18)) __PYX_ERR(0, 292, __pyx_L1_error)
+        if (unlikely(!__pyx_t_18)) __PYX_ERR(0, 529, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_18);
         __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
         __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
@@ -6603,14 +9868,14 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_12__getitem__(struct __pyx_obj
           __pyx_t_3 = __Pyx_PyObject_FastCall((PyObject*)(((PyTypeObject*)PyExc_IndexError)), __pyx_callargs+__pyx_t_7, (2-__pyx_t_7) | (__pyx_t_7*__Pyx_PY_VECTORCALL_ARGUMENTS_OFFSET));
           __Pyx_XDECREF(__pyx_t_8); __pyx_t_8 = 0;
           __Pyx_DECREF(__pyx_t_18); __pyx_t_18 = 0;
-          if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 292, __pyx_L1_error)
+          if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 529, __pyx_L1_error)
           __Pyx_GOTREF(__pyx_t_3);
         }
         __Pyx_Raise(__pyx_t_3, 0, 0, 0);
         __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-        __PYX_ERR(0, 292, __pyx_L1_error)
+        __PYX_ERR(0, 529, __pyx_L1_error)
 
-        /* "cyflow/tensor.pyx":289
+        /* "cyflow/tensor.pyx":526
  *                 if idx < 0:
  *                     idx += cur_dim_size
  *                 if idx < 0 or idx >= cur_dim_size:             # <<<<<<<<<<<<<<
@@ -6619,26 +9884,26 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_12__getitem__(struct __pyx_obj
 */
       }
 
-      /* "cyflow/tensor.pyx":294
+      /* "cyflow/tensor.pyx":531
  *                     raise IndexError(f"Index {item} is out of bounds for axis {src_dim} with size {cur_dim_size}")
  * 
  *                 offset_delta += idx * cur_stride             # <<<<<<<<<<<<<<
  *                 src_dim += 1
- *                 # dst_dim is NOT incremented (integer indexing collapses the dimension)
+ * 
 */
       __pyx_v_offset_delta = (__pyx_v_offset_delta + (__pyx_v_idx * __pyx_v_cur_stride));
 
-      /* "cyflow/tensor.pyx":295
+      /* "cyflow/tensor.pyx":532
  * 
  *                 offset_delta += idx * cur_stride
  *                 src_dim += 1             # <<<<<<<<<<<<<<
- *                 # dst_dim is NOT incremented (integer indexing collapses the dimension)
  * 
+ *             elif isinstance(item, slice):
 */
       __pyx_v_src_dim = (__pyx_v_src_dim + 1);
 
-      /* "cyflow/tensor.pyx":283
- *                 # src_dim is NOT incremented (doesn't consume source dimension)
+      /* "cyflow/tensor.pyx":520
+ *                 dst_dim += 1
  * 
  *             elif isinstance(item, int):             # <<<<<<<<<<<<<<
  *                 cur_dim_size = self._tensor.shape[src_dim]
@@ -6647,8 +9912,8 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_12__getitem__(struct __pyx_obj
       goto __pyx_L26;
     }
 
-    /* "cyflow/tensor.pyx":298
- *                 # dst_dim is NOT incremented (integer indexing collapses the dimension)
+    /* "cyflow/tensor.pyx":534
+ *                 src_dim += 1
  * 
  *             elif isinstance(item, slice):             # <<<<<<<<<<<<<<
  *                 cur_dim_size = self._tensor.shape[src_dim]
@@ -6657,7 +9922,7 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_12__getitem__(struct __pyx_obj
     __pyx_t_2 = PySlice_Check(__pyx_v_item); 
     if (__pyx_t_2) {
 
-      /* "cyflow/tensor.pyx":299
+      /* "cyflow/tensor.pyx":535
  * 
  *             elif isinstance(item, slice):
  *                 cur_dim_size = self._tensor.shape[src_dim]             # <<<<<<<<<<<<<<
@@ -6666,7 +9931,7 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_12__getitem__(struct __pyx_obj
 */
       __pyx_v_cur_dim_size = (__pyx_v_self->_tensor->shape[__pyx_v_src_dim]);
 
-      /* "cyflow/tensor.pyx":300
+      /* "cyflow/tensor.pyx":536
  *             elif isinstance(item, slice):
  *                 cur_dim_size = self._tensor.shape[src_dim]
  *                 cur_stride = self._tensor.strides[src_dim]             # <<<<<<<<<<<<<<
@@ -6675,7 +9940,7 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_12__getitem__(struct __pyx_obj
 */
       __pyx_v_cur_stride = (__pyx_v_self->_tensor->strides[__pyx_v_src_dim]);
 
-      /* "cyflow/tensor.pyx":302
+      /* "cyflow/tensor.pyx":538
  *                 cur_stride = self._tensor.strides[src_dim]
  * 
  *                 start, stop, step = item.indices(cur_dim_size)             # <<<<<<<<<<<<<<
@@ -6684,7 +9949,7 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_12__getitem__(struct __pyx_obj
 */
       __pyx_t_18 = __pyx_v_item;
       __Pyx_INCREF(__pyx_t_18);
-      __pyx_t_8 = __Pyx_PyLong_From_int64_t(__pyx_v_cur_dim_size); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 302, __pyx_L1_error)
+      __pyx_t_8 = __Pyx_PyLong_From_int64_t(__pyx_v_cur_dim_size); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 538, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_8);
       __pyx_t_7 = 0;
       {
@@ -6692,7 +9957,7 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_12__getitem__(struct __pyx_obj
         __pyx_t_3 = __Pyx_PyObject_FastCallMethod((PyObject*)__pyx_mstate_global->__pyx_n_u_indices, __pyx_callargs+__pyx_t_7, (2-__pyx_t_7) | (1*__Pyx_PY_VECTORCALL_ARGUMENTS_OFFSET));
         __Pyx_XDECREF(__pyx_t_18); __pyx_t_18 = 0;
         __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
-        if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 302, __pyx_L1_error)
+        if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 538, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_3);
       }
       if ((likely(PyTuple_CheckExact(__pyx_t_3))) || (PyList_CheckExact(__pyx_t_3))) {
@@ -6701,7 +9966,7 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_12__getitem__(struct __pyx_obj
         if (unlikely(size != 3)) {
           if (size > 3) __Pyx_RaiseTooManyValuesError(3);
           else if (size >= 0) __Pyx_RaiseNeedMoreValuesError(size);
-          __PYX_ERR(0, 302, __pyx_L1_error)
+          __PYX_ERR(0, 538, __pyx_L1_error)
         }
         #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
         if (likely(PyTuple_CheckExact(sequence))) {
@@ -6713,27 +9978,27 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_12__getitem__(struct __pyx_obj
           __Pyx_INCREF(__pyx_t_16);
         } else {
           __pyx_t_8 = __Pyx_PyList_GetItemRefFast(sequence, 0, __Pyx_ReferenceSharing_SharedReference);
-          if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 302, __pyx_L1_error)
+          if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 538, __pyx_L1_error)
           __Pyx_XGOTREF(__pyx_t_8);
           __pyx_t_18 = __Pyx_PyList_GetItemRefFast(sequence, 1, __Pyx_ReferenceSharing_SharedReference);
-          if (unlikely(!__pyx_t_18)) __PYX_ERR(0, 302, __pyx_L1_error)
+          if (unlikely(!__pyx_t_18)) __PYX_ERR(0, 538, __pyx_L1_error)
           __Pyx_XGOTREF(__pyx_t_18);
           __pyx_t_16 = __Pyx_PyList_GetItemRefFast(sequence, 2, __Pyx_ReferenceSharing_SharedReference);
-          if (unlikely(!__pyx_t_16)) __PYX_ERR(0, 302, __pyx_L1_error)
+          if (unlikely(!__pyx_t_16)) __PYX_ERR(0, 538, __pyx_L1_error)
           __Pyx_XGOTREF(__pyx_t_16);
         }
         #else
-        __pyx_t_8 = __Pyx_PySequence_ITEM(sequence, 0); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 302, __pyx_L1_error)
+        __pyx_t_8 = __Pyx_PySequence_ITEM(sequence, 0); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 538, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_8);
-        __pyx_t_18 = __Pyx_PySequence_ITEM(sequence, 1); if (unlikely(!__pyx_t_18)) __PYX_ERR(0, 302, __pyx_L1_error)
+        __pyx_t_18 = __Pyx_PySequence_ITEM(sequence, 1); if (unlikely(!__pyx_t_18)) __PYX_ERR(0, 538, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_18);
-        __pyx_t_16 = __Pyx_PySequence_ITEM(sequence, 2); if (unlikely(!__pyx_t_16)) __PYX_ERR(0, 302, __pyx_L1_error)
+        __pyx_t_16 = __Pyx_PySequence_ITEM(sequence, 2); if (unlikely(!__pyx_t_16)) __PYX_ERR(0, 538, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_16);
         #endif
         __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
       } else {
         Py_ssize_t index = -1;
-        __pyx_t_6 = PyObject_GetIter(__pyx_t_3); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 302, __pyx_L1_error)
+        __pyx_t_6 = PyObject_GetIter(__pyx_t_3); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 538, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_6);
         __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
         __pyx_t_19 = (CYTHON_COMPILING_IN_LIMITED_API) ? PyIter_Next : __Pyx_PyObject_GetIterNextFunc(__pyx_t_6);
@@ -6743,7 +10008,7 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_12__getitem__(struct __pyx_obj
         __Pyx_GOTREF(__pyx_t_18);
         index = 2; __pyx_t_16 = __pyx_t_19(__pyx_t_6); if (unlikely(!__pyx_t_16)) goto __pyx_L34_unpacking_failed;
         __Pyx_GOTREF(__pyx_t_16);
-        if (__Pyx_IternextUnpackEndCheck(__pyx_t_19(__pyx_t_6), 3) < (0)) __PYX_ERR(0, 302, __pyx_L1_error)
+        if (__Pyx_IternextUnpackEndCheck(__pyx_t_19(__pyx_t_6), 3) < (0)) __PYX_ERR(0, 538, __pyx_L1_error)
         __pyx_t_19 = NULL;
         __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
         goto __pyx_L35_unpacking_done;
@@ -6751,20 +10016,20 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_12__getitem__(struct __pyx_obj
         __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
         __pyx_t_19 = NULL;
         if (__Pyx_IterFinish() == 0) __Pyx_RaiseNeedMoreValuesError(index);
-        __PYX_ERR(0, 302, __pyx_L1_error)
+        __PYX_ERR(0, 538, __pyx_L1_error)
         __pyx_L35_unpacking_done:;
       }
-      __pyx_t_15 = __Pyx_PyIndex_AsSsize_t(__pyx_t_8); if (unlikely((__pyx_t_15 == (Py_ssize_t)-1) && PyErr_Occurred())) __PYX_ERR(0, 302, __pyx_L1_error)
+      __pyx_t_15 = __Pyx_PyIndex_AsSsize_t(__pyx_t_8); if (unlikely((__pyx_t_15 == (Py_ssize_t)-1) && PyErr_Occurred())) __PYX_ERR(0, 538, __pyx_L1_error)
       __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
-      __pyx_t_20 = __Pyx_PyIndex_AsSsize_t(__pyx_t_18); if (unlikely((__pyx_t_20 == (Py_ssize_t)-1) && PyErr_Occurred())) __PYX_ERR(0, 302, __pyx_L1_error)
+      __pyx_t_20 = __Pyx_PyIndex_AsSsize_t(__pyx_t_18); if (unlikely((__pyx_t_20 == (Py_ssize_t)-1) && PyErr_Occurred())) __PYX_ERR(0, 538, __pyx_L1_error)
       __Pyx_DECREF(__pyx_t_18); __pyx_t_18 = 0;
-      __pyx_t_21 = __Pyx_PyIndex_AsSsize_t(__pyx_t_16); if (unlikely((__pyx_t_21 == (Py_ssize_t)-1) && PyErr_Occurred())) __PYX_ERR(0, 302, __pyx_L1_error)
+      __pyx_t_21 = __Pyx_PyIndex_AsSsize_t(__pyx_t_16); if (unlikely((__pyx_t_21 == (Py_ssize_t)-1) && PyErr_Occurred())) __PYX_ERR(0, 538, __pyx_L1_error)
       __Pyx_DECREF(__pyx_t_16); __pyx_t_16 = 0;
       __pyx_v_start = __pyx_t_15;
       __pyx_v_stop = __pyx_t_20;
       __pyx_v_step = __pyx_t_21;
 
-      /* "cyflow/tensor.pyx":303
+      /* "cyflow/tensor.pyx":539
  * 
  *                 start, stop, step = item.indices(cur_dim_size)
  *                 if step > 0:             # <<<<<<<<<<<<<<
@@ -6774,7 +10039,7 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_12__getitem__(struct __pyx_obj
       __pyx_t_2 = (__pyx_v_step > 0);
       if (__pyx_t_2) {
 
-        /* "cyflow/tensor.pyx":304
+        /* "cyflow/tensor.pyx":540
  *                 start, stop, step = item.indices(cur_dim_size)
  *                 if step > 0:
  *                     length = (stop - start + step - 1) // step if stop > start else 0             # <<<<<<<<<<<<<<
@@ -6786,11 +10051,11 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_12__getitem__(struct __pyx_obj
           __pyx_t_20 = (((__pyx_v_stop - __pyx_v_start) + __pyx_v_step) - 1);
           if (unlikely(__pyx_v_step == 0)) {
             PyErr_SetString(PyExc_ZeroDivisionError, "integer division or modulo by zero");
-            __PYX_ERR(0, 304, __pyx_L1_error)
+            __PYX_ERR(0, 540, __pyx_L1_error)
           }
           else if (sizeof(Py_ssize_t) == sizeof(long) && (!(((Py_ssize_t)-1) > 0)) && unlikely(__pyx_v_step == (Py_ssize_t)-1)  && unlikely(__Pyx_UNARY_NEG_WOULD_OVERFLOW(__pyx_t_20))) {
             PyErr_SetString(PyExc_OverflowError, "value too large to perform division");
-            __PYX_ERR(0, 304, __pyx_L1_error)
+            __PYX_ERR(0, 540, __pyx_L1_error)
           }
           __pyx_t_21 = __Pyx_div_Py_ssize_t(__pyx_t_20, __pyx_v_step, 0);
         } else {
@@ -6798,7 +10063,7 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_12__getitem__(struct __pyx_obj
         }
         __pyx_v_length = __pyx_t_21;
 
-        /* "cyflow/tensor.pyx":303
+        /* "cyflow/tensor.pyx":539
  * 
  *                 start, stop, step = item.indices(cur_dim_size)
  *                 if step > 0:             # <<<<<<<<<<<<<<
@@ -6808,7 +10073,7 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_12__getitem__(struct __pyx_obj
         goto __pyx_L36;
       }
 
-      /* "cyflow/tensor.pyx":306
+      /* "cyflow/tensor.pyx":542
  *                     length = (stop - start + step - 1) // step if stop > start else 0
  *                 else:
  *                     length = (start - stop + (-step) - 1) // (-step) if stop < start else 0             # <<<<<<<<<<<<<<
@@ -6822,11 +10087,11 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_12__getitem__(struct __pyx_obj
           __pyx_t_15 = (-__pyx_v_step);
           if (unlikely(__pyx_t_15 == 0)) {
             PyErr_SetString(PyExc_ZeroDivisionError, "integer division or modulo by zero");
-            __PYX_ERR(0, 306, __pyx_L1_error)
+            __PYX_ERR(0, 542, __pyx_L1_error)
           }
           else if (sizeof(Py_ssize_t) == sizeof(long) && (!(((Py_ssize_t)-1) > 0)) && unlikely(__pyx_t_15 == (Py_ssize_t)-1)  && unlikely(__Pyx_UNARY_NEG_WOULD_OVERFLOW(__pyx_t_20))) {
             PyErr_SetString(PyExc_OverflowError, "value too large to perform division");
-            __PYX_ERR(0, 306, __pyx_L1_error)
+            __PYX_ERR(0, 542, __pyx_L1_error)
           }
           __pyx_t_21 = __Pyx_div_Py_ssize_t(__pyx_t_20, __pyx_t_15, 0);
         } else {
@@ -6836,7 +10101,7 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_12__getitem__(struct __pyx_obj
       }
       __pyx_L36:;
 
-      /* "cyflow/tensor.pyx":308
+      /* "cyflow/tensor.pyx":544
  *                     length = (start - stop + (-step) - 1) // (-step) if stop < start else 0
  * 
  *                 c_shape[dst_dim] = length             # <<<<<<<<<<<<<<
@@ -6845,7 +10110,7 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_12__getitem__(struct __pyx_obj
 */
       (__pyx_v_c_shape[__pyx_v_dst_dim]) = __pyx_v_length;
 
-      /* "cyflow/tensor.pyx":309
+      /* "cyflow/tensor.pyx":545
  * 
  *                 c_shape[dst_dim] = length
  *                 c_strides[dst_dim] = cur_stride * step             # <<<<<<<<<<<<<<
@@ -6854,7 +10119,7 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_12__getitem__(struct __pyx_obj
 */
       (__pyx_v_c_strides[__pyx_v_dst_dim]) = (__pyx_v_cur_stride * __pyx_v_step);
 
-      /* "cyflow/tensor.pyx":310
+      /* "cyflow/tensor.pyx":546
  *                 c_shape[dst_dim] = length
  *                 c_strides[dst_dim] = cur_stride * step
  *                 out_numel *= <size_t>length             # <<<<<<<<<<<<<<
@@ -6863,7 +10128,7 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_12__getitem__(struct __pyx_obj
 */
       __pyx_v_out_numel = (__pyx_v_out_numel * ((size_t)__pyx_v_length));
 
-      /* "cyflow/tensor.pyx":311
+      /* "cyflow/tensor.pyx":547
  *                 c_strides[dst_dim] = cur_stride * step
  *                 out_numel *= <size_t>length
  *                 offset_delta += start * cur_stride             # <<<<<<<<<<<<<<
@@ -6872,7 +10137,7 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_12__getitem__(struct __pyx_obj
 */
       __pyx_v_offset_delta = (__pyx_v_offset_delta + (__pyx_v_start * __pyx_v_cur_stride));
 
-      /* "cyflow/tensor.pyx":313
+      /* "cyflow/tensor.pyx":549
  *                 offset_delta += start * cur_stride
  * 
  *                 dst_dim += 1             # <<<<<<<<<<<<<<
@@ -6881,7 +10146,7 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_12__getitem__(struct __pyx_obj
 */
       __pyx_v_dst_dim = (__pyx_v_dst_dim + 1);
 
-      /* "cyflow/tensor.pyx":314
+      /* "cyflow/tensor.pyx":550
  * 
  *                 dst_dim += 1
  *                 src_dim += 1             # <<<<<<<<<<<<<<
@@ -6890,8 +10155,8 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_12__getitem__(struct __pyx_obj
 */
       __pyx_v_src_dim = (__pyx_v_src_dim + 1);
 
-      /* "cyflow/tensor.pyx":298
- *                 # dst_dim is NOT incremented (integer indexing collapses the dimension)
+      /* "cyflow/tensor.pyx":534
+ *                 src_dim += 1
  * 
  *             elif isinstance(item, slice):             # <<<<<<<<<<<<<<
  *                 cur_dim_size = self._tensor.shape[src_dim]
@@ -6900,17 +10165,17 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_12__getitem__(struct __pyx_obj
     }
     __pyx_L26:;
 
-    /* "cyflow/tensor.pyx":272
+    /* "cyflow/tensor.pyx":511
+ *                 raise MemoryError("Failed to allocate shape/stride memory for view")
  * 
- *         # 5. Single-pass loop calculating shapes, strides, and memory offsets
  *         for item in clean_key:             # <<<<<<<<<<<<<<
  *             if item is None:
- *                 # Insert a new dimension of size 1 (np.newaxis / unsqueeze)
+ *                 c_shape[dst_dim] = 1
 */
   }
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
 
-  /* "cyflow/tensor.pyx":316
+  /* "cyflow/tensor.pyx":552
  *                 src_dim += 1
  * 
  *         while src_dim < self.ndim:             # <<<<<<<<<<<<<<
@@ -6918,18 +10183,18 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_12__getitem__(struct __pyx_obj
  *             c_strides[dst_dim] = self._tensor.strides[src_dim]
 */
   while (1) {
-    __pyx_t_5 = __Pyx_PyLong_FromSize_t(__pyx_v_src_dim); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 316, __pyx_L1_error)
+    __pyx_t_5 = __Pyx_PyLong_FromSize_t(__pyx_v_src_dim); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 552, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_5);
-    __pyx_t_3 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_mstate_global->__pyx_n_u_ndim); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 316, __pyx_L1_error)
+    __pyx_t_3 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_mstate_global->__pyx_n_u_ndim); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 552, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
-    __pyx_t_16 = PyObject_RichCompare(__pyx_t_5, __pyx_t_3, Py_LT); __Pyx_XGOTREF(__pyx_t_16); if (unlikely(!__pyx_t_16)) __PYX_ERR(0, 316, __pyx_L1_error)
+    __pyx_t_16 = PyObject_RichCompare(__pyx_t_5, __pyx_t_3, Py_LT); __Pyx_XGOTREF(__pyx_t_16); if (unlikely(!__pyx_t_16)) __PYX_ERR(0, 552, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-    __pyx_t_2 = __Pyx_PyObject_IsTrue(__pyx_t_16); if (unlikely((__pyx_t_2 < 0))) __PYX_ERR(0, 316, __pyx_L1_error)
+    __pyx_t_2 = __Pyx_PyObject_IsTrue(__pyx_t_16); if (unlikely((__pyx_t_2 < 0))) __PYX_ERR(0, 552, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_16); __pyx_t_16 = 0;
     if (!__pyx_t_2) break;
 
-    /* "cyflow/tensor.pyx":317
+    /* "cyflow/tensor.pyx":553
  * 
  *         while src_dim < self.ndim:
  *             c_shape[dst_dim] = self._tensor.shape[src_dim]             # <<<<<<<<<<<<<<
@@ -6938,7 +10203,7 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_12__getitem__(struct __pyx_obj
 */
     (__pyx_v_c_shape[__pyx_v_dst_dim]) = (__pyx_v_self->_tensor->shape[__pyx_v_src_dim]);
 
-    /* "cyflow/tensor.pyx":318
+    /* "cyflow/tensor.pyx":554
  *         while src_dim < self.ndim:
  *             c_shape[dst_dim] = self._tensor.shape[src_dim]
  *             c_strides[dst_dim] = self._tensor.strides[src_dim]             # <<<<<<<<<<<<<<
@@ -6947,7 +10212,7 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_12__getitem__(struct __pyx_obj
 */
     (__pyx_v_c_strides[__pyx_v_dst_dim]) = (__pyx_v_self->_tensor->strides[__pyx_v_src_dim]);
 
-    /* "cyflow/tensor.pyx":319
+    /* "cyflow/tensor.pyx":555
  *             c_shape[dst_dim] = self._tensor.shape[src_dim]
  *             c_strides[dst_dim] = self._tensor.strides[src_dim]
  *             out_numel *= <size_t>self._tensor.shape[src_dim]             # <<<<<<<<<<<<<<
@@ -6956,7 +10221,7 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_12__getitem__(struct __pyx_obj
 */
     __pyx_v_out_numel = (__pyx_v_out_numel * ((size_t)(__pyx_v_self->_tensor->shape[__pyx_v_src_dim])));
 
-    /* "cyflow/tensor.pyx":320
+    /* "cyflow/tensor.pyx":556
  *             c_strides[dst_dim] = self._tensor.strides[src_dim]
  *             out_numel *= <size_t>self._tensor.shape[src_dim]
  *             dst_dim += 1             # <<<<<<<<<<<<<<
@@ -6965,7 +10230,7 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_12__getitem__(struct __pyx_obj
 */
     __pyx_v_dst_dim = (__pyx_v_dst_dim + 1);
 
-    /* "cyflow/tensor.pyx":321
+    /* "cyflow/tensor.pyx":557
  *             out_numel *= <size_t>self._tensor.shape[src_dim]
  *             dst_dim += 1
  *             src_dim += 1             # <<<<<<<<<<<<<<
@@ -6975,7 +10240,7 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_12__getitem__(struct __pyx_obj
     __pyx_v_src_dim = (__pyx_v_src_dim + 1);
   }
 
-  /* "cyflow/tensor.pyx":323
+  /* "cyflow/tensor.pyx":559
  *             src_dim += 1
  * 
  *         result = <TensorImpl*>malloc(sizeof(TensorImpl))             # <<<<<<<<<<<<<<
@@ -6984,7 +10249,7 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_12__getitem__(struct __pyx_obj
 */
   __pyx_v_result = ((TensorImpl *)malloc((sizeof(TensorImpl))));
 
-  /* "cyflow/tensor.pyx":324
+  /* "cyflow/tensor.pyx":560
  * 
  *         result = <TensorImpl*>malloc(sizeof(TensorImpl))
  *         if not result:             # <<<<<<<<<<<<<<
@@ -6994,7 +10259,7 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_12__getitem__(struct __pyx_obj
   __pyx_t_2 = (!(__pyx_v_result != 0));
   if (__pyx_t_2) {
 
-    /* "cyflow/tensor.pyx":325
+    /* "cyflow/tensor.pyx":561
  *         result = <TensorImpl*>malloc(sizeof(TensorImpl))
  *         if not result:
  *             if c_shape: free(c_shape)             # <<<<<<<<<<<<<<
@@ -7006,7 +10271,7 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_12__getitem__(struct __pyx_obj
       free(__pyx_v_c_shape);
     }
 
-    /* "cyflow/tensor.pyx":326
+    /* "cyflow/tensor.pyx":562
  *         if not result:
  *             if c_shape: free(c_shape)
  *             if c_strides: free(c_strides)             # <<<<<<<<<<<<<<
@@ -7018,7 +10283,7 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_12__getitem__(struct __pyx_obj
       free(__pyx_v_c_strides);
     }
 
-    /* "cyflow/tensor.pyx":327
+    /* "cyflow/tensor.pyx":563
  *             if c_shape: free(c_shape)
  *             if c_strides: free(c_strides)
  *             raise MemoryError("Failed to allocate TensorImpl for view")             # <<<<<<<<<<<<<<
@@ -7031,14 +10296,14 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_12__getitem__(struct __pyx_obj
       PyObject *__pyx_callargs[2] = {__pyx_t_3, __pyx_mstate_global->__pyx_kp_u_Failed_to_allocate_TensorImpl_fo};
       __pyx_t_16 = __Pyx_PyObject_FastCall((PyObject*)(((PyTypeObject*)PyExc_MemoryError)), __pyx_callargs+__pyx_t_7, (2-__pyx_t_7) | (__pyx_t_7*__Pyx_PY_VECTORCALL_ARGUMENTS_OFFSET));
       __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
-      if (unlikely(!__pyx_t_16)) __PYX_ERR(0, 327, __pyx_L1_error)
+      if (unlikely(!__pyx_t_16)) __PYX_ERR(0, 563, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_16);
     }
     __Pyx_Raise(__pyx_t_16, 0, 0, 0);
     __Pyx_DECREF(__pyx_t_16); __pyx_t_16 = 0;
-    __PYX_ERR(0, 327, __pyx_L1_error)
+    __PYX_ERR(0, 563, __pyx_L1_error)
 
-    /* "cyflow/tensor.pyx":324
+    /* "cyflow/tensor.pyx":560
  * 
  *         result = <TensorImpl*>malloc(sizeof(TensorImpl))
  *         if not result:             # <<<<<<<<<<<<<<
@@ -7047,7 +10312,7 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_12__getitem__(struct __pyx_obj
 */
   }
 
-  /* "cyflow/tensor.pyx":329
+  /* "cyflow/tensor.pyx":565
  *             raise MemoryError("Failed to allocate TensorImpl for view")
  * 
  *         result.storage = self._tensor.storage             # <<<<<<<<<<<<<<
@@ -7057,7 +10322,7 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_12__getitem__(struct __pyx_obj
   __pyx_t_22 = __pyx_v_self->_tensor->storage;
   __pyx_v_result->storage = __pyx_t_22;
 
-  /* "cyflow/tensor.pyx":330
+  /* "cyflow/tensor.pyx":566
  * 
  *         result.storage = self._tensor.storage
  *         result.storage.ref_count += 1             # <<<<<<<<<<<<<<
@@ -7066,7 +10331,7 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_12__getitem__(struct __pyx_obj
 */
   __pyx_v_result->storage->ref_count = (__pyx_v_result->storage->ref_count + 1);
 
-  /* "cyflow/tensor.pyx":331
+  /* "cyflow/tensor.pyx":567
  *         result.storage = self._tensor.storage
  *         result.storage.ref_count += 1
  *         result.storage_offset = self._tensor.storage_offset + offset_delta             # <<<<<<<<<<<<<<
@@ -7075,7 +10340,7 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_12__getitem__(struct __pyx_obj
 */
   __pyx_v_result->storage_offset = (__pyx_v_self->_tensor->storage_offset + __pyx_v_offset_delta);
 
-  /* "cyflow/tensor.pyx":332
+  /* "cyflow/tensor.pyx":568
  *         result.storage.ref_count += 1
  *         result.storage_offset = self._tensor.storage_offset + offset_delta
  *         result.ndim = out_ndim             # <<<<<<<<<<<<<<
@@ -7084,7 +10349,7 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_12__getitem__(struct __pyx_obj
 */
   __pyx_v_result->ndim = __pyx_v_out_ndim;
 
-  /* "cyflow/tensor.pyx":333
+  /* "cyflow/tensor.pyx":569
  *         result.storage_offset = self._tensor.storage_offset + offset_delta
  *         result.ndim = out_ndim
  *         result.numel = out_numel             # <<<<<<<<<<<<<<
@@ -7093,7 +10358,7 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_12__getitem__(struct __pyx_obj
 */
   __pyx_v_result->numel = __pyx_v_out_numel;
 
-  /* "cyflow/tensor.pyx":334
+  /* "cyflow/tensor.pyx":570
  *         result.ndim = out_ndim
  *         result.numel = out_numel
  *         result.shape = c_shape             # <<<<<<<<<<<<<<
@@ -7102,7 +10367,7 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_12__getitem__(struct __pyx_obj
 */
   __pyx_v_result->shape = __pyx_v_c_shape;
 
-  /* "cyflow/tensor.pyx":335
+  /* "cyflow/tensor.pyx":571
  *         result.numel = out_numel
  *         result.shape = c_shape
  *         result.strides = c_strides             # <<<<<<<<<<<<<<
@@ -7111,19 +10376,19 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_12__getitem__(struct __pyx_obj
 */
   __pyx_v_result->strides = __pyx_v_c_strides;
 
-  /* "cyflow/tensor.pyx":337
+  /* "cyflow/tensor.pyx":573
  *         result.strides = c_strides
  * 
  *         return Tensor._from_c_tensor(result)             # <<<<<<<<<<<<<<
 */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_16 = ((PyObject *)__pyx_f_6cyflow_6tensor_6Tensor__from_c_tensor(__pyx_v_result)); if (unlikely(!__pyx_t_16)) __PYX_ERR(0, 337, __pyx_L1_error)
+  __pyx_t_16 = ((PyObject *)__pyx_f_6cyflow_6tensor_6Tensor__from_c_tensor(__pyx_v_result)); if (unlikely(!__pyx_t_16)) __PYX_ERR(0, 573, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_16);
   __pyx_r = __pyx_t_16;
   __pyx_t_16 = 0;
   goto __pyx_L0;
 
-  /* "cyflow/tensor.pyx":203
+  /* "cyflow/tensor.pyx":445
  *             free(c_data)
  * 
  *     def __getitem__(self, key):             # <<<<<<<<<<<<<<
@@ -7158,15 +10423,15 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_12__getitem__(struct __pyx_obj
 */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_6cyflow_6tensor_6Tensor_15__reduce_cython__(PyObject *__pyx_v_self, 
+static PyObject *__pyx_pw_6cyflow_6tensor_6Tensor_17__reduce_cython__(PyObject *__pyx_v_self, 
 #if CYTHON_METH_FASTCALL
 PyObject *const *__pyx_args, Py_ssize_t __pyx_nargs, PyObject *__pyx_kwds
 #else
 PyObject *__pyx_args, PyObject *__pyx_kwds
 #endif
 ); /*proto*/
-static PyMethodDef __pyx_mdef_6cyflow_6tensor_6Tensor_15__reduce_cython__ = {"__reduce_cython__", (PyCFunction)(void(*)(void))(__Pyx_PyCFunction_FastCallWithKeywords)__pyx_pw_6cyflow_6tensor_6Tensor_15__reduce_cython__, __Pyx_METH_FASTCALL|METH_KEYWORDS, 0};
-static PyObject *__pyx_pw_6cyflow_6tensor_6Tensor_15__reduce_cython__(PyObject *__pyx_v_self, 
+static PyMethodDef __pyx_mdef_6cyflow_6tensor_6Tensor_17__reduce_cython__ = {"__reduce_cython__", (PyCFunction)(void(*)(void))(__Pyx_PyCFunction_FastCallWithKeywords)__pyx_pw_6cyflow_6tensor_6Tensor_17__reduce_cython__, __Pyx_METH_FASTCALL|METH_KEYWORDS, 0};
+static PyObject *__pyx_pw_6cyflow_6tensor_6Tensor_17__reduce_cython__(PyObject *__pyx_v_self, 
 #if CYTHON_METH_FASTCALL
 PyObject *const *__pyx_args, Py_ssize_t __pyx_nargs, PyObject *__pyx_kwds
 #else
@@ -7192,14 +10457,14 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
   const Py_ssize_t __pyx_kwds_len = unlikely(__pyx_kwds) ? __Pyx_NumKwargs_FASTCALL(__pyx_kwds) : 0;
   if (unlikely(__pyx_kwds_len < 0)) return NULL;
   if (unlikely(__pyx_kwds_len > 0)) {__Pyx_RejectKeywords("__reduce_cython__", __pyx_kwds); return NULL;}
-  __pyx_r = __pyx_pf_6cyflow_6tensor_6Tensor_14__reduce_cython__(((struct __pyx_obj_6cyflow_6tensor_Tensor *)__pyx_v_self));
+  __pyx_r = __pyx_pf_6cyflow_6tensor_6Tensor_16__reduce_cython__(((struct __pyx_obj_6cyflow_6tensor_Tensor *)__pyx_v_self));
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_14__reduce_cython__(CYTHON_UNUSED struct __pyx_obj_6cyflow_6tensor_Tensor *__pyx_v_self) {
+static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_16__reduce_cython__(CYTHON_UNUSED struct __pyx_obj_6cyflow_6tensor_Tensor *__pyx_v_self) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   int __pyx_lineno = 0;
@@ -7239,15 +10504,15 @@ static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_14__reduce_cython__(CYTHON_UNU
 */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_6cyflow_6tensor_6Tensor_17__setstate_cython__(PyObject *__pyx_v_self, 
+static PyObject *__pyx_pw_6cyflow_6tensor_6Tensor_19__setstate_cython__(PyObject *__pyx_v_self, 
 #if CYTHON_METH_FASTCALL
 PyObject *const *__pyx_args, Py_ssize_t __pyx_nargs, PyObject *__pyx_kwds
 #else
 PyObject *__pyx_args, PyObject *__pyx_kwds
 #endif
 ); /*proto*/
-static PyMethodDef __pyx_mdef_6cyflow_6tensor_6Tensor_17__setstate_cython__ = {"__setstate_cython__", (PyCFunction)(void(*)(void))(__Pyx_PyCFunction_FastCallWithKeywords)__pyx_pw_6cyflow_6tensor_6Tensor_17__setstate_cython__, __Pyx_METH_FASTCALL|METH_KEYWORDS, 0};
-static PyObject *__pyx_pw_6cyflow_6tensor_6Tensor_17__setstate_cython__(PyObject *__pyx_v_self, 
+static PyMethodDef __pyx_mdef_6cyflow_6tensor_6Tensor_19__setstate_cython__ = {"__setstate_cython__", (PyCFunction)(void(*)(void))(__Pyx_PyCFunction_FastCallWithKeywords)__pyx_pw_6cyflow_6tensor_6Tensor_19__setstate_cython__, __Pyx_METH_FASTCALL|METH_KEYWORDS, 0};
+static PyObject *__pyx_pw_6cyflow_6tensor_6Tensor_19__setstate_cython__(PyObject *__pyx_v_self, 
 #if CYTHON_METH_FASTCALL
 PyObject *const *__pyx_args, Py_ssize_t __pyx_nargs, PyObject *__pyx_kwds
 #else
@@ -7313,7 +10578,7 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_6cyflow_6tensor_6Tensor_16__setstate_cython__(((struct __pyx_obj_6cyflow_6tensor_Tensor *)__pyx_v_self), __pyx_v___pyx_state);
+  __pyx_r = __pyx_pf_6cyflow_6tensor_6Tensor_18__setstate_cython__(((struct __pyx_obj_6cyflow_6tensor_Tensor *)__pyx_v_self), __pyx_v___pyx_state);
 
   /* function exit code */
   for (Py_ssize_t __pyx_temp=0; __pyx_temp < (Py_ssize_t)(sizeof(values)/sizeof(values[0])); ++__pyx_temp) {
@@ -7323,7 +10588,7 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_16__setstate_cython__(CYTHON_UNUSED struct __pyx_obj_6cyflow_6tensor_Tensor *__pyx_v_self, CYTHON_UNUSED PyObject *__pyx_v___pyx_state) {
+static PyObject *__pyx_pf_6cyflow_6tensor_6Tensor_18__setstate_cython__(CYTHON_UNUSED struct __pyx_obj_6cyflow_6tensor_Tensor *__pyx_v_self, CYTHON_UNUSED PyObject *__pyx_v___pyx_state) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   int __pyx_lineno = 0;
@@ -7413,6 +10678,20 @@ static PyObject *__pyx_sq_item_6cyflow_6tensor_Tensor(PyObject *o, Py_ssize_t i)
   return r;
 }
 
+static int __pyx_mp_ass_subscript_6cyflow_6tensor_Tensor(PyObject *o, PyObject *i, PyObject *v) {
+  if (v) {
+    return __pyx_pw_6cyflow_6tensor_6Tensor_9__setitem__(o, i, v);
+  }
+  else {
+    __Pyx_TypeName o_type_name;
+    o_type_name = __Pyx_PyType_GetFullyQualifiedName(Py_TYPE(o));
+    PyErr_Format(PyExc_NotImplementedError,
+      "Subscript deletion not supported by " __Pyx_FMT_TYPENAME, o_type_name);
+    __Pyx_DECREF_TypeName(o_type_name);
+    return -1;
+  }
+}
+
 static PyObject *__pyx_getprop_6cyflow_6tensor_6Tensor_ndim(PyObject *o, CYTHON_UNUSED void *x) {
   return __pyx_pw_6cyflow_6tensor_6Tensor_4ndim_1__get__(o);
 }
@@ -7439,10 +10718,10 @@ static PyObject *__pyx_getprop_6cyflow_6tensor_6Tensor_nbytes(PyObject *o, CYTHO
 
 static PyMethodDef __pyx_methods_6cyflow_6tensor_Tensor[] = {
   {"fill_uniform", (PyCFunction)(void(*)(void))(__Pyx_PyCFunction_FastCallWithKeywords)__pyx_pw_6cyflow_6tensor_6Tensor_7fill_uniform, __Pyx_METH_FASTCALL|METH_KEYWORDS, 0},
-  {"view", (PyCFunction)(void(*)(void))(PyCFunctionWithKeywords)__pyx_pw_6cyflow_6tensor_6Tensor_9view, METH_VARARGS|METH_KEYWORDS, 0},
-  {"_set_data_from_list", (PyCFunction)(void(*)(void))(__Pyx_PyCFunction_FastCallWithKeywords)__pyx_pw_6cyflow_6tensor_6Tensor_11_set_data_from_list, __Pyx_METH_FASTCALL|METH_KEYWORDS, 0},
-  {"__reduce_cython__", (PyCFunction)(void(*)(void))(__Pyx_PyCFunction_FastCallWithKeywords)__pyx_pw_6cyflow_6tensor_6Tensor_15__reduce_cython__, __Pyx_METH_FASTCALL|METH_KEYWORDS, 0},
-  {"__setstate_cython__", (PyCFunction)(void(*)(void))(__Pyx_PyCFunction_FastCallWithKeywords)__pyx_pw_6cyflow_6tensor_6Tensor_17__setstate_cython__, __Pyx_METH_FASTCALL|METH_KEYWORDS, 0},
+  {"view", (PyCFunction)(void(*)(void))(PyCFunctionWithKeywords)__pyx_pw_6cyflow_6tensor_6Tensor_11view, METH_VARARGS|METH_KEYWORDS, 0},
+  {"_set_data_from_list", (PyCFunction)(void(*)(void))(__Pyx_PyCFunction_FastCallWithKeywords)__pyx_pw_6cyflow_6tensor_6Tensor_13_set_data_from_list, __Pyx_METH_FASTCALL|METH_KEYWORDS, 0},
+  {"__reduce_cython__", (PyCFunction)(void(*)(void))(__Pyx_PyCFunction_FastCallWithKeywords)__pyx_pw_6cyflow_6tensor_6Tensor_17__reduce_cython__, __Pyx_METH_FASTCALL|METH_KEYWORDS, 0},
+  {"__setstate_cython__", (PyCFunction)(void(*)(void))(__Pyx_PyCFunction_FastCallWithKeywords)__pyx_pw_6cyflow_6tensor_6Tensor_19__setstate_cython__, __Pyx_METH_FASTCALL|METH_KEYWORDS, 0},
   {0, 0, 0, 0}
 };
 
@@ -7460,7 +10739,8 @@ static PyType_Slot __pyx_type_6cyflow_6tensor_Tensor_slots[] = {
   {Py_tp_dealloc, (void *)__pyx_tp_dealloc_6cyflow_6tensor_Tensor},
   {Py_tp_repr, (void *)__pyx_pw_6cyflow_6tensor_6Tensor_5__repr__},
   {Py_sq_item, (void *)__pyx_sq_item_6cyflow_6tensor_Tensor},
-  {Py_mp_subscript, (void *)__pyx_pw_6cyflow_6tensor_6Tensor_13__getitem__},
+  {Py_mp_subscript, (void *)__pyx_pw_6cyflow_6tensor_6Tensor_15__getitem__},
+  {Py_mp_ass_subscript, (void *)__pyx_mp_ass_subscript_6cyflow_6tensor_Tensor},
   {Py_tp_methods, (void *)__pyx_methods_6cyflow_6tensor_Tensor},
   {Py_tp_getset, (void *)__pyx_getsets_6cyflow_6tensor_Tensor},
   {Py_tp_new, (void *)__pyx_tp_new_6cyflow_6tensor_Tensor},
@@ -7490,8 +10770,8 @@ static PySequenceMethods __pyx_tp_as_sequence_Tensor = {
 
 static PyMappingMethods __pyx_tp_as_mapping_Tensor = {
   0, /*mp_length*/
-  __pyx_pw_6cyflow_6tensor_6Tensor_13__getitem__, /*mp_subscript*/
-  0, /*mp_ass_subscript*/
+  __pyx_pw_6cyflow_6tensor_6Tensor_15__getitem__, /*mp_subscript*/
+  __pyx_mp_ass_subscript_6cyflow_6tensor_Tensor, /*mp_ass_subscript*/
 };
 
 static PyTypeObject __pyx_type_6cyflow_6tensor_Tensor = {
@@ -7535,6 +10815,189 @@ static PyTypeObject __pyx_type_6cyflow_6tensor_Tensor = {
   0, /*tp_init*/
   0, /*tp_alloc*/
   __pyx_tp_new_6cyflow_6tensor_Tensor, /*tp_new*/
+  0, /*tp_free*/
+  0, /*tp_is_gc*/
+  0, /*tp_bases*/
+  0, /*tp_mro*/
+  0, /*tp_cache*/
+  0, /*tp_subclasses*/
+  0, /*tp_weaklist*/
+  0, /*tp_del*/
+  0, /*tp_version_tag*/
+  #if CYTHON_USE_TP_FINALIZE
+  0, /*tp_finalize*/
+  #else
+  NULL, /*tp_finalize*/
+  #endif
+  #if !CYTHON_COMPILING_IN_PYPY || PYPY_VERSION_NUM >= 0x07030800
+  0, /*tp_vectorcall*/
+  #endif
+  #if __PYX_NEED_TP_PRINT_SLOT == 1
+  0, /*tp_print*/
+  #endif
+  #if PY_VERSION_HEX >= 0x030C0000
+  0, /*tp_watched*/
+  #endif
+  #if PY_VERSION_HEX >= 0x030d00A4
+  0, /*tp_versions_used*/
+  #endif
+  #if CYTHON_COMPILING_IN_PYPY && PY_VERSION_HEX >= 0x03090000 && PY_VERSION_HEX < 0x030a0000
+  0, /*tp_pypy_flags*/
+  #endif
+};
+#endif
+
+static PyObject *__pyx_tp_new_6cyflow_6tensor___pyx_scope_struct___get_nested_list_shape_and_flat(PyTypeObject *t, CYTHON_UNUSED PyObject *a, CYTHON_UNUSED PyObject *k) {
+  PyObject *o;
+  #if CYTHON_USE_FREELISTS
+  if (likely((int)(__pyx_mstate_global->__pyx_freecount_6cyflow_6tensor___pyx_scope_struct___get_nested_list_shape_and_flat > 0) & __PYX_CHECK_FINAL_TYPE_FOR_FREELISTS(t, __pyx_mstate_global->__pyx_ptype_6cyflow_6tensor___pyx_scope_struct___get_nested_list_shape_and_flat, sizeof(struct __pyx_obj_6cyflow_6tensor___pyx_scope_struct___get_nested_list_shape_and_flat))))
+  {
+    o = (PyObject*)__pyx_mstate_global->__pyx_freelist_6cyflow_6tensor___pyx_scope_struct___get_nested_list_shape_and_flat[--__pyx_mstate_global->__pyx_freecount_6cyflow_6tensor___pyx_scope_struct___get_nested_list_shape_and_flat];
+    #if CYTHON_USE_TYPE_SPECS
+    Py_DECREF(Py_TYPE(o));
+    #endif
+    memset(o, 0, sizeof(struct __pyx_obj_6cyflow_6tensor___pyx_scope_struct___get_nested_list_shape_and_flat));
+    #if CYTHON_COMPILING_IN_LIMITED_API
+    (void) PyObject_Init(o, t);
+    #else
+    (void) PyObject_INIT(o, t);
+    #endif
+    PyObject_GC_Track(o);
+  } else
+  #endif
+  {
+    o = __Pyx_AllocateExtensionType(t, 1);
+    if (unlikely(!o)) return 0;
+  }
+  return o;
+}
+
+static void __pyx_tp_dealloc_6cyflow_6tensor___pyx_scope_struct___get_nested_list_shape_and_flat(PyObject *o) {
+  struct __pyx_obj_6cyflow_6tensor___pyx_scope_struct___get_nested_list_shape_and_flat *p = (struct __pyx_obj_6cyflow_6tensor___pyx_scope_struct___get_nested_list_shape_and_flat *)o;
+  #if CYTHON_USE_TP_FINALIZE
+  if (unlikely(__Pyx_PyObject_GetSlot(o, tp_finalize, destructor)) && !__Pyx_PyObject_GC_IsFinalized(o)) {
+    if (__Pyx_PyObject_GetSlot(o, tp_dealloc, destructor) == __pyx_tp_dealloc_6cyflow_6tensor___pyx_scope_struct___get_nested_list_shape_and_flat) {
+      if (PyObject_CallFinalizerFromDealloc(o)) return;
+    }
+  }
+  #endif
+  PyObject_GC_UnTrack(o);
+  Py_CLEAR(p->__pyx_v__flatten);
+  Py_CLEAR(p->__pyx_v_flat);
+  Py_CLEAR(p->__pyx_v_shape);
+  #if CYTHON_USE_FREELISTS
+  if (likely((int)(__pyx_mstate_global->__pyx_freecount_6cyflow_6tensor___pyx_scope_struct___get_nested_list_shape_and_flat < 8) & __PYX_CHECK_FINAL_TYPE_FOR_FREELISTS(Py_TYPE(o), __pyx_mstate_global->__pyx_ptype_6cyflow_6tensor___pyx_scope_struct___get_nested_list_shape_and_flat, sizeof(struct __pyx_obj_6cyflow_6tensor___pyx_scope_struct___get_nested_list_shape_and_flat))))
+  {
+    __pyx_mstate_global->__pyx_freelist_6cyflow_6tensor___pyx_scope_struct___get_nested_list_shape_and_flat[__pyx_mstate_global->__pyx_freecount_6cyflow_6tensor___pyx_scope_struct___get_nested_list_shape_and_flat++] = ((struct __pyx_obj_6cyflow_6tensor___pyx_scope_struct___get_nested_list_shape_and_flat *)o);
+  } else
+  #endif
+  {
+    PyTypeObject *tp = Py_TYPE(o);
+    #if CYTHON_USE_TYPE_SLOTS
+    (*tp->tp_free)(o);
+    #else
+    {
+      freefunc tp_free = (freefunc)PyType_GetSlot(tp, Py_tp_free);
+      if (tp_free) tp_free(o);
+    }
+    #endif
+    #if CYTHON_USE_TYPE_SPECS
+    Py_DECREF(tp);
+    #endif
+  }
+}
+
+static int __pyx_tp_traverse_6cyflow_6tensor___pyx_scope_struct___get_nested_list_shape_and_flat(PyObject *o, visitproc v, void *a) {
+  int e;
+  struct __pyx_obj_6cyflow_6tensor___pyx_scope_struct___get_nested_list_shape_and_flat *p = (struct __pyx_obj_6cyflow_6tensor___pyx_scope_struct___get_nested_list_shape_and_flat *)o;
+  {
+    e = __Pyx_call_type_traverse(o, 1, v, a);
+    if (e) return e;
+  }
+  if (p->__pyx_v__flatten) {
+    e = (*v)(p->__pyx_v__flatten, a); if (e) return e;
+  }
+  if (p->__pyx_v_flat) {
+    e = (*v)(p->__pyx_v_flat, a); if (e) return e;
+  }
+  if (p->__pyx_v_shape) {
+    e = (*v)(p->__pyx_v_shape, a); if (e) return e;
+  }
+  return 0;
+}
+
+static int __pyx_tp_clear_6cyflow_6tensor___pyx_scope_struct___get_nested_list_shape_and_flat(PyObject *o) {
+  PyObject* tmp;
+  struct __pyx_obj_6cyflow_6tensor___pyx_scope_struct___get_nested_list_shape_and_flat *p = (struct __pyx_obj_6cyflow_6tensor___pyx_scope_struct___get_nested_list_shape_and_flat *)o;
+  tmp = ((PyObject*)p->__pyx_v__flatten);
+  p->__pyx_v__flatten = Py_None; Py_INCREF(Py_None);
+  Py_XDECREF(tmp);
+  tmp = ((PyObject*)p->__pyx_v_flat);
+  p->__pyx_v_flat = ((PyObject*)Py_None); Py_INCREF(Py_None);
+  Py_XDECREF(tmp);
+  tmp = ((PyObject*)p->__pyx_v_shape);
+  p->__pyx_v_shape = ((PyObject*)Py_None); Py_INCREF(Py_None);
+  Py_XDECREF(tmp);
+  return 0;
+}
+#if CYTHON_USE_TYPE_SPECS
+static PyType_Slot __pyx_type_6cyflow_6tensor___pyx_scope_struct___get_nested_list_shape_and_flat_slots[] = {
+  {Py_tp_dealloc, (void *)__pyx_tp_dealloc_6cyflow_6tensor___pyx_scope_struct___get_nested_list_shape_and_flat},
+  {Py_tp_traverse, (void *)__pyx_tp_traverse_6cyflow_6tensor___pyx_scope_struct___get_nested_list_shape_and_flat},
+  {Py_tp_clear, (void *)__pyx_tp_clear_6cyflow_6tensor___pyx_scope_struct___get_nested_list_shape_and_flat},
+  {Py_tp_new, (void *)__pyx_tp_new_6cyflow_6tensor___pyx_scope_struct___get_nested_list_shape_and_flat},
+  {0, 0},
+};
+static PyType_Spec __pyx_type_6cyflow_6tensor___pyx_scope_struct___get_nested_list_shape_and_flat_spec = {
+  "cyflow.tensor.__pyx_scope_struct___get_nested_list_shape_and_flat",
+  sizeof(struct __pyx_obj_6cyflow_6tensor___pyx_scope_struct___get_nested_list_shape_and_flat),
+  0,
+  Py_TPFLAGS_DEFAULT|Py_TPFLAGS_HAVE_VERSION_TAG|Py_TPFLAGS_CHECKTYPES|Py_TPFLAGS_HAVE_NEWBUFFER|Py_TPFLAGS_HAVE_GC,
+  __pyx_type_6cyflow_6tensor___pyx_scope_struct___get_nested_list_shape_and_flat_slots,
+};
+#else
+
+static PyTypeObject __pyx_type_6cyflow_6tensor___pyx_scope_struct___get_nested_list_shape_and_flat = {
+  PyVarObject_HEAD_INIT(0, 0)
+  "cyflow.tensor.""__pyx_scope_struct___get_nested_list_shape_and_flat", /*tp_name*/
+  sizeof(struct __pyx_obj_6cyflow_6tensor___pyx_scope_struct___get_nested_list_shape_and_flat), /*tp_basicsize*/
+  0, /*tp_itemsize*/
+  __pyx_tp_dealloc_6cyflow_6tensor___pyx_scope_struct___get_nested_list_shape_and_flat, /*tp_dealloc*/
+  0, /*tp_vectorcall_offset*/
+  0, /*tp_getattr*/
+  0, /*tp_setattr*/
+  0, /*tp_as_async*/
+  0, /*tp_repr*/
+  0, /*tp_as_number*/
+  0, /*tp_as_sequence*/
+  0, /*tp_as_mapping*/
+  0, /*tp_hash*/
+  0, /*tp_call*/
+  0, /*tp_str*/
+  0, /*tp_getattro*/
+  0, /*tp_setattro*/
+  0, /*tp_as_buffer*/
+  Py_TPFLAGS_DEFAULT|Py_TPFLAGS_HAVE_VERSION_TAG|Py_TPFLAGS_CHECKTYPES|Py_TPFLAGS_HAVE_NEWBUFFER|Py_TPFLAGS_HAVE_GC, /*tp_flags*/
+  0, /*tp_doc*/
+  __pyx_tp_traverse_6cyflow_6tensor___pyx_scope_struct___get_nested_list_shape_and_flat, /*tp_traverse*/
+  __pyx_tp_clear_6cyflow_6tensor___pyx_scope_struct___get_nested_list_shape_and_flat, /*tp_clear*/
+  0, /*tp_richcompare*/
+  0, /*tp_weaklistoffset*/
+  0, /*tp_iter*/
+  0, /*tp_iternext*/
+  0, /*tp_methods*/
+  0, /*tp_members*/
+  0, /*tp_getset*/
+  0, /*tp_base*/
+  0, /*tp_dict*/
+  0, /*tp_descr_get*/
+  0, /*tp_descr_set*/
+  #if !CYTHON_USE_TYPE_SPECS
+  0, /*tp_dictoffset*/
+  #endif
+  0, /*tp_init*/
+  0, /*tp_alloc*/
+  __pyx_tp_new_6cyflow_6tensor___pyx_scope_struct___get_nested_list_shape_and_flat, /*tp_new*/
   0, /*tp_free*/
   0, /*tp_is_gc*/
   0, /*tp_bases*/
@@ -7622,16 +11085,19 @@ static int __Pyx_modinit_type_init_code(__pyx_mstatetype *__pyx_mstate) {
   /*--- Type init code ---*/
   __pyx_vtabptr_6cyflow_6tensor_Tensor = &__pyx_vtable_6cyflow_6tensor_Tensor;
   __pyx_vtable_6cyflow_6tensor_Tensor._from_c_tensor = (struct __pyx_obj_6cyflow_6tensor_Tensor *(*)(TensorImpl *))__pyx_f_6cyflow_6tensor_6Tensor__from_c_tensor;
+  __pyx_vtable_6cyflow_6tensor_Tensor._fill_scalar = (PyObject *(*)(struct __pyx_obj_6cyflow_6tensor_Tensor *, float))__pyx_f_6cyflow_6tensor_6Tensor__fill_scalar;
+  __pyx_vtable_6cyflow_6tensor_Tensor._fill_from_flat_list = (PyObject *(*)(struct __pyx_obj_6cyflow_6tensor_Tensor *, PyObject *))__pyx_f_6cyflow_6tensor_6Tensor__fill_from_flat_list;
+  __pyx_vtable_6cyflow_6tensor_Tensor._copy_from_tensor = (PyObject *(*)(struct __pyx_obj_6cyflow_6tensor_Tensor *, struct __pyx_obj_6cyflow_6tensor_Tensor *))__pyx_f_6cyflow_6tensor_6Tensor__copy_from_tensor;
   #if CYTHON_USE_TYPE_SPECS
-  __pyx_mstate->__pyx_ptype_6cyflow_6tensor_Tensor = (PyTypeObject *) __Pyx_PyType_FromModuleAndSpec(__pyx_m, &__pyx_type_6cyflow_6tensor_Tensor_spec, NULL); if (unlikely(!__pyx_mstate->__pyx_ptype_6cyflow_6tensor_Tensor)) __PYX_ERR(0, 60, __pyx_L1_error)
-  if (__Pyx_fix_up_extension_type_from_spec(&__pyx_type_6cyflow_6tensor_Tensor_spec, __pyx_mstate->__pyx_ptype_6cyflow_6tensor_Tensor) < (0)) __PYX_ERR(0, 60, __pyx_L1_error)
+  __pyx_mstate->__pyx_ptype_6cyflow_6tensor_Tensor = (PyTypeObject *) __Pyx_PyType_FromModuleAndSpec(__pyx_m, &__pyx_type_6cyflow_6tensor_Tensor_spec, NULL); if (unlikely(!__pyx_mstate->__pyx_ptype_6cyflow_6tensor_Tensor)) __PYX_ERR(0, 97, __pyx_L1_error)
+  if (__Pyx_fix_up_extension_type_from_spec(&__pyx_type_6cyflow_6tensor_Tensor_spec, __pyx_mstate->__pyx_ptype_6cyflow_6tensor_Tensor) < (0)) __PYX_ERR(0, 97, __pyx_L1_error)
   #else
   __pyx_mstate->__pyx_ptype_6cyflow_6tensor_Tensor = &__pyx_type_6cyflow_6tensor_Tensor;
   #endif
   #if !CYTHON_COMPILING_IN_LIMITED_API
   #endif
   #if !CYTHON_USE_TYPE_SPECS
-  if (__Pyx_PyType_Ready(__pyx_mstate->__pyx_ptype_6cyflow_6tensor_Tensor) < (0)) __PYX_ERR(0, 60, __pyx_L1_error)
+  if (__Pyx_PyType_Ready(__pyx_mstate->__pyx_ptype_6cyflow_6tensor_Tensor) < (0)) __PYX_ERR(0, 97, __pyx_L1_error)
   #endif
   #if CYTHON_COMPILING_IN_CPYTHON && PY_VERSION_HEX >= 0x030E0000
   PyUnstable_Object_EnableDeferredRefcount((PyObject*)__pyx_mstate->__pyx_ptype_6cyflow_6tensor_Tensor);
@@ -7641,10 +11107,29 @@ static int __Pyx_modinit_type_init_code(__pyx_mstatetype *__pyx_mstate) {
     __pyx_mstate->__pyx_ptype_6cyflow_6tensor_Tensor->tp_getattro = PyObject_GenericGetAttr;
   }
   #endif
-  if (__Pyx_SetVtable(__pyx_mstate->__pyx_ptype_6cyflow_6tensor_Tensor, __pyx_vtabptr_6cyflow_6tensor_Tensor) < (0)) __PYX_ERR(0, 60, __pyx_L1_error)
-  if (__Pyx_MergeVtables(__pyx_mstate->__pyx_ptype_6cyflow_6tensor_Tensor) < (0)) __PYX_ERR(0, 60, __pyx_L1_error)
-  if (PyObject_SetAttr(__pyx_m, __pyx_mstate_global->__pyx_n_u_Tensor, (PyObject *) __pyx_mstate->__pyx_ptype_6cyflow_6tensor_Tensor) < (0)) __PYX_ERR(0, 60, __pyx_L1_error)
-  if (__Pyx_setup_reduce((PyObject *) __pyx_mstate->__pyx_ptype_6cyflow_6tensor_Tensor) < (0)) __PYX_ERR(0, 60, __pyx_L1_error)
+  if (__Pyx_SetVtable(__pyx_mstate->__pyx_ptype_6cyflow_6tensor_Tensor, __pyx_vtabptr_6cyflow_6tensor_Tensor) < (0)) __PYX_ERR(0, 97, __pyx_L1_error)
+  if (__Pyx_MergeVtables(__pyx_mstate->__pyx_ptype_6cyflow_6tensor_Tensor) < (0)) __PYX_ERR(0, 97, __pyx_L1_error)
+  if (PyObject_SetAttr(__pyx_m, __pyx_mstate_global->__pyx_n_u_Tensor, (PyObject *) __pyx_mstate->__pyx_ptype_6cyflow_6tensor_Tensor) < (0)) __PYX_ERR(0, 97, __pyx_L1_error)
+  if (__Pyx_setup_reduce((PyObject *) __pyx_mstate->__pyx_ptype_6cyflow_6tensor_Tensor) < (0)) __PYX_ERR(0, 97, __pyx_L1_error)
+  #if CYTHON_USE_TYPE_SPECS
+  __pyx_mstate->__pyx_ptype_6cyflow_6tensor___pyx_scope_struct___get_nested_list_shape_and_flat = (PyTypeObject *) __Pyx_PyType_FromModuleAndSpec(__pyx_m, &__pyx_type_6cyflow_6tensor___pyx_scope_struct___get_nested_list_shape_and_flat_spec, NULL); if (unlikely(!__pyx_mstate->__pyx_ptype_6cyflow_6tensor___pyx_scope_struct___get_nested_list_shape_and_flat)) __PYX_ERR(0, 68, __pyx_L1_error)
+  if (__Pyx_fix_up_extension_type_from_spec(&__pyx_type_6cyflow_6tensor___pyx_scope_struct___get_nested_list_shape_and_flat_spec, __pyx_mstate->__pyx_ptype_6cyflow_6tensor___pyx_scope_struct___get_nested_list_shape_and_flat) < (0)) __PYX_ERR(0, 68, __pyx_L1_error)
+  #else
+  __pyx_mstate->__pyx_ptype_6cyflow_6tensor___pyx_scope_struct___get_nested_list_shape_and_flat = &__pyx_type_6cyflow_6tensor___pyx_scope_struct___get_nested_list_shape_and_flat;
+  #endif
+  #if !CYTHON_COMPILING_IN_LIMITED_API
+  #endif
+  #if !CYTHON_USE_TYPE_SPECS
+  if (__Pyx_PyType_Ready(__pyx_mstate->__pyx_ptype_6cyflow_6tensor___pyx_scope_struct___get_nested_list_shape_and_flat) < (0)) __PYX_ERR(0, 68, __pyx_L1_error)
+  #endif
+  #if CYTHON_COMPILING_IN_CPYTHON && PY_VERSION_HEX >= 0x030E0000
+  PyUnstable_Object_EnableDeferredRefcount((PyObject*)__pyx_mstate->__pyx_ptype_6cyflow_6tensor___pyx_scope_struct___get_nested_list_shape_and_flat);
+  #endif
+  #if !CYTHON_COMPILING_IN_LIMITED_API
+  if ((CYTHON_USE_TYPE_SLOTS && CYTHON_USE_PYTYPE_LOOKUP) && likely(!__pyx_mstate->__pyx_ptype_6cyflow_6tensor___pyx_scope_struct___get_nested_list_shape_and_flat->tp_dictoffset && __pyx_mstate->__pyx_ptype_6cyflow_6tensor___pyx_scope_struct___get_nested_list_shape_and_flat->tp_getattro == PyObject_GenericGetAttr)) {
+    __pyx_mstate->__pyx_ptype_6cyflow_6tensor___pyx_scope_struct___get_nested_list_shape_and_flat->tp_getattro = PyObject_GenericGetAttr;
+  }
+  #endif
   __Pyx_RefNannyFinishContext();
   return 0;
   __pyx_L1_error:;
@@ -7947,127 +11432,142 @@ __Pyx_RefNannySetupContext("PyInit_tensor", 0);
   (void)__Pyx_modinit_function_import_code(__pyx_mstate);
   /*--- Execution code ---*/
 
-  /* "cyflow/tensor.pyx":49
- *     void tensor_set_data_cuda(TensorImpl *tensor, const float *data)
+  /* "cyflow/tensor.pyx":57
+ *     int cudaMemcpy(void* dst, const void* src, size_t count, cudaMemcpyKind kind)
  * 
  * CPU = DEVICE_CPU             # <<<<<<<<<<<<<<
  * CUDA = DEVICE_CUDA
  * 
 */
-  __pyx_t_2 = __Pyx_PyLong_From_DeviceType(DEVICE_CPU); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 49, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyLong_From_DeviceType(DEVICE_CPU); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 57, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  if (PyDict_SetItem(__pyx_mstate_global->__pyx_d, __pyx_mstate_global->__pyx_n_u_CPU, __pyx_t_2) < (0)) __PYX_ERR(0, 49, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_mstate_global->__pyx_d, __pyx_mstate_global->__pyx_n_u_CPU, __pyx_t_2) < (0)) __PYX_ERR(0, 57, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "cyflow/tensor.pyx":50
+  /* "cyflow/tensor.pyx":58
  * 
  * CPU = DEVICE_CPU
  * CUDA = DEVICE_CUDA             # <<<<<<<<<<<<<<
  * 
  * cpdef manual_seed(unsigned long long seed, int device=CPU):
 */
-  __pyx_t_2 = __Pyx_PyLong_From_DeviceType(DEVICE_CUDA); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 50, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyLong_From_DeviceType(DEVICE_CUDA); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 58, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  if (PyDict_SetItem(__pyx_mstate_global->__pyx_d, __pyx_mstate_global->__pyx_n_u_CUDA, __pyx_t_2) < (0)) __PYX_ERR(0, 50, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_mstate_global->__pyx_d, __pyx_mstate_global->__pyx_n_u_CUDA, __pyx_t_2) < (0)) __PYX_ERR(0, 58, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "cyflow/tensor.pyx":52
+  /* "cyflow/tensor.pyx":60
  * CUDA = DEVICE_CUDA
  * 
  * cpdef manual_seed(unsigned long long seed, int device=CPU):             # <<<<<<<<<<<<<<
  *     if device == DEVICE_CPU:
  *         cyflow_manual_seed(seed)
 */
-  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_mstate_global->__pyx_n_u_CPU); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 52, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_mstate_global->__pyx_n_u_CPU); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 60, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_3 = __Pyx_PyLong_As_int(__pyx_t_2); if (unlikely((__pyx_t_3 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 52, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyLong_As_int(__pyx_t_2); if (unlikely((__pyx_t_3 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 60, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __pyx_mstate_global->__pyx_k_ = __pyx_t_3;
-  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_mstate_global->__pyx_n_u_CPU); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 52, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_mstate_global->__pyx_n_u_CPU); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 60, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_3 = __Pyx_PyLong_As_int(__pyx_t_2); if (unlikely((__pyx_t_3 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 52, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyLong_As_int(__pyx_t_2); if (unlikely((__pyx_t_3 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 60, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_2 = __Pyx_PyLong_From_int(__pyx_t_3); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 52, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyLong_From_int(__pyx_t_3); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 60, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_4 = PyTuple_Pack(1, __pyx_t_2); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 52, __pyx_L1_error)
+  __pyx_t_4 = PyTuple_Pack(1, __pyx_t_2); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 60, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_2 = __Pyx_CyFunction_New(&__pyx_mdef_6cyflow_6tensor_1manual_seed, 0, __pyx_mstate_global->__pyx_n_u_manual_seed, NULL, __pyx_mstate_global->__pyx_n_u_cyflow_tensor, __pyx_mstate_global->__pyx_d, ((PyObject *)__pyx_mstate_global->__pyx_codeobj_tab[0])); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 52, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_CyFunction_New(&__pyx_mdef_6cyflow_6tensor_1manual_seed, 0, __pyx_mstate_global->__pyx_n_u_manual_seed, NULL, __pyx_mstate_global->__pyx_n_u_cyflow_tensor, __pyx_mstate_global->__pyx_d, ((PyObject *)__pyx_mstate_global->__pyx_codeobj_tab[1])); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 60, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   #if CYTHON_COMPILING_IN_CPYTHON && PY_VERSION_HEX >= 0x030E0000
   PyUnstable_Object_EnableDeferredRefcount(__pyx_t_2);
   #endif
   __Pyx_CyFunction_SetDefaultsTuple(__pyx_t_2, __pyx_t_4);
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  if (PyDict_SetItem(__pyx_mstate_global->__pyx_d, __pyx_mstate_global->__pyx_n_u_manual_seed, __pyx_t_2) < (0)) __PYX_ERR(0, 52, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_mstate_global->__pyx_d, __pyx_mstate_global->__pyx_n_u_manual_seed, __pyx_t_2) < (0)) __PYX_ERR(0, 60, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "cyflow/tensor.pyx":63
+  /* "cyflow/tensor.pyx":68
+ *         raise ValueError(f"Unsupported device integer: {device}")
+ * 
+ * def _get_nested_list_shape_and_flat(lst):             # <<<<<<<<<<<<<<
+ *     if not isinstance(lst, (list, tuple)):
+ *         raise TypeError("Expected list or tuple")
+*/
+  __pyx_t_2 = __Pyx_CyFunction_New(&__pyx_mdef_6cyflow_6tensor_3_get_nested_list_shape_and_flat, 0, __pyx_mstate_global->__pyx_n_u_get_nested_list_shape_and_flat_2, NULL, __pyx_mstate_global->__pyx_n_u_cyflow_tensor, __pyx_mstate_global->__pyx_d, ((PyObject *)__pyx_mstate_global->__pyx_codeobj_tab[2])); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 68, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  #if CYTHON_COMPILING_IN_CPYTHON && PY_VERSION_HEX >= 0x030E0000
+  PyUnstable_Object_EnableDeferredRefcount(__pyx_t_2);
+  #endif
+  if (PyDict_SetItem(__pyx_mstate_global->__pyx_d, __pyx_mstate_global->__pyx_n_u_get_nested_list_shape_and_flat_2, __pyx_t_2) < (0)) __PYX_ERR(0, 68, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+
+  /* "cyflow/tensor.pyx":100
  *     cdef TensorImpl* _tensor
  * 
  *     def __cinit__(self, shape=None, int device=CPU):             # <<<<<<<<<<<<<<
  *         cdef size_t ndim
  *         cdef int64_t* c_shape
 */
-  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_mstate_global->__pyx_n_u_CPU); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 63, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_mstate_global->__pyx_n_u_CPU); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 100, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_3 = __Pyx_PyLong_As_int(__pyx_t_2); if (unlikely((__pyx_t_3 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 63, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyLong_As_int(__pyx_t_2); if (unlikely((__pyx_t_3 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 100, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __pyx_mstate_global->__pyx_k__2 = __pyx_t_3;
 
-  /* "cyflow/tensor.pyx":137
+  /* "cyflow/tensor.pyx":174
  *         return self.numel * sizeof(float)
  * 
  *     def fill_uniform(self):             # <<<<<<<<<<<<<<
  *         if self._tensor.storage.device == DEVICE_CPU:
  *             tensor_fill_uniform_cpu(self._tensor)
 */
-  __pyx_t_2 = __Pyx_CyFunction_New(&__pyx_mdef_6cyflow_6tensor_6Tensor_7fill_uniform, __Pyx_CYFUNCTION_CCLASS, __pyx_mstate_global->__pyx_n_u_Tensor_fill_uniform, NULL, __pyx_mstate_global->__pyx_n_u_cyflow_tensor, __pyx_mstate_global->__pyx_d, ((PyObject *)__pyx_mstate_global->__pyx_codeobj_tab[1])); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 137, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_CyFunction_New(&__pyx_mdef_6cyflow_6tensor_6Tensor_7fill_uniform, __Pyx_CYFUNCTION_CCLASS, __pyx_mstate_global->__pyx_n_u_Tensor_fill_uniform, NULL, __pyx_mstate_global->__pyx_n_u_cyflow_tensor, __pyx_mstate_global->__pyx_d, ((PyObject *)__pyx_mstate_global->__pyx_codeobj_tab[3])); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 174, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   #if CYTHON_COMPILING_IN_CPYTHON && PY_VERSION_HEX >= 0x030E0000
   PyUnstable_Object_EnableDeferredRefcount(__pyx_t_2);
   #endif
-  if (__Pyx_SetItemOnTypeDict(__pyx_mstate_global->__pyx_ptype_6cyflow_6tensor_Tensor, __pyx_mstate_global->__pyx_n_u_fill_uniform, __pyx_t_2) < (0)) __PYX_ERR(0, 137, __pyx_L1_error)
+  if (__Pyx_SetItemOnTypeDict(__pyx_mstate_global->__pyx_ptype_6cyflow_6tensor_Tensor, __pyx_mstate_global->__pyx_n_u_fill_uniform, __pyx_t_2) < (0)) __PYX_ERR(0, 174, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "cyflow/tensor.pyx":143
- *             tensor_fill_uniform_cuda(self._tensor)
+  /* "cyflow/tensor.pyx":385
+ *             raise TypeError(f"Cannot assign value of type {type(value).__name__} to Tensor")
  * 
  *     def view(self, *shape) -> Tensor:             # <<<<<<<<<<<<<<
  *         cdef size_t target_numel = 1
  *         cdef size_t ndim
 */
-  __pyx_t_2 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 143, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 385, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  if (PyDict_SetItem(__pyx_t_2, __pyx_mstate_global->__pyx_n_u_return, __pyx_mstate_global->__pyx_n_u_Tensor) < (0)) __PYX_ERR(0, 143, __pyx_L1_error)
-  __pyx_t_4 = __Pyx_CyFunction_New(&__pyx_mdef_6cyflow_6tensor_6Tensor_9view, __Pyx_CYFUNCTION_CCLASS, __pyx_mstate_global->__pyx_n_u_Tensor_view, NULL, __pyx_mstate_global->__pyx_n_u_cyflow_tensor, __pyx_mstate_global->__pyx_d, ((PyObject *)__pyx_mstate_global->__pyx_codeobj_tab[2])); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 143, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_2, __pyx_mstate_global->__pyx_n_u_return, __pyx_mstate_global->__pyx_n_u_Tensor) < (0)) __PYX_ERR(0, 385, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_CyFunction_New(&__pyx_mdef_6cyflow_6tensor_6Tensor_11view, __Pyx_CYFUNCTION_CCLASS, __pyx_mstate_global->__pyx_n_u_Tensor_view, NULL, __pyx_mstate_global->__pyx_n_u_cyflow_tensor, __pyx_mstate_global->__pyx_d, ((PyObject *)__pyx_mstate_global->__pyx_codeobj_tab[4])); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 385, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   #if CYTHON_COMPILING_IN_CPYTHON && PY_VERSION_HEX >= 0x030E0000
   PyUnstable_Object_EnableDeferredRefcount(__pyx_t_4);
   #endif
   __Pyx_CyFunction_SetAnnotationsDict(__pyx_t_4, __pyx_t_2);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  if (__Pyx_SetItemOnTypeDict(__pyx_mstate_global->__pyx_ptype_6cyflow_6tensor_Tensor, __pyx_mstate_global->__pyx_n_u_view, __pyx_t_4) < (0)) __PYX_ERR(0, 143, __pyx_L1_error)
+  if (__Pyx_SetItemOnTypeDict(__pyx_mstate_global->__pyx_ptype_6cyflow_6tensor_Tensor, __pyx_mstate_global->__pyx_n_u_view, __pyx_t_4) < (0)) __PYX_ERR(0, 385, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-  /* "cyflow/tensor.pyx":179
+  /* "cyflow/tensor.pyx":421
  *         return Tensor._from_c_tensor(new_impl)
  * 
  *     def _set_data_from_list(self, flat_data: list):             # <<<<<<<<<<<<<<
  *         cdef size_t numel
  *         cdef float* c_data
 */
-  __pyx_t_4 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 179, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 421, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
-  if (PyDict_SetItem(__pyx_t_4, __pyx_mstate_global->__pyx_n_u_flat_data, __pyx_mstate_global->__pyx_n_u_list) < (0)) __PYX_ERR(0, 179, __pyx_L1_error)
-  __pyx_t_2 = __Pyx_CyFunction_New(&__pyx_mdef_6cyflow_6tensor_6Tensor_11_set_data_from_list, __Pyx_CYFUNCTION_CCLASS, __pyx_mstate_global->__pyx_n_u_Tensor__set_data_from_list, NULL, __pyx_mstate_global->__pyx_n_u_cyflow_tensor, __pyx_mstate_global->__pyx_d, ((PyObject *)__pyx_mstate_global->__pyx_codeobj_tab[3])); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 179, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_4, __pyx_mstate_global->__pyx_n_u_flat_data, __pyx_mstate_global->__pyx_n_u_list) < (0)) __PYX_ERR(0, 421, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_CyFunction_New(&__pyx_mdef_6cyflow_6tensor_6Tensor_13_set_data_from_list, __Pyx_CYFUNCTION_CCLASS, __pyx_mstate_global->__pyx_n_u_Tensor__set_data_from_list, NULL, __pyx_mstate_global->__pyx_n_u_cyflow_tensor, __pyx_mstate_global->__pyx_d, ((PyObject *)__pyx_mstate_global->__pyx_codeobj_tab[5])); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 421, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   #if CYTHON_COMPILING_IN_CPYTHON && PY_VERSION_HEX >= 0x030E0000
   PyUnstable_Object_EnableDeferredRefcount(__pyx_t_2);
   #endif
   __Pyx_CyFunction_SetAnnotationsDict(__pyx_t_2, __pyx_t_4);
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  if (__Pyx_SetItemOnTypeDict(__pyx_mstate_global->__pyx_ptype_6cyflow_6tensor_Tensor, __pyx_mstate_global->__pyx_n_u_set_data_from_list, __pyx_t_2) < (0)) __PYX_ERR(0, 179, __pyx_L1_error)
+  if (__Pyx_SetItemOnTypeDict(__pyx_mstate_global->__pyx_ptype_6cyflow_6tensor_Tensor, __pyx_mstate_global->__pyx_n_u_set_data_from_list, __pyx_t_2) < (0)) __PYX_ERR(0, 421, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
   /* "(tree fragment)":1
@@ -8075,7 +11575,7 @@ __Pyx_RefNannySetupContext("PyInit_tensor", 0);
  *     raise TypeError, "no default __reduce__ due to non-trivial __cinit__"
  * def __setstate_cython__(self, __pyx_state):
 */
-  __pyx_t_2 = __Pyx_CyFunction_New(&__pyx_mdef_6cyflow_6tensor_6Tensor_15__reduce_cython__, __Pyx_CYFUNCTION_CCLASS, __pyx_mstate_global->__pyx_n_u_Tensor___reduce_cython, NULL, __pyx_mstate_global->__pyx_n_u_cyflow_tensor, __pyx_mstate_global->__pyx_d, ((PyObject *)__pyx_mstate_global->__pyx_codeobj_tab[4])); if (unlikely(!__pyx_t_2)) __PYX_ERR(1, 1, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_CyFunction_New(&__pyx_mdef_6cyflow_6tensor_6Tensor_17__reduce_cython__, __Pyx_CYFUNCTION_CCLASS, __pyx_mstate_global->__pyx_n_u_Tensor___reduce_cython, NULL, __pyx_mstate_global->__pyx_n_u_cyflow_tensor, __pyx_mstate_global->__pyx_d, ((PyObject *)__pyx_mstate_global->__pyx_codeobj_tab[6])); if (unlikely(!__pyx_t_2)) __PYX_ERR(1, 1, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   #if CYTHON_COMPILING_IN_CPYTHON && PY_VERSION_HEX >= 0x030E0000
   PyUnstable_Object_EnableDeferredRefcount(__pyx_t_2);
@@ -8089,7 +11589,7 @@ __Pyx_RefNannySetupContext("PyInit_tensor", 0);
  * def __setstate_cython__(self, __pyx_state):             # <<<<<<<<<<<<<<
  *     raise TypeError, "no default __reduce__ due to non-trivial __cinit__"
 */
-  __pyx_t_2 = __Pyx_CyFunction_New(&__pyx_mdef_6cyflow_6tensor_6Tensor_17__setstate_cython__, __Pyx_CYFUNCTION_CCLASS, __pyx_mstate_global->__pyx_n_u_Tensor___setstate_cython, NULL, __pyx_mstate_global->__pyx_n_u_cyflow_tensor, __pyx_mstate_global->__pyx_d, ((PyObject *)__pyx_mstate_global->__pyx_codeobj_tab[5])); if (unlikely(!__pyx_t_2)) __PYX_ERR(1, 3, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_CyFunction_New(&__pyx_mdef_6cyflow_6tensor_6Tensor_19__setstate_cython__, __Pyx_CYFUNCTION_CCLASS, __pyx_mstate_global->__pyx_n_u_Tensor___setstate_cython, NULL, __pyx_mstate_global->__pyx_n_u_cyflow_tensor, __pyx_mstate_global->__pyx_d, ((PyObject *)__pyx_mstate_global->__pyx_codeobj_tab[7])); if (unlikely(!__pyx_t_2)) __PYX_ERR(1, 3, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   #if CYTHON_COMPILING_IN_CPYTHON && PY_VERSION_HEX >= 0x030E0000
   PyUnstable_Object_EnableDeferredRefcount(__pyx_t_2);
@@ -8099,7 +11599,7 @@ __Pyx_RefNannySetupContext("PyInit_tensor", 0);
 
   /* "cyflow/tensor.pyx":1
  * # cython: language_level=3             # <<<<<<<<<<<<<<
- * 
+ * from libc.stdlib cimport malloc, free, calloc
  * from libc.stdint cimport int64_t
 */
   __pyx_t_2 = __Pyx_PyDict_NewPresized(0); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 1, __pyx_L1_error)
@@ -8144,7 +11644,7 @@ __Pyx_RefNannySetupContext("PyInit_tensor", 0);
 
 static int __Pyx_InitCachedBuiltins(__pyx_mstatetype *__pyx_mstate) {
   CYTHON_UNUSED_VAR(__pyx_mstate);
-  __pyx_builtin_Ellipsis = __Pyx_GetBuiltinName(__pyx_mstate->__pyx_n_u_Ellipsis); if (!__pyx_builtin_Ellipsis) __PYX_ERR(0, 231, __pyx_L1_error)
+  __pyx_builtin_Ellipsis = __Pyx_GetBuiltinName(__pyx_mstate->__pyx_n_u_Ellipsis); if (!__pyx_builtin_Ellipsis) __PYX_ERR(0, 473, __pyx_L1_error)
 
   /* Cached unbound methods */
   __pyx_mstate->__pyx_umethod_PyDict_Type_items.type = (PyObject*)&PyDict_Type;
@@ -8164,16 +11664,50 @@ static int __Pyx_InitCachedConstants(__pyx_mstatetype *__pyx_mstate) {
   CYTHON_UNUSED_VAR(__pyx_mstate);
   __Pyx_RefNannySetupContext("__Pyx_InitCachedConstants", 0);
 
-  /* "cyflow/tensor.pyx":256
+  /* "cyflow/tensor.pyx":81
+ * 
+ *     flat = []
+ *     def _flatten(item, depth=0):             # <<<<<<<<<<<<<<
+ *         if isinstance(item, (list, tuple)):
+ *             if depth < len(shape) and len(item) != shape[depth]:
+*/
+  __pyx_mstate_global->__pyx_tuple[0] = PyTuple_Pack(1, ((PyObject*)__pyx_mstate_global->__pyx_int_0)); if (unlikely(!__pyx_mstate_global->__pyx_tuple[0])) __PYX_ERR(0, 81, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_mstate_global->__pyx_tuple[0]);
+  __Pyx_GIVEREF(__pyx_mstate_global->__pyx_tuple[0]);
+
+  /* "cyflow/tensor.pyx":497
  *             if item is Ellipsis:
  *                 for _ in range(missing_axes):
  *                     clean_key.append(slice(None))             # <<<<<<<<<<<<<<
  *             else:
  *                 clean_key.append(item)
 */
-  __pyx_mstate_global->__pyx_slice[0] = PySlice_New(Py_None, Py_None, Py_None); if (unlikely(!__pyx_mstate_global->__pyx_slice[0])) __PYX_ERR(0, 256, __pyx_L1_error)
+  __pyx_mstate_global->__pyx_slice[0] = PySlice_New(Py_None, Py_None, Py_None); if (unlikely(!__pyx_mstate_global->__pyx_slice[0])) __PYX_ERR(0, 497, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_mstate_global->__pyx_slice[0]);
   __Pyx_GIVEREF(__pyx_mstate_global->__pyx_slice[0]);
+  #if CYTHON_IMMORTAL_CONSTANTS
+  {
+    PyObject **table = __pyx_mstate->__pyx_tuple;
+    for (Py_ssize_t i=0; i<1; ++i) {
+      #if PY_VERSION_HEX >= 0x030F0000
+      PyUnstable_SetImmortal(table[i]);
+      #elif CYTHON_COMPILING_IN_CPYTHON_FREETHREADING
+      if ((PY_SSIZE_T_MAX <= _Py_IMMORTAL_REFCNT_LOCAL)) break;
+      #if PY_VERSION_HEX < 0x030E0000
+      if (_Py_IsOwnedByCurrentThread(table[i]) && Py_REFCNT(table[i]) == 1)
+      #else
+      if (PyUnstable_Object_IsUniquelyReferenced(table[i]))
+      #endif
+      {
+        Py_SET_REFCNT(table[i], ((Py_ssize_t)_Py_IMMORTAL_REFCNT_LOCAL + 1));
+      }
+      #else
+      if ((PY_SSIZE_T_MAX < _Py_IMMORTAL_INITIAL_REFCNT)) break;
+      Py_SET_REFCNT(table[i], _Py_IMMORTAL_INITIAL_REFCNT);
+      #endif
+    }
+  }
+  #endif
   #if CYTHON_IMMORTAL_CONSTANTS
   {
     PyObject **table = __pyx_mstate->__pyx_slice;
@@ -8208,34 +11742,34 @@ static int __Pyx_InitCachedConstants(__pyx_mstatetype *__pyx_mstate) {
 static int __Pyx_InitConstants(__pyx_mstatetype *__pyx_mstate) {
   CYTHON_UNUSED_VAR(__pyx_mstate);
   {
-    const struct { const unsigned int length: 8; } index[] = {{53},{48},{37},{36},{30},{7},{9},{38},{41},{30},{47},{40},{6},{20},{179},{14},{39},{28},{2},{1},{8},{18},{9},{7},{15},{6},{2},{12},{27},{9},{50},{21},{9},{14},{11},{3},{4},{8},{20},{6},{24},{26},{26},{19},{11},{12},{18},{6},{7},{18},{3},{4},{13},{6},{3},{12},{9},{8},{12},{1},{7},{13},{5},{4},{8},{11},{10},{8},{4},{8},{5},{3},{11},{14},{12},{10},{17},{13},{6},{4},{4},{19},{12},{10},{12},{19},{5},{7},{12},{12},{8},{7},{6},{4},{49},{48},{9},{172},{232}};
-    #if (CYTHON_COMPRESS_STRINGS) == 2 /* compression: bz2 (1317 bytes) */
-const char* const cstring = "BZh91AY&SY0%\327\356\000\000\273\377\377\377\377\377\377\356\377\257\367\277\241\177\310\277\377\377\370@@@@@@@@@@@@@\000@\000P\004\236q\205\204\210\200\254`\324\321OJ\036CP\332\233d\232!\350\247\243D\365=OI\215\000\020a\001\215@\306S\322z5=\001\221\352'\220\340\000\000\000\032\000\000\000\000\320h\000\000\000\031\000h\000\r\0044\232h\215OI\007\223I\264\206A\240\003F\200\006\200\000\000\006\2006\241\243@8\000\000\000\006\200\000\000\0004\032\000\000\000\006@\032\000\002SP\232h\002ji\231C&T\362A\246M\000z \320\001\240\000\000\000\000\330\247\244\3224\256\217u\233\237\3749NnnW\034\360\350|c\334)\036O\335%\207t\235\2232\022k\304\264\021\232\247\261\026\210\t\006\221\343\221\223\231\017{\2373\367\251}c\222\2112kM\343-\320\206[3\202:\355\326\241\212\017\255\376\276\211\375\265\023\356g\251\253\315\375G\033\017\304\261\311\324\002\352!C\347\361=9\266\271\323pt3\251\0258=\216\264\221\334{\032\247\322\343\364\371\322\255\207\345\026\243\214P:\227\271^\300\3625m\256\332D\243\222b\200j\344\231\021\234'\002\177\212X\260\214C0b\320\211\004\334\223\237+\002\0107\337\037\222\030\223[\3035\342\025\222{4\025A1\203/\274h\010y\024\370\210\212\330r\372\003\304O\246@c\216\252\014\300I\002\366n\322e)a\270\345\212\362\034$\374\217\215:U\254\250\321\214ZM\317\223\020\2232\2258:\246\035\231S\020\237S\"u\204\253\t\2645\202\010\350I\3371g\225\222\262\201\027\000\023\2159L\271\232\301\021!hg\024\021b\211\021\326\304~tI\241\330\226Y&\300\r\350\034\030N\237H \306\242\340\024\360\035\3362P\375\262\353\2347sg\032\262)\322SP\024\246\224\207\211\2546a\304\307c\234\307\035[\317\010T\342\305a8\347\341\033\223V\247\026\377.E\277\247\353r\005\233\233\316\356Z3\242\373\033\263\235\361\331\237\304\250\235\203\002&\033\372IE\3301X\331P4\226\004\364\220;\363\023V\275\216\357S\325ZLv\005A\036\305yk\214y\006\221\032\030\232x6\207=\270J\341\267\242\251L\221D\277)\006|\361j\3119\310c*)\220S;\361N\021u\014\324'\352U0Kf\367C/\007\364Lf\270&`\2531m2y\210[}\302\006b#\0221!\233\225L\316\311#\202\177\0363\337\022+""\\j\251\002\021\220\326\254B/\205\346\202T \310\020Y\031\270\010\034\351\002I2Qv\316\226\336\236jL3\335\014\331\252\204\333\262\n\304$Ff\340\t'6\264sjnl\261\3228\317o\036\203\307\"\305\205\215iAq\331|Vs\006\004\364\315\256\344\333\207\227D\023A\211\025q\263`aA\nfuL]T\306X\335nR\024XS\007\210\230I9^\005y\027\350\246\200\354\351\223\\\254\034\203\205\231YV\245\244F)(\264FEG\317\210m\030\221U\020U\007\272a\031k[\270D\305\350\024B\010E\216\n0\205@\331\324\"\271@33A<\021\245\262\240\022T\002\204\022f0\230\n\014\351b\277\013\211\022\333}`\0365C\250\276{x!\300\005V\271\250\220\327\332\326\034RA\030qiv\235\341$\220\206\036\234o\216yI\252\2268\262\327=6\227\023\346\206\014I6\3079V\323\253\r\363\002\376,M]C\253\341r?\244uGu\263\263mL\t2\\)\330\231f\204/\315}\351\030\216\322T4\2125\016 &H\223q\324\341N\345[\313\036\342\002K\032\267\3454\213&\032\3274\220\366X\210\312\200\rs\\\324\264\213\010\"]e\016H\274\241BX\350v\356\031\334\210\353\334\322\210\326\351E\204\0354\371\224\220)\24090\220\323\351-}\264\246\275k\237rh\007\013\026^Q<\303\024\312\326:\352h\\\304H\356_7\375#\001\013\362J\363BV\"0\312e \227\342\205\264aE\027\205\205ad\3239\007\220xNM\256m\t$*R\352:\026\355\336l\371\227b\203A}\333\255\344@1\235\033\245|7]\332\370>O\207\264~\214\010w\n|{\303\220:r\372\2304\341K\216\027\312\rZ\335he\361Cv\357\367\234\335\016\316\306\025-|j\253\374\025oz\373\241\325\365\n\375\343\263h\352\027/p\332\271\314.\313\314}\363\3027B\352\372C\357W\243 \317\205\374<\0049\201R\310=A}\352R\257\374\353\312%\330[\310\207E\353k\250\357\024\235g\257M\303\332\365\324\377\336c\272\376\216-+\016\034\215\203\357\355\377\336=,y\360\033\306\025H\336z\313Q\004{\240\214\254\216@\317Du\323\213\331\225V\257\370\273\222)\302\204\201\201.\277p";
-    PyObject *data = __Pyx_DecompressString(cstring, 1317, 2);
+    const struct { const unsigned int length: 8; } index[] = {{53},{48},{37},{36},{28},{39},{28},{30},{7},{9},{22},{38},{31},{41},{30},{47},{40},{37},{6},{30},{20},{179},{48},{46},{14},{39},{28},{2},{1},{8},{18},{9},{7},{15},{6},{11},{2},{6},{12},{27},{9},{50},{21},{9},{14},{10},{27},{20},{4},{11},{3},{4},{8},{20},{6},{24},{26},{26},{19},{11},{12},{18},{6},{7},{17},{18},{3},{4},{4},{13},{5},{6},{3},{12},{4},{9},{8},{8},{49},{31},{12},{1},{7},{13},{4},{5},{4},{3},{8},{11},{10},{8},{4},{8},{5},{3},{11},{14},{12},{10},{17},{13},{6},{4},{4},{19},{12},{10},{12},{19},{5},{7},{3},{12},{12},{8},{7},{6},{4},{49},{48},{9},{172},{232},{148},{117}};
+    #if (CYTHON_COMPRESS_STRINGS) == 2 /* compression: bz2 (1709 bytes) */
+const char* const cstring = "BZh91AY&SY\203\2131G\000\001\016\177\377\377\377\377\377\357\377\257\377\277\243\177\310\277\377\377\370@@@@@@@@@@@@@\000@\000`\006.p\302\307\320h4\000\023\207\006\246B!\251<\247\250\364i<a=Sjz\n4\036D\323\322\r\0324\323 \323M\006\215\036\241\223L\236\220x)\372\231\016\000\000\000\000\000\000\000\310h\000\000\000\000\000\000\000\001\251\200\221\251\221\036\250\310\003A\240\000\006\232\032\0004\000\000\000h\0004\311\351\000Jh\211\220\324\323B\030\211\232\230\244\366*d\017j\2304\236\240\000\000\304\000\0004\323C\004\321\352\016\000\000\000\000\000\000\000\310h\000\000\000\000\000\000\000\001\242E<\232OQ\372S\3652C\324hh\000\001\240\365\006\200\000\0004h\000\000\0324\364\200\240\333\205\036\340F+\310\2760\014*N\000\223,KIF\246\324\276d\014dN\031\005\314&\232\310%q\023'yx$\231\010I\t5D\266\225\241\212 \022i\334\220\204&d\203q)\020m~T\010\206\0218v\214+.m\020\177\354\256R\330\357|\246Rb\212\213!\241\343 \035-\025\253\311\236\353\261k\275Pb\203\255\264=\262\320\3153\370\034\220\224\213\337\370\346\374\264\240g\315\314\306\2153\350\257)uL$\240\343\367\367\247\324\372\211`\250R\n\304\300\n\361tv\353hZ\220EE\200\322\3608\025\251\222\0373\003f\245T\233\013f\006\023w*\244\316\212M\010\251\246\305\")\314\025\310\266]A]Ub\033\240\254\0239\370\254\000\0315\362q\267%\203R\027&5)M\261\3240@@\231\022\231R\231\233u\244V,\354\355\251\203x\204\352\223\\\310h\"\027/4\237\315\2126\027,9E\372B\002a\007\312Z\323,M\031\223\351;\226\032\th\315\344\251\r\374wR\206\202\314\301\265i;\035yIi\276\216d\351\265\201)c\307E\352\017\354\310p\244m\032]v\236\215\211\023\204\351\310\244j\266\265\255\324\264j\351\366l\247/\225\206\004\230\030\225\366\033\025~\253\023d\314\315\312zP8iA\264\212^\234\243\316,\344\024\023\225\270\334\243Zc\344\246\243ey\003-\252/\330'\205G\020\262s\310\317\334\335\263*\347\374\342\376^)\374\217\362\363\320\265\263k\362;\007\203\267\346\2204\003\257\037C\352[\247u\362Q\342\217\211S\242\324\222\212<$U\2138CY\360<\265E\n\325\315\024\215\005I\266\t\016\235\217\026\034\360\026""\2339\241X\240\361\256zSZ\216\266\277G\301\312i\366\277\263\206@\325\016g\340I\022\035ep\222\302]f\035\013\t \"U\030d\020\n&B\252\352\tb\255\317\r\255\212\230\263r\3406\027:5\227\336L\351m\347G\017\177\252#\271\335\0327\033\361\347\352\007\222\nG\320\313\233\303/-\0313`]{\023\244\203\214\337\022g\351\024^?_\374\212\346\311\030_\217\364\2746\355\327V\277@\356\207L\302\021\317\215\257\013R3F\210\034\336\260\001\030;\360\210CF\317\231\350t\265W\231\tX\363\234~\221\337.\247\331#d3\242\221\315\"\264t\351\035oBJ\022v\210Ij\301\344\317\377fw)\252\201\261\310\202\"<\204\353\033\2147\306\306\267\214a7;\341\305\001\030!K\2144k\303\250\033@\223\t$\311`\360`?_a\347j}x\2338\342\365\256\321\214\023\344\255\223 I$R\325\016v*\2348#_\303\337N\003|\033\267\320s\211\263-\313\331\273I\306\356zF\014P\206\361w[\210\271\370\356\020\211Q\246=2\305\215\342\332\007x\200z :\266&\336\227\316\312Bi\r+\025l\273@\320r\\\322\265\256\210\033;L\350\350\307-U\024]C\030\231T>\022\216B\340&\2155\342\237\000\213P\370\367.L\232\375Y\212\304\2120)\025\306\303\310x\000m\200\320\210\320P\016\200\235\006\204H\032\0007\004R$\206(\203\272H\276F\250\342]&\223<\3125\344\027\320U\202\"\216t\220\3458\260\217=\342s\233\304\202!\335\335\315?V\373W\247\032\020\317{5\327=\221\0073\204\204\261\240\036\nj\031\"\275\232\255T\014zi\261\026\031\327#\242\\c\026\301\330\276\240g\220\332\twU\003\313\301\335\314\344r\362\202I:q3\022NHx07\340\302Lwo\341L24\224\325-aT\t\002Lu3\272\261\314\252\262 \326n5bvo9\374\235m\332x\373\345)v\016\317\343|\030,\201\222HK\202}\306\375O)g\253<\3227MF\326\304j\230s\216H\207gGv\r\361\260qU\326Pe\016\333\346N\035E\274\025\235\306S\033K\201TC\022g\246\3619\313R\001\216\024\315\232\371\261d\350\320M\020A\177z\216\331A\243\027\236\033\366\356\343\227&\230b/\302\036q\005\362Q5\301o\207+\241\342\346g\0347,\2744\236(\024\312!\320\311\r~\364)\226\226&\013`\354l\\)\177\035w^\024\035\036\0264\354.\316\374(\r\2221\206=e9\334\024(\342\nyw\033)\346\301\272\030\316\332ar3\344T\341\206\206\344\304\207\302\370n""o\r\346\245kr\033\002a\267C\345\260\235\204\306\231\261\034S\230mI!b\227\240\346k\270\343\317\224x\306\266<Q\034)\312b\020.\003,\230x7Z\224\277\2232h\2308\213`\031\007\014n\254X(\366)\\\203Xr\200\370A\356\t\306A5'$\324$s\221+\243\303\246\025\376\347M\370\204\276\202\377r\221p\037\0329\035\214\035xn\215\007\322\235\304\352\247o\227t\372\333\344\024\312\204b\245\337\\9.B!\213\370\023\305\010\341\331:\276hEK\336\234q]\275\022+_\255\245\237V$\351\010\241\014\336\204B\316\024G\247\2328\311\201\233xFv&v\306|\010\246\367\352\014.>\363\331>\034T\311\356KO\300\257\375\227\305\227u\250o\3656\036\267\035~\227\243R\336\2177U\272\023\360c\373\352j\327\252\365-j\023\316^F\365\311\262\231\"V#\340\271\320\327\323\320\260\273N*I\271\224\226.Sb\030\356\243\271L\240\264\231\247 \210\2637\205\210Err@\310f\230\344\355\021\317\2333Q?\342\356H\247\n\022\020qf(\340";
+    PyObject *data = __Pyx_DecompressString(cstring, 1709, 2);
     if (unlikely(!data)) __PYX_ERR(0, 1, __pyx_L1_error)
     const char* const bytes = __Pyx_PyBytes_AsString(data);
     #if !CYTHON_ASSUME_SAFE_MACROS
     if (likely(bytes)); else { Py_DECREF(data); __PYX_ERR(0, 1, __pyx_L1_error) }
     #endif
-    #elif (CYTHON_COMPRESS_STRINGS) != 0 /* compression: zlib (1202 bytes) */
-const char* const cstring = "x\332\215T\317s\323F\024\216K\240\016uK\014\r\005J\333\315P&P\210\031\017\241M\031B\3078\241\223\013\223\264\t0\323\303\316z\265r\026V\273\266v\345\037p\311\321G\035u\324QG\037s\314\261G\037u\364\237\300\237\320\267\222p\323I\332\251g,\255v\337\373\276\367\276\357I\r\247G$e\016\342\322a\003.\333\350\216\340\332h\244|\264\307\244V\276\276\213\270FR\031\244\203NG\371\2069\r\231\207#J$RR\014\321\001\3511D\220\006\000\301\020\023\202w4d\335Y\251\325j+w\237\021\372\226I\007\271\204\013\2402\n\021!\024%\206\025\034\333^G\234\016\242>\263!&\013A=\316\372M\"m!>\323\007\2443;Q.\020\277ch\363>j\005\006m\r:\214B\225\350\371\177\321!\267\300<#\312c\236\362\207YDND|\237\014\317\010\374\037\247\017\264\361\271\363\017\314\177a5\314\003y\t\0049\304\020h\305u\231\277\235\351\274-{D\360\302$d\206\035\366\030\275P6\347\200\030\324\034\232\003%\255K\016\023\274\305|@\003O,1\350\340\333 \211v\266vV\327\326\327\020\001\211}\366\006\024\322`h\213\n\2425\323V\303V\300\205\3412\203\3275\264\355\242\241\n\220dy\231\035\210;\231`\016\230D\232\031\273@+\231/\304p%1\244\303\024\254 \207\373@\302a. \3739\021\232\325\236\344\362\347\302l\354)\205<\"\207\266+N\001\322j\223[\372\370\243\265\320\323\276\234\315\035\364\327\203HH0\254\315 j\345\351/\304q\260\264R\220\001@\364\231\317r\225f\321\033+\016\327\244\225\215%\363\2304\372>j\303\0201i7\333\324\242\251\302I\313\247`\204\254\032*\220N^\023\031\3006\327y\202#\025\000\273$\020\006a\3543'\240\014c\344\004Y\237R\311U\220\275\307\211\200S\312%7\030k\237>\240CW\250\376\203\274\255Zg8@\371\\\350\215'v!\333Z\005>eOQ\237\233\203|\234\233;\373\315\375\315\306V\3612a\2743\034\300\177\023L\305/\330\300\374\306\334\\\317\374Z\233UC\263y\300x\266\0176ip\347\364\t\034`;l\330\365\225\207\355\213_\234\270\\\010\034H\016\355{\305\226\235Z\214\013\243\241e\242\207\222rU\243\312\007\311\270d\232fX\024gZR\001[\230\303<\370\204\262\026\274\334\264\023\320\300!\271\022\265\\\211\334\"\207{'\t]A\212\262\260\033H\212\341\327\376\330\001\346\305\264`PdF\315\341\335""\321\266|\214=\002\234p\225\001\021\320\037s\340A9\201`\026F\022\017\356\000\340Ih\206\303g@\006\036\023\035\325\301\030<\301\005\207]\366\214u\333&u\001)O\374\333\357SZ\3176\330\300.M\340KK\256\231p\317P9\263\244\250\006V\305<\2350\n\237aZ&k15\206\370m\213`\253/\326\3311\306\206Y\370@\276\225\252o\277\032\001\323\326\271\311\334\217c\222\316\177z\330\037\321\260\232\226oD\313Q=]X\014\317\205\365\264\374]\324\215K\323\362\027\2437Qir\375\247q\367\250t\330H\313\237\215\326F\203p\020\rb\235,\247\225[q=\336LJ\351\347\325\360Zt-\276\226\\I\032i\345\373\270\021\357%\325\303R:\177qt/\334\235\314\257&\273\037.\316-TF\017Gd\364>\272\025\355\305\325\264r9\374!jD\177$\245\344\313\311j\363\270~\334<\356\376\t\244\213\341|\010\\\026\363*\224q!n\001EF\335\265I\367\242\335\210L\313\013ie1<\037\356ge/^\rI\030D[q5\276\233\324\223\306\264rid\302\365h=^O\036&$]\314+\2758^N\253K\341\353\350u\374:\371}\\J\027\363Zo\214\353S@+\205\325\311\374\267\021I\313\020\376\341\302\334\302\355\270aoy\335\375\220F\227\243\265\350]RMn'\335\361\371\361\253#\350\366\353\350Q\\\212\227b\022w\247\305CuZ\256\214~\005\031+7\243\306\024*\337\210\316Ab\267hy\362\315\306\321\356\2213y\266?\331\1779y\371jZ\2764\322\341\262\225\335\236?\217\227\343G\311'\240\357\251\236+\243\255p\t:\205\275+a=\334\212n\306\273q\256\305W\341{\310[\213\337\215\257\037-\027\315X\352\237\303f\230A\334\217H\324\235\226\227B\014-\357\376\005VM\007\320";
-    PyObject *data = __Pyx_DecompressString(cstring, 1202, 1);
+    #elif (CYTHON_COMPRESS_STRINGS) != 0 /* compression: zlib (1583 bytes) */
+const char* const cstring = "x\332\215UMs\323F\030\306%\001\003N\211\201@\240\264\335\014\320\360i\306C(i\232\3201I\350\344P\006\223\2040\323\303\316ZZ9\013\362\312\326\256\374\001\027\216:\352\270G\035u\364\321\307\0349\352\250\243\177\002?\241\357J\302\204\2222=\330\336\335\367\363y\336g\3275\263K\270AM\304\270I\373\2147\321M\233\t)\220\343\242\035\312\205\343\212[\210\t\304\035\211\204\327n;\256\244f\215g\356\310 \0349\334\036\240}\322\245\210 \001\tl\212\250m\263\266\200\250\233\213\225Je\361\326\023b\274\241\334D\026a6\224\222\016\"\266\355\030D\322\274\306V\253m\177\355d\270T\273\310\324\005u\031\355\255\023\256\033!B\260&G]b{\0249\026\222\2036E\271\315p\332\003\324\240\262G)G&\263,\352R.\221I\273\314\240b\345\013\267<3d\020\373\344s\n\227f\333Cf\366\226\242\215\273\250\341I\264\331oS\003H\370\274\320\204i\276\244\327\266\351\323oaDV\016\344\010\257\214\321\206\247;>\302\334\242-\307\035\244\t\262\356\210\353\222\301\021\216\377\303z_H\227\231_\344\374\217\246$m\301\310\t8\231D\222\274\273-n8\034\306+5\261)x\223\265\000#s8\"\232\352\266\334G[)\234-\016Cb&(\202\266\264w:)\306\323\250\225\2115\203\256m+\350\231\243\313\356C\236\365\201\334\207\214 #\223\332\254A]h\010\244\246{\007\332]\355\304\321\363\315\347\367\226\226\227\020\001\345\270\3645\014D\200N\033\206\r\032\241B\317\256\3411[BI\235^T\320\226\205\006\216\2078\315\220\266\301\357p\200\334\007\331\010*\365\002-\246z \022\200a\010\007q/\002T\027\2120\220;D?%\266\240\225\355\224\361\026\023-\"\215\375\025}+\016\2514\233>\3521 %\233\315\267\375SB\017y\257\346\t\322\335\332\216\343\240\026\341\003\315\231\026t:\274L\250+\237\004\013\214\355\362\311e\315\245\017\001\2226)x->\376\203\230&\346\232h\322\207\024=\270\"\331\014&\336k\213&\023\244\221\336\345tr\342.jB\217\224\353\303\025D?i\277id\006\235\336\311;\326\r8pS4\371\216\307\315\254I\322\207c&\262\014&w\240\222E<[\"\214]jz\006\305\030\231^J+w\370=\230r\227\021\033\254\006\343Lb,\\\343\2761\260l\247w?\303Yi\017\372(S\262X[\325\013\336\024\216\347\032\364\261N\222\323\006+I\334&LTK""\3740\261\251\351_/\000\352\n\224\373\350+\277\376|w}w\243\266\231\277g\030?\037\364\341\263\001\002\304\317h_\276\240VV&\373\256L\240\030\251v1\236\234\203\244\004(\351k\013\030\260\276[\330r\235\026\326\303\317-\026\263m\354q\006\334\265\362#\215\000\343\\\224\300\027\021\003n0\247b8.\360\3158\025F\232\313\300)\032\240N\253\032\003x\006\027Yo\301\0073\020\263K\014\332\200\007\327h{\206g\022\303s\335\214\333J\306Hz\2073)\300\335>\334\212e\023\251?y\323\260\202\010\214-\217\033\030\353R\030\332\000e\244P\362>\340r\246\236\225U\375\254\330\342qe\022\370\355\2004a\306\033f\271\3421\314a\002X\343\322\037\241\203m\210\307-\002\370\340\233{\304\006r!/n9\246gC\006\2149i\301/\344iq`\222\301\213\314\275\026\265\333N\033cP\023\316K\351eWj\235\352\240\016d\312\002?+\365\253AO\016h_/\245\347r]\\P\333:b\304\251\036\362n`\225\337\204C*\301G(&\245&\327;\274X\231\252q\n _\347S\227TW\360\370\033\356\364x\372')\264r\342c\277\016I2u\362}\3177\202rR\274\242\026T595\033\034\017\252I\361g\325\t\013\343\342\367\376kU\210/?\032vF\205\367\265\244x\306_\362\373A_\365C\021-$\245ka5\334\210\n\311L9\230W\363\341|t>\252%\245\353a-\334\211\312\357\013\311\324i\377NP\217\247\356E\365\217\247\217\235*\371\017|\342\277S\327\324NXNJ\347\202\333\252\246\376\216\n\321\205\370\336\372A\365`\375\240\363\001\212\316\006S\001\324\3229/B\033'\302\006\224HKwt\320\035UWd\\<\225\224f\203\351`7m{\366b@\002Om\206\345\360VT\215j\343\322Y_\006\313j9\\\216\036D$\231\315:==\\H\312s\301+\365*|\025m\017\013\311l\326\353\225au\014\331\nA9\236\372I\221\244\010\356\037O\034;u#\254\351\237\254\357^`\250sjI\275\215\312\321\215\2503\234\036\356\215\000\355\017\352aX\010\347B\022v\306\371\246<.\226\374?\201\306\322UU\033C\347k\3528\004vr\310\361\217k\243\372\310\214\237\354\306\273/\343\227{\343\342Y_\004\013\232vm\177\032.\204\017\243\357\200\337\2570\227\374\315`\016\220\302\331\371\240\032l\252\253a=\314\270\270\024\274\203\270\245\360\355\360\362h!\007\243K\377\026\254\007i\212\273\212\250\316\2708\027`\200\0143\271""\004\307`_\t\352AS\275\014\241\331\263~7x\021\010 \364Qx=4\000\346/\303\343\303\207\243\302\250\254\t~\035\026\222\013\277\217\252\361\352_\037\352\037h\274\275\023\357\220\2304\342\006\215\251\025[M]\365$d\235\235W\0055\247\254\360IH\222\031\250\243N*/\254%\231YM\247X\240\243[\252\032_]\035\325F;\007\345\203\033\007\035-\230\223\357e\332\222\245iH@\177\014\"\n\343\251\222_K\246\316\370U-\251\333A-\330\313\3543\376\036l\266\241^Y\203\321c\352\352mR\232I\212Z\002\325\2406\316\342\240\217\217W\216M\317\3705\277\256S=\004\206\346U\371\037\325I2\001";
+    PyObject *data = __Pyx_DecompressString(cstring, 1583, 1);
     if (unlikely(!data)) __PYX_ERR(0, 1, __pyx_L1_error)
     const char* const bytes = __Pyx_PyBytes_AsString(data);
     #if !CYTHON_ASSUME_SAFE_MACROS
     if (likely(bytes)); else { Py_DECREF(data); __PYX_ERR(0, 1, __pyx_L1_error) }
     #endif
-    #else /* compression: none (2022 bytes) */
-const char* const bytes = "Advanced indexing (lists or Tensors) is not supportedAn index can only have a single ellipsis ('...')Backend failed to allocate TensorImplBackend failed to create tensor viewCannot reshape tensor of size D, but Expected Failed to allocate TensorImpl for viewFailed to allocate memory for shape arrayFailed to allocate shape arrayFailed to allocate shape/stride memory for viewFailed to allocate temporary data bufferIndex Invalid index type: Note that Cython is deliberately stricter than PEP-484 and rejects subclasses of builtin types. If you need to pass subclasses then set the 'annotation_typing' directive to False.<Tensor shape=Too many indices for tensor: tensor is Unsupported device integer: '>?add_note axes were indexed device='disable elements, got enablegc into shape  is out of bounds for axis isenabledno default __reduce__ due to non-trivial __cinit__src/cyflow/tensor.pyx strides=<stringsource> with size CPUCUDAEllipsis__Pyx_PyDict_NextRefTensorTensor.__reduce_cython__Tensor.__setstate_cython__Tensor._set_data_from_listTensor.fill_uniformTensor.view__annotate__asyncio.coroutinesc_datac_shapecline_in_tracebackcpucudacyflow.tensordevicedimfill_uniformflat_data__func____getstate__iindices_is_coroutineitemslist__main__manual_seed__module____name__ndimnew_implnumelpop__pyx_state__pyx_vtable____qualname____reduce____reduce_cython____reduce_ex__returnseedself_set_data_from_list__set_name__setdefault__setstate____setstate_cython__shapestridestarget_numeltarget_shape__test__unknownvaluesview\320\0006\260a\330\004\007\200w\210c\220\021\330\010\032\230!\2301\330\t\020\220\003\2201\330\010\037\230q\240\001\340\010\016\210j\230\001\320\0317\260q\270\001\200A\330\010\013\2104\210x\220x\230x\240s\250!\330\014#\2401\240D\250\001\330\r\021\220\030\230\030\240\030\250\023\250A\330\014$\240A\240T\250\021\200\001\330\004\n\210+\220Q\320\004-\250Q\360\n\000\t\014\2103\210a\210{\230#\230T\240\021\330\014\022\220*\230A\230[\250\001\250\024\320-C\3001\300C\300q\310\001\340\010\020""\220\004\220A\330\010\021\220\030\230\026\230q\240\006\240b\250\001\330\010\013\2104\210q\330\014\022\220+\230Q\230a\340\010\t\330\014\020\220\005\220U\230!\2301\330\020\026\220a\220u\230E\240\021\240)\2501\250A\340\014\017\210t\2208\2308\2408\2503\250a\330\020#\2401\240D\250\n\260!\330\021\025\220X\230X\240X\250S\260\001\330\020$\240A\240T\250\032\2601\340\014\020\220\001\220\021\320\004\036\230a\330\010#\2401\360\006\000\t%\240A\360\006\000\t\014\2103\210a\210w\220c\230\022\2304\230z\250\021\250%\250q\260\005\260W\270A\330\014\033\2305\240\001\240\025\240a\240q\340\014\033\2305\240\001\240\021\340\010\014\210G\2201\330\014\034\230A\340\010\013\210=\230\003\2304\230q\330\014\022\220*\230A\320\035=\270Q\270d\320BU\320UV\320VW\340\010\017\210s\220!\2201\330\010\022\220*\230F\240!\2405\250\002\250!\330\010\013\2104\210q\330\014\022\220+\230Q\230a\340\010\014\210E\220\025\220a\220q\330\014\023\2201\220E\230\034\240Q\240a\340\010\t\330\014\027\220{\240!\2404\240z\260\031\270!\340\014\020\220\001\220\021\340\010\013\2109\220C\220q\330\014\022\220,\230a\230q\340\010\025\220_\240A\240Q";
+    #else /* compression: none (2802 bytes) */
+const char* const bytes = "Advanced indexing (lists or Tensors) is not supportedAn index can only have a single ellipsis ('...')Backend failed to allocate TensorImplBackend failed to create tensor viewCannot assign value of type Cannot copy between different devices: Cannot copy tensor of shape Cannot reshape tensor of size D, but Expected Expected list or tupleFailed to allocate TensorImpl for viewFailed to allocate index bufferFailed to allocate memory for shape arrayFailed to allocate shape arrayFailed to allocate shape/stride memory for viewFailed to allocate temporary data bufferInconsistent list dimension at depth Index Invalid element type in list: Invalid index type: Note that Cython is deliberately stricter than PEP-484 and rejects subclasses of builtin types. If you need to pass subclasses then set the 'annotation_typing' directive to False.Shape mismatch: cannot assign Tensor with shape Shape mismatch: cannot assign list with shape <Tensor shape=Too many indices for tensor: tensor is Unsupported device integer: '>?add_note axes were indexed device='disable elements, got enable: expected gc, got  into shape  is out of bounds for axis isenabledno default __reduce__ due to non-trivial __cinit__src/cyflow/tensor.pyx strides=<stringsource> to Tensor to target view with shape  to tensor of shape  vs  with size CPUCUDAEllipsis__Pyx_PyDict_NextRefTensorTensor.__reduce_cython__Tensor.__setstate_cython__Tensor._set_data_from_listTensor.fill_uniformTensor.view__annotate__asyncio.coroutinesc_datac_shape__class_getitem__cline_in_tracebackcpucudacurrcyflow.tensordepthdevicedimfill_uniformflatflat_data_flatten__func___get_nested_list_shape_and_flat.<locals>._flatten_get_nested_list_shape_and_flat__getstate__iindices_is_coroutineitemitemslistlst__main__manual_seed__module____name__ndimnew_implnumelpop__pyx_state__pyx_vtable____qualname____reduce____reduce_cython____reduce_ex__returnseedself_set_data_from_list__set_name__setdefault__setstate____setstate_cython__shapestridessubtarget_numeltarget_sha""pe__test__unknownvaluesview\320\0006\260a\330\004\007\200w\210c\220\021\330\010\032\230!\2301\330\t\020\220\003\2201\330\010\037\230q\240\001\340\010\016\210j\230\001\320\0317\260q\270\001\200A\330\010\013\2104\210x\220x\230x\240s\250!\330\014#\2401\240D\250\001\330\r\021\220\030\230\030\240\030\250\023\250A\330\014$\240A\240T\250\021\200\001\330\004\n\210+\220Q\320\004-\250Q\360\n\000\t\014\2103\210a\210{\230#\230T\240\021\330\014\022\220*\230A\230[\250\001\250\024\320-C\3001\300C\300q\310\001\340\010\020\220\004\220A\330\010\021\220\030\230\026\230q\240\006\240b\250\001\330\010\013\2104\210q\330\014\022\220+\230Q\230a\340\010\t\330\014\020\220\005\220U\230!\2301\330\020\026\220a\220u\230E\240\021\240)\2501\250A\340\014\017\210t\2208\2308\2408\2503\250a\330\020#\2401\240D\250\n\260!\330\021\025\220X\230X\240X\250S\260\001\330\020$\240A\240T\250\032\2601\340\014\020\220\001\220\021\320\004\036\230a\330\010#\2401\360\006\000\t%\240A\360\006\000\t\014\2103\210a\210w\220c\230\022\2304\230z\250\021\250%\250q\260\005\260W\270A\330\014\033\2305\240\001\240\025\240a\240q\340\014\033\2305\240\001\240\021\340\010\014\210G\2201\330\014\034\230A\340\010\013\210=\230\003\2304\230q\330\014\022\220*\230A\320\035=\270Q\270d\320BU\320UV\320VW\340\010\017\210s\220!\2201\330\010\022\220*\230F\240!\2405\250\002\250!\330\010\013\2104\210q\330\014\022\220+\230Q\230a\340\010\014\210E\220\025\220a\220q\330\014\023\2201\220E\230\034\240Q\240a\340\010\t\330\014\027\220{\240!\2404\240z\260\031\270!\340\014\020\220\001\220\021\340\010\013\2109\220C\220q\330\014\022\220,\230a\230q\340\010\025\220_\240A\240Q\320\004\027\220q\330\010\013\210:\220Q\220g\230V\2401\330\014\017\210v\220R\220s\230!\2307\240$\240c\250\021\250&\260\003\2605\270\001\270\021\330\020\026\220j\240\001\330\024;\2701\320<M\310Q\310e\320ST\320Ta\320ab\320be\320ef\320fg\340\014\020\220\007\220q\330\020\030\230\001\230\025\230f\240B\240a\330\r\027\220q\230\007\230u\240A\330\014\020\220\007\220q\230\005\230Q\230a\340\014\022""\220)\2301\320\034<\270A\270T\300\021\300%\300q\200\001\330\004\007\200t\210:\220Q\220f\230F\240!\330\010\016\210i\220q\230\001\340\004\014\210A\330\004\013\2101\330\004\n\210*\220A\220W\230F\240!\330\010\r\210W\220A\220S\230\001\230\021\330\010\013\2103\210a\210v\220S\230\001\330\014\r\330\010\017\210t\2201\220A\340\004\013\2101\330\004\027\220q\360\032\000\005\r\210A\210Q\330\004\013\2105\220\001\220\030\230\021";
     PyObject *data = NULL;
     CYTHON_UNUSED_VAR(__Pyx_DecompressString);
     #endif
     PyObject **stringtab = __pyx_mstate->__pyx_string_tab;
     Py_ssize_t pos = 0;
-    for (int i = 0; i < 94; i++) {
+    for (int i = 0; i < 119; i++) {
       Py_ssize_t bytes_length = index[i].length;
       PyObject *string = PyUnicode_DecodeUTF8(bytes + pos, bytes_length, NULL);
-      if (likely(string) && i >= 35) PyUnicode_InternInPlace(&string);
+      if (likely(string) && i >= 50) PyUnicode_InternInPlace(&string);
       if (unlikely(!string)) {
         Py_XDECREF(data);
         __PYX_ERR(0, 1, __pyx_L1_error)
@@ -8243,7 +11777,7 @@ const char* const bytes = "Advanced indexing (lists or Tensors) is not supported
       stringtab[i] = string;
       pos += bytes_length;
     }
-    for (int i = 94; i < 99; i++) {
+    for (int i = 119; i < 126; i++) {
       Py_ssize_t bytes_length = index[i].length;
       PyObject *string = PyBytes_FromStringAndSize(bytes + pos, bytes_length);
       stringtab[i] = string;
@@ -8254,15 +11788,15 @@ const char* const bytes = "Advanced indexing (lists or Tensors) is not supported
       }
     }
     Py_XDECREF(data);
-    for (Py_ssize_t i = 0; i < 99; i++) {
+    for (Py_ssize_t i = 0; i < 126; i++) {
       if (unlikely(PyObject_Hash(stringtab[i]) == -1)) {
         __PYX_ERR(0, 1, __pyx_L1_error)
       }
     }
     #if CYTHON_IMMORTAL_CONSTANTS
     {
-      PyObject **table = stringtab + 94;
-      for (Py_ssize_t i=0; i<5; ++i) {
+      PyObject **table = stringtab + 119;
+      for (Py_ssize_t i=0; i<7; ++i) {
         #if PY_VERSION_HEX >= 0x030F0000
         PyUnstable_SetImmortal(table[i]);
         #elif CYTHON_COMPILING_IN_CPYTHON_FREETHREADING
@@ -8283,6 +11817,37 @@ const char* const bytes = "Advanced indexing (lists or Tensors) is not supported
     }
     #endif
   }
+  {
+    PyObject **numbertab = __pyx_mstate->__pyx_number_tab + 0;
+    int8_t const cint_constants_1[] = {0,1};
+    for (int i = 0; i < 2; i++) {
+      numbertab[i] = PyLong_FromLong(cint_constants_1[i - 0]);
+      if (unlikely(!numbertab[i])) __PYX_ERR(0, 1, __pyx_L1_error)
+    }
+  }
+  #if CYTHON_IMMORTAL_CONSTANTS
+  {
+    PyObject **table = __pyx_mstate->__pyx_number_tab;
+    for (Py_ssize_t i=0; i<2; ++i) {
+      #if PY_VERSION_HEX >= 0x030F0000
+      PyUnstable_SetImmortal(table[i]);
+      #elif CYTHON_COMPILING_IN_CPYTHON_FREETHREADING
+      if ((PY_SSIZE_T_MAX <= _Py_IMMORTAL_REFCNT_LOCAL)) break;
+      #if PY_VERSION_HEX < 0x030E0000
+      if (_Py_IsOwnedByCurrentThread(table[i]) && Py_REFCNT(table[i]) == 1)
+      #else
+      if (PyUnstable_Object_IsUniquelyReferenced(table[i]))
+      #endif
+      {
+        Py_SET_REFCNT(table[i], ((Py_ssize_t)_Py_IMMORTAL_REFCNT_LOCAL + 1));
+      }
+      #else
+      if ((PY_SSIZE_T_MAX < _Py_IMMORTAL_INITIAL_REFCNT)) break;
+      Py_SET_REFCNT(table[i], _Py_IMMORTAL_INITIAL_REFCNT);
+      #endif
+    }
+  }
+  #endif
   return 0;
   __pyx_L1_error:;
   return -1;
@@ -8294,7 +11859,7 @@ typedef struct {
     unsigned int num_kwonly_args : 1;
     unsigned int nlocals : 4;
     unsigned int flags : 10;
-    unsigned int first_line : 8;
+    unsigned int first_line : 9;
 } __Pyx_PyCode_New_function_description;
 /* NewCodeObj.proto */
 static PyObject* __Pyx_PyCode_New(
@@ -8311,34 +11876,44 @@ static int __Pyx_CreateCodeObjects(__pyx_mstatetype *__pyx_mstate) {
   PyObject* tuple_dedup_map = PyDict_New();
   if (unlikely(!tuple_dedup_map)) return -1;
   {
-    const __Pyx_PyCode_New_function_description descr = {2, 0, 0, 2, (unsigned int)(CO_OPTIMIZED|CO_NEWLOCALS), 52};
+    const __Pyx_PyCode_New_function_description descr = {2, 0, 0, 3, (unsigned int)(CO_OPTIMIZED|CO_NEWLOCALS), 81};
+    PyObject* const varnames[] = {__pyx_mstate->__pyx_n_u_item, __pyx_mstate->__pyx_n_u_depth, __pyx_mstate->__pyx_n_u_sub};
+    __pyx_mstate_global->__pyx_codeobj_tab[0] = __Pyx_PyCode_New(descr, varnames, __pyx_mstate->__pyx_kp_u_src_cyflow_tensor_pyx, __pyx_mstate->__pyx_n_u_flatten, __pyx_mstate->__pyx_kp_b_iso88591_q_QgV1_vRs_7_c_5_j_1_MQeSTTaabb, tuple_dedup_map); if (unlikely(!__pyx_mstate_global->__pyx_codeobj_tab[0])) goto bad;
+  }
+  {
+    const __Pyx_PyCode_New_function_description descr = {2, 0, 0, 2, (unsigned int)(CO_OPTIMIZED|CO_NEWLOCALS), 60};
     PyObject* const varnames[] = {__pyx_mstate->__pyx_n_u_seed, __pyx_mstate->__pyx_n_u_device};
-    __pyx_mstate_global->__pyx_codeobj_tab[0] = __Pyx_PyCode_New(descr, varnames, __pyx_mstate->__pyx_kp_u_src_cyflow_tensor_pyx, __pyx_mstate->__pyx_n_u_manual_seed, __pyx_mstate->__pyx_kp_b_iso88591_6a_wc_1_1_q_j_7q, tuple_dedup_map); if (unlikely(!__pyx_mstate_global->__pyx_codeobj_tab[0])) goto bad;
+    __pyx_mstate_global->__pyx_codeobj_tab[1] = __Pyx_PyCode_New(descr, varnames, __pyx_mstate->__pyx_kp_u_src_cyflow_tensor_pyx, __pyx_mstate->__pyx_n_u_manual_seed, __pyx_mstate->__pyx_kp_b_iso88591_6a_wc_1_1_q_j_7q, tuple_dedup_map); if (unlikely(!__pyx_mstate_global->__pyx_codeobj_tab[1])) goto bad;
   }
   {
-    const __Pyx_PyCode_New_function_description descr = {1, 0, 0, 1, (unsigned int)(CO_OPTIMIZED|CO_NEWLOCALS), 137};
+    const __Pyx_PyCode_New_function_description descr = {1, 0, 0, 6, (unsigned int)(CO_OPTIMIZED|CO_NEWLOCALS), 68};
+    PyObject* const varnames[] = {__pyx_mstate->__pyx_n_u_lst, __pyx_mstate->__pyx_n_u_shape, __pyx_mstate->__pyx_n_u_curr, __pyx_mstate->__pyx_n_u_flat, __pyx_mstate->__pyx_n_u_flatten, __pyx_mstate->__pyx_n_u_flatten};
+    __pyx_mstate_global->__pyx_codeobj_tab[2] = __Pyx_PyCode_New(descr, varnames, __pyx_mstate->__pyx_kp_u_src_cyflow_tensor_pyx, __pyx_mstate->__pyx_n_u_get_nested_list_shape_and_flat_2, __pyx_mstate->__pyx_kp_b_iso88591_t_QfF_iq_A_1_AWF_WAS_3avS_t1A_1, tuple_dedup_map); if (unlikely(!__pyx_mstate_global->__pyx_codeobj_tab[2])) goto bad;
+  }
+  {
+    const __Pyx_PyCode_New_function_description descr = {1, 0, 0, 1, (unsigned int)(CO_OPTIMIZED|CO_NEWLOCALS), 174};
     PyObject* const varnames[] = {__pyx_mstate->__pyx_n_u_self};
-    __pyx_mstate_global->__pyx_codeobj_tab[1] = __Pyx_PyCode_New(descr, varnames, __pyx_mstate->__pyx_kp_u_src_cyflow_tensor_pyx, __pyx_mstate->__pyx_n_u_fill_uniform, __pyx_mstate->__pyx_kp_b_iso88591_A_4xxxs_1D_A_AT, tuple_dedup_map); if (unlikely(!__pyx_mstate_global->__pyx_codeobj_tab[1])) goto bad;
+    __pyx_mstate_global->__pyx_codeobj_tab[3] = __Pyx_PyCode_New(descr, varnames, __pyx_mstate->__pyx_kp_u_src_cyflow_tensor_pyx, __pyx_mstate->__pyx_n_u_fill_uniform, __pyx_mstate->__pyx_kp_b_iso88591_A_4xxxs_1D_A_AT, tuple_dedup_map); if (unlikely(!__pyx_mstate_global->__pyx_codeobj_tab[3])) goto bad;
   }
   {
-    const __Pyx_PyCode_New_function_description descr = {1, 0, 0, 9, (unsigned int)(CO_OPTIMIZED|CO_NEWLOCALS|CO_VARARGS), 143};
+    const __Pyx_PyCode_New_function_description descr = {1, 0, 0, 9, (unsigned int)(CO_OPTIMIZED|CO_NEWLOCALS|CO_VARARGS), 385};
     PyObject* const varnames[] = {__pyx_mstate->__pyx_n_u_self, __pyx_mstate->__pyx_n_u_shape, __pyx_mstate->__pyx_n_u_target_numel, __pyx_mstate->__pyx_n_u_ndim, __pyx_mstate->__pyx_n_u_c_shape, __pyx_mstate->__pyx_n_u_new_impl, __pyx_mstate->__pyx_n_u_i, __pyx_mstate->__pyx_n_u_target_shape, __pyx_mstate->__pyx_n_u_dim};
-    __pyx_mstate_global->__pyx_codeobj_tab[2] = __Pyx_PyCode_New(descr, varnames, __pyx_mstate->__pyx_kp_u_src_cyflow_tensor_pyx, __pyx_mstate->__pyx_n_u_view, __pyx_mstate->__pyx_kp_b_iso88591_a_1_A_3awc_4z_q_WA_5_aq_5_G1_A, tuple_dedup_map); if (unlikely(!__pyx_mstate_global->__pyx_codeobj_tab[2])) goto bad;
+    __pyx_mstate_global->__pyx_codeobj_tab[4] = __Pyx_PyCode_New(descr, varnames, __pyx_mstate->__pyx_kp_u_src_cyflow_tensor_pyx, __pyx_mstate->__pyx_n_u_view, __pyx_mstate->__pyx_kp_b_iso88591_a_1_A_3awc_4z_q_WA_5_aq_5_G1_A, tuple_dedup_map); if (unlikely(!__pyx_mstate_global->__pyx_codeobj_tab[4])) goto bad;
   }
   {
-    const __Pyx_PyCode_New_function_description descr = {2, 0, 0, 5, (unsigned int)(CO_OPTIMIZED|CO_NEWLOCALS), 179};
+    const __Pyx_PyCode_New_function_description descr = {2, 0, 0, 5, (unsigned int)(CO_OPTIMIZED|CO_NEWLOCALS), 421};
     PyObject* const varnames[] = {__pyx_mstate->__pyx_n_u_self, __pyx_mstate->__pyx_n_u_flat_data, __pyx_mstate->__pyx_n_u_numel, __pyx_mstate->__pyx_n_u_c_data, __pyx_mstate->__pyx_n_u_i};
-    __pyx_mstate_global->__pyx_codeobj_tab[3] = __Pyx_PyCode_New(descr, varnames, __pyx_mstate->__pyx_kp_u_src_cyflow_tensor_pyx, __pyx_mstate->__pyx_n_u_set_data_from_list, __pyx_mstate->__pyx_kp_b_iso88591_Q_3a_T_A_C1Cq_A_q_b_4q_Qa_U_1_a, tuple_dedup_map); if (unlikely(!__pyx_mstate_global->__pyx_codeobj_tab[3])) goto bad;
+    __pyx_mstate_global->__pyx_codeobj_tab[5] = __Pyx_PyCode_New(descr, varnames, __pyx_mstate->__pyx_kp_u_src_cyflow_tensor_pyx, __pyx_mstate->__pyx_n_u_set_data_from_list, __pyx_mstate->__pyx_kp_b_iso88591_Q_3a_T_A_C1Cq_A_q_b_4q_Qa_U_1_a, tuple_dedup_map); if (unlikely(!__pyx_mstate_global->__pyx_codeobj_tab[5])) goto bad;
   }
   {
     const __Pyx_PyCode_New_function_description descr = {1, 0, 0, 1, (unsigned int)(CO_OPTIMIZED|CO_NEWLOCALS), 1};
     PyObject* const varnames[] = {__pyx_mstate->__pyx_n_u_self};
-    __pyx_mstate_global->__pyx_codeobj_tab[4] = __Pyx_PyCode_New(descr, varnames, __pyx_mstate->__pyx_kp_u_stringsource, __pyx_mstate->__pyx_n_u_reduce_cython, __pyx_mstate->__pyx_kp_b_iso88591_Q, tuple_dedup_map); if (unlikely(!__pyx_mstate_global->__pyx_codeobj_tab[4])) goto bad;
+    __pyx_mstate_global->__pyx_codeobj_tab[6] = __Pyx_PyCode_New(descr, varnames, __pyx_mstate->__pyx_kp_u_stringsource, __pyx_mstate->__pyx_n_u_reduce_cython, __pyx_mstate->__pyx_kp_b_iso88591_Q, tuple_dedup_map); if (unlikely(!__pyx_mstate_global->__pyx_codeobj_tab[6])) goto bad;
   }
   {
     const __Pyx_PyCode_New_function_description descr = {2, 0, 0, 2, (unsigned int)(CO_OPTIMIZED|CO_NEWLOCALS), 3};
     PyObject* const varnames[] = {__pyx_mstate->__pyx_n_u_self, __pyx_mstate->__pyx_n_u_pyx_state};
-    __pyx_mstate_global->__pyx_codeobj_tab[5] = __Pyx_PyCode_New(descr, varnames, __pyx_mstate->__pyx_kp_u_stringsource, __pyx_mstate->__pyx_n_u_setstate_cython, __pyx_mstate->__pyx_kp_b_iso88591_Q, tuple_dedup_map); if (unlikely(!__pyx_mstate_global->__pyx_codeobj_tab[5])) goto bad;
+    __pyx_mstate_global->__pyx_codeobj_tab[7] = __Pyx_PyCode_New(descr, varnames, __pyx_mstate->__pyx_kp_u_stringsource, __pyx_mstate->__pyx_n_u_setstate_cython, __pyx_mstate->__pyx_kp_b_iso88591_Q, tuple_dedup_map); if (unlikely(!__pyx_mstate_global->__pyx_codeobj_tab[7])) goto bad;
   }
   Py_DECREF(tuple_dedup_map);
   return 0;
@@ -9947,6 +13522,11 @@ static void __Pyx_RaiseArgtupleInvalid(
                  (num_expected == 1) ? "" : "s", num_found);
 }
 
+/* RaiseClosureNameError */
+static void __Pyx_RaiseClosureNameError(const char *varname) {
+    PyErr_Format(PyExc_NameError, "free variable '%s' referenced before assignment in enclosing scope", varname);
+}
+
 /* GetItemInt */
 static PyObject *__Pyx_GetItemInt_Generic(PyObject *o, PyObject* j) {
     PyObject *r;
@@ -10050,397 +13630,55 @@ static CYTHON_INLINE PyObject *__Pyx_GetItemInt_Fast(PyObject *o, Py_ssize_t i, 
     return __Pyx_GetItemInt_Generic(o, PyLong_FromSsize_t(i));
 }
 
-/* GetException */
-#if CYTHON_FAST_THREAD_STATE
-static int __Pyx__GetException(PyThreadState *tstate, PyObject **type, PyObject **value, PyObject **tb)
-#else
-static int __Pyx_GetException(PyObject **type, PyObject **value, PyObject **tb)
-#endif
-{
-    PyObject *local_type = NULL, *local_value, *local_tb = NULL;
-#if CYTHON_FAST_THREAD_STATE
-    PyObject *tmp_type, *tmp_value, *tmp_tb;
-  #if PY_VERSION_HEX >= 0x030C0000
-    local_value = tstate->current_exception;
-    tstate->current_exception = 0;
-  #else
-    local_type = tstate->curexc_type;
-    local_value = tstate->curexc_value;
-    local_tb = tstate->curexc_traceback;
-    tstate->curexc_type = 0;
-    tstate->curexc_value = 0;
-    tstate->curexc_traceback = 0;
-  #endif
-#elif __PYX_LIMITED_VERSION_HEX > 0x030C0000
-    local_value = PyErr_GetRaisedException();
-#else
-    PyErr_Fetch(&local_type, &local_value, &local_tb);
-#endif
-#if __PYX_LIMITED_VERSION_HEX > 0x030C0000
-    if (likely(local_value)) {
-        local_type = (PyObject*) Py_TYPE(local_value);
-        Py_INCREF(local_type);
-        local_tb = PyException_GetTraceback(local_value);
+/* ObjectGetItem */
+#if CYTHON_USE_TYPE_SLOTS
+static PyObject *__Pyx_PyObject_GetIndex(PyObject *obj, PyObject *index) {
+    PyObject *runerr = NULL;
+    Py_ssize_t key_value;
+    key_value = __Pyx_PyIndex_AsSsize_t(index);
+    if (likely(key_value != -1 || !(runerr = PyErr_Occurred()))) {
+        return __Pyx_GetItemInt_Fast(obj, key_value, 0, 1, 1, 1);
     }
-#else
-    PyErr_NormalizeException(&local_type, &local_value, &local_tb);
-#if CYTHON_FAST_THREAD_STATE
-    if (unlikely(tstate->curexc_type))
-#else
-    if (unlikely(PyErr_Occurred()))
-#endif
-        goto bad;
-    if (local_tb) {
-        if (unlikely(PyException_SetTraceback(local_value, local_tb) < 0))
-            goto bad;
+    if (PyErr_GivenExceptionMatches(runerr, PyExc_OverflowError)) {
+        __Pyx_TypeName index_type_name = __Pyx_PyType_GetFullyQualifiedName(Py_TYPE(index));
+        PyErr_Clear();
+        PyErr_Format(PyExc_IndexError,
+            "cannot fit '" __Pyx_FMT_TYPENAME "' into an index-sized integer", index_type_name);
+        __Pyx_DECREF_TypeName(index_type_name);
     }
-#endif // __PYX_LIMITED_VERSION_HEX > 0x030C0000
-    Py_XINCREF(local_tb);
-    Py_XINCREF(local_type);
-    Py_XINCREF(local_value);
-    *type = local_type;
-    *value = local_value;
-    *tb = local_tb;
-#if CYTHON_FAST_THREAD_STATE
-    #if CYTHON_USE_EXC_INFO_STACK
-    {
-        _PyErr_StackItem *exc_info = tstate->exc_info;
-      #if PY_VERSION_HEX >= 0x030B00a4
-        tmp_value = exc_info->exc_value;
-        exc_info->exc_value = local_value;
-        tmp_type = NULL;
-        tmp_tb = NULL;
-        Py_XDECREF(local_type);
-        Py_XDECREF(local_tb);
-      #else
-        tmp_type = exc_info->exc_type;
-        tmp_value = exc_info->exc_value;
-        tmp_tb = exc_info->exc_traceback;
-        exc_info->exc_type = local_type;
-        exc_info->exc_value = local_value;
-        exc_info->exc_traceback = local_tb;
-      #endif
-    }
-    #else
-    tmp_type = tstate->exc_type;
-    tmp_value = tstate->exc_value;
-    tmp_tb = tstate->exc_traceback;
-    tstate->exc_type = local_type;
-    tstate->exc_value = local_value;
-    tstate->exc_traceback = local_tb;
-    #endif
-    Py_XDECREF(tmp_type);
-    Py_XDECREF(tmp_value);
-    Py_XDECREF(tmp_tb);
-#elif __PYX_LIMITED_VERSION_HEX >= 0x030b0000
-    PyErr_SetHandledException(local_value);
-    Py_XDECREF(local_value);
-    Py_XDECREF(local_type);
-    Py_XDECREF(local_tb);
-#else
-    PyErr_SetExcInfo(local_type, local_value, local_tb);
-#endif
-    return 0;
-#if __PYX_LIMITED_VERSION_HEX <= 0x030C0000
-bad:
-    *type = 0;
-    *value = 0;
-    *tb = 0;
-    Py_XDECREF(local_type);
-    Py_XDECREF(local_value);
-    Py_XDECREF(local_tb);
-    return -1;
-#endif
-}
-
-/* SwapException */
-#if CYTHON_FAST_THREAD_STATE
-static CYTHON_INLINE void __Pyx__ExceptionSwap(PyThreadState *tstate, PyObject **type, PyObject **value, PyObject **tb) {
-    PyObject *tmp_type, *tmp_value, *tmp_tb;
-  #if CYTHON_USE_EXC_INFO_STACK && PY_VERSION_HEX >= 0x030B00a4
-    _PyErr_StackItem *exc_info = tstate->exc_info;
-    tmp_value = exc_info->exc_value;
-    exc_info->exc_value = *value;
-    if (tmp_value == NULL || tmp_value == Py_None) {
-        Py_XDECREF(tmp_value);
-        tmp_value = NULL;
-        tmp_type = NULL;
-        tmp_tb = NULL;
-    } else {
-        tmp_type = (PyObject*) Py_TYPE(tmp_value);
-        Py_INCREF(tmp_type);
-        #if CYTHON_COMPILING_IN_CPYTHON
-        tmp_tb = ((PyBaseExceptionObject*) tmp_value)->traceback;
-        Py_XINCREF(tmp_tb);
-        #else
-        tmp_tb = PyException_GetTraceback(tmp_value);
-        #endif
-    }
-  #elif CYTHON_USE_EXC_INFO_STACK
-    _PyErr_StackItem *exc_info = tstate->exc_info;
-    tmp_type = exc_info->exc_type;
-    tmp_value = exc_info->exc_value;
-    tmp_tb = exc_info->exc_traceback;
-    exc_info->exc_type = *type;
-    exc_info->exc_value = *value;
-    exc_info->exc_traceback = *tb;
-  #else
-    tmp_type = tstate->exc_type;
-    tmp_value = tstate->exc_value;
-    tmp_tb = tstate->exc_traceback;
-    tstate->exc_type = *type;
-    tstate->exc_value = *value;
-    tstate->exc_traceback = *tb;
-  #endif
-    *type = tmp_type;
-    *value = tmp_value;
-    *tb = tmp_tb;
-}
-#else
-static CYTHON_INLINE void __Pyx_ExceptionSwap(PyObject **type, PyObject **value, PyObject **tb) {
-    PyObject *tmp_type, *tmp_value, *tmp_tb;
-    PyErr_GetExcInfo(&tmp_type, &tmp_value, &tmp_tb);
-    PyErr_SetExcInfo(*type, *value, *tb);
-    *type = tmp_type;
-    *value = tmp_value;
-    *tb = tmp_tb;
-}
-#endif
-
-/* GetTopmostException (used by SaveResetException) */
-#if CYTHON_USE_EXC_INFO_STACK && CYTHON_FAST_THREAD_STATE
-static _PyErr_StackItem *
-__Pyx_PyErr_GetTopmostException(PyThreadState *tstate)
-{
-    _PyErr_StackItem *exc_info = tstate->exc_info;
-    while ((exc_info->exc_value == NULL || exc_info->exc_value == Py_None) &&
-           exc_info->previous_item != NULL)
-    {
-        exc_info = exc_info->previous_item;
-    }
-    return exc_info;
-}
-#endif
-
-/* SaveResetException */
-#if CYTHON_FAST_THREAD_STATE
-static CYTHON_INLINE void __Pyx__ExceptionSave(PyThreadState *tstate, PyObject **type, PyObject **value, PyObject **tb) {
-  #if CYTHON_USE_EXC_INFO_STACK && PY_VERSION_HEX >= 0x030B00a4
-    _PyErr_StackItem *exc_info = __Pyx_PyErr_GetTopmostException(tstate);
-    PyObject *exc_value = exc_info->exc_value;
-    if (exc_value == NULL || exc_value == Py_None) {
-        *value = NULL;
-        *type = NULL;
-        *tb = NULL;
-    } else {
-        *value = exc_value;
-        Py_INCREF(*value);
-        *type = (PyObject*) Py_TYPE(exc_value);
-        Py_INCREF(*type);
-        *tb = PyException_GetTraceback(exc_value);
-    }
-  #elif CYTHON_USE_EXC_INFO_STACK
-    _PyErr_StackItem *exc_info = __Pyx_PyErr_GetTopmostException(tstate);
-    *type = exc_info->exc_type;
-    *value = exc_info->exc_value;
-    *tb = exc_info->exc_traceback;
-    Py_XINCREF(*type);
-    Py_XINCREF(*value);
-    Py_XINCREF(*tb);
-  #else
-    *type = tstate->exc_type;
-    *value = tstate->exc_value;
-    *tb = tstate->exc_traceback;
-    Py_XINCREF(*type);
-    Py_XINCREF(*value);
-    Py_XINCREF(*tb);
-  #endif
-}
-static CYTHON_INLINE void __Pyx__ExceptionReset(PyThreadState *tstate, PyObject *type, PyObject *value, PyObject *tb) {
-  #if CYTHON_USE_EXC_INFO_STACK && PY_VERSION_HEX >= 0x030B00a4
-    _PyErr_StackItem *exc_info = tstate->exc_info;
-    PyObject *tmp_value = exc_info->exc_value;
-    exc_info->exc_value = value;
-    Py_XDECREF(tmp_value);
-    Py_XDECREF(type);
-    Py_XDECREF(tb);
-  #else
-    PyObject *tmp_type, *tmp_value, *tmp_tb;
-    #if CYTHON_USE_EXC_INFO_STACK
-    _PyErr_StackItem *exc_info = tstate->exc_info;
-    tmp_type = exc_info->exc_type;
-    tmp_value = exc_info->exc_value;
-    tmp_tb = exc_info->exc_traceback;
-    exc_info->exc_type = type;
-    exc_info->exc_value = value;
-    exc_info->exc_traceback = tb;
-    #else
-    tmp_type = tstate->exc_type;
-    tmp_value = tstate->exc_value;
-    tmp_tb = tstate->exc_traceback;
-    tstate->exc_type = type;
-    tstate->exc_value = value;
-    tstate->exc_traceback = tb;
-    #endif
-    Py_XDECREF(tmp_type);
-    Py_XDECREF(tmp_value);
-    Py_XDECREF(tmp_tb);
-  #endif
-}
-#endif
-
-/* JoinPyUnicode */
-static PyObject* __Pyx_PyUnicode_Join(PyObject** values, Py_ssize_t value_count, Py_ssize_t result_ulength,
-                                      Py_UCS4 max_char) {
-#if CYTHON_USE_UNICODE_INTERNALS && CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
-    PyObject *result_uval;
-    int result_ukind, kind_shift;
-    Py_ssize_t i, char_pos;
-    void *result_udata;
-    if (max_char > 1114111) max_char = 1114111;
-    result_uval = PyUnicode_New(result_ulength, max_char);
-    if (unlikely(!result_uval)) return NULL;
-    result_ukind = (max_char <= 255) ? PyUnicode_1BYTE_KIND : (max_char <= 65535) ? PyUnicode_2BYTE_KIND : PyUnicode_4BYTE_KIND;
-    kind_shift = (result_ukind == PyUnicode_4BYTE_KIND) ? 2 : result_ukind - 1;
-    result_udata = PyUnicode_DATA(result_uval);
-    assert(kind_shift == 2 || kind_shift == 1 || kind_shift == 0);
-    if (unlikely((PY_SSIZE_T_MAX >> kind_shift) - result_ulength < 0))
-        goto overflow;
-    char_pos = 0;
-    for (i=0; i < value_count; i++) {
-        int ukind;
-        Py_ssize_t ulength;
-        void *udata;
-        PyObject *uval = values[i];
-        #if !CYTHON_COMPILING_IN_LIMITED_API
-        if (__Pyx_PyUnicode_READY(uval) == (-1))
-            goto bad;
-        #endif
-        ulength = __Pyx_PyUnicode_GET_LENGTH(uval);
-        #if !CYTHON_ASSUME_SAFE_SIZE
-        if (unlikely(ulength < 0)) goto bad;
-        #endif
-        if (unlikely(!ulength))
-            continue;
-        if (unlikely((PY_SSIZE_T_MAX >> kind_shift) - ulength < char_pos))
-            goto overflow;
-        ukind = __Pyx_PyUnicode_KIND(uval);
-        udata = __Pyx_PyUnicode_DATA(uval);
-        if (ukind == result_ukind) {
-            memcpy((char *)result_udata + (char_pos << kind_shift), udata, (size_t) (ulength << kind_shift));
-        } else {
-            #if PY_VERSION_HEX >= 0x030d0000
-            if (unlikely(PyUnicode_CopyCharacters(result_uval, char_pos, uval, 0, ulength) < 0)) goto bad;
-            #elif CYTHON_COMPILING_IN_CPYTHON || defined(_PyUnicode_FastCopyCharacters)
-            _PyUnicode_FastCopyCharacters(result_uval, char_pos, uval, 0, ulength);
-            #else
-            Py_ssize_t j;
-            for (j=0; j < ulength; j++) {
-                Py_UCS4 uchar = __Pyx_PyUnicode_READ(ukind, udata, j);
-                __Pyx_PyUnicode_WRITE(result_ukind, result_udata, char_pos+j, uchar);
-            }
-            #endif
-        }
-        char_pos += ulength;
-    }
-    return result_uval;
-overflow:
-    PyErr_SetString(PyExc_OverflowError, "join() result is too long for a Python string");
-bad:
-    Py_DECREF(result_uval);
     return NULL;
-#else
-    Py_ssize_t i;
-    PyObject *result = NULL;
-    PyObject *value_tuple = PyTuple_New(value_count);
-    if (unlikely(!value_tuple)) return NULL;
-    CYTHON_UNUSED_VAR(max_char);
-    CYTHON_UNUSED_VAR(result_ulength);
-    for (i=0; i<value_count; i++) {
-        Py_INCREF(values[i]);
-        if (__Pyx_PyTuple_SET_ITEM(value_tuple, i, values[i]) != (0)) goto bad;
-    }
-    result = PyUnicode_Join(__pyx_mstate_global->__pyx_empty_unicode, value_tuple);
-bad:
-    Py_DECREF(value_tuple);
-    return result;
-#endif
 }
-
-/* RejectKeywords */
-static void __Pyx_RejectKeywords(const char* function_name, PyObject *kwds) {
-    PyObject *key = NULL;
-    if (CYTHON_METH_FASTCALL && likely(PyTuple_Check(kwds))) {
-        key = __Pyx_PySequence_ITEM(kwds, 0);
-    } else {
-#if CYTHON_AVOID_BORROWED_REFS
-        PyObject *pos = NULL;
-#else
-        Py_ssize_t pos = 0;
-#endif
-#if !CYTHON_COMPILING_IN_PYPY || defined(PyArg_ValidateKeywordArguments)
-        if (unlikely(!PyArg_ValidateKeywordArguments(kwds))) return;
-#endif
-        __Pyx_PyDict_NextRef(kwds, &pos, &key, NULL);
-#if CYTHON_AVOID_BORROWED_REFS
-        Py_XDECREF(pos);
-#endif
-    }
-    if (likely(key)) {
-        PyErr_Format(PyExc_TypeError,
-            "%s() got an unexpected keyword argument '%U'",
-            function_name, key);
-        Py_DECREF(key);
-    }
-}
-
-/* ArgTypeTestFunc (used by ArgTypeTest) */
-static int __Pyx__ArgTypeTest(PyObject *obj, PyTypeObject *type, const char *name, int exact)
-{
-    __Pyx_TypeName type_name;
+static PyObject *__Pyx_PyObject_GetItem_Slow(PyObject *obj, PyObject *key) {
     __Pyx_TypeName obj_type_name;
-    PyObject *extra_info = __pyx_mstate_global->__pyx_empty_unicode;
-    int from_annotation_subclass = 0;
-    if (unlikely(!type)) {
-        PyErr_SetString(PyExc_SystemError, "Missing type object");
-        return 0;
-    }
-    else if (!exact) {
-        if (likely(__Pyx_TypeCheck(obj, type))) return 1;
-    } else if (exact == 2) {
-        if (__Pyx_TypeCheck(obj, type)) {
-            from_annotation_subclass = 1;
-            extra_info = __pyx_mstate_global->__pyx_kp_u_Note_that_Cython_is_deliberately;
+    if (likely(PyType_Check(obj))) {
+        PyObject *meth = __Pyx_PyObject_GetAttrStrNoError(obj, __pyx_mstate_global->__pyx_n_u_class_getitem);
+        if (!meth) {
+            PyErr_Clear();
+        } else {
+            PyObject *result = __Pyx_PyObject_CallOneArg(meth, key);
+            Py_DECREF(meth);
+            return result;
         }
     }
-    type_name = __Pyx_PyType_GetFullyQualifiedName(type);
     obj_type_name = __Pyx_PyType_GetFullyQualifiedName(Py_TYPE(obj));
     PyErr_Format(PyExc_TypeError,
-        "Argument '%.200s' has incorrect type (expected " __Pyx_FMT_TYPENAME
-        ", got " __Pyx_FMT_TYPENAME ")"
-#if __PYX_LIMITED_VERSION_HEX < 0x030C0000
-        "%s%U"
-#endif
-        , name, type_name, obj_type_name
-#if __PYX_LIMITED_VERSION_HEX < 0x030C0000
-        , (from_annotation_subclass ? ". " : ""), extra_info
-#endif
-        );
-#if __PYX_LIMITED_VERSION_HEX >= 0x030C0000
-    if (exact == 2 && from_annotation_subclass) {
-        PyObject *res;
-        PyObject *vargs[2];
-        vargs[0] = PyErr_GetRaisedException();
-        vargs[1] = extra_info;
-        res = PyObject_VectorcallMethod(__pyx_mstate_global->__pyx_kp_u_add_note, vargs, 2, NULL);
-        Py_XDECREF(res);
-        PyErr_SetRaisedException(vargs[0]);
-    }
-#endif
-    __Pyx_DECREF_TypeName(type_name);
+        "'" __Pyx_FMT_TYPENAME "' object is not subscriptable", obj_type_name);
     __Pyx_DECREF_TypeName(obj_type_name);
-    return 0;
+    return NULL;
 }
+static PyObject *__Pyx_PyObject_GetItem(PyObject *obj, PyObject *key) {
+    PyTypeObject *tp = Py_TYPE(obj);
+    PyMappingMethods *mm = tp->tp_as_mapping;
+    PySequenceMethods *sm = tp->tp_as_sequence;
+    if (likely(mm && mm->mp_subscript)) {
+        return mm->mp_subscript(obj, key);
+    }
+    if (likely(sm && sm->sq_item)) {
+        return __Pyx_PyObject_GetIndex(obj, key);
+    }
+    return __Pyx_PyObject_GetItem_Slow(obj, key);
+}
+#endif
 
 /* CIntToPyUnicode */
 static CYTHON_INLINE PyObject* __Pyx_uchar___Pyx_PyUnicode_From_Py_ssize_t(Py_ssize_t value, Py_ssize_t width, char padding_char) {
@@ -10535,7 +13773,184 @@ static CYTHON_INLINE PyObject* __Pyx____Pyx_PyUnicode_From_Py_ssize_t(Py_ssize_t
     return __Pyx_PyUnicode_BuildFromAscii(ulength, dpos, (int) length, prepend_sign, padding_char);
 }
 
-/* pybytes_as_double (used by pyobject_as_double) */
+/* JoinPyUnicode */
+static PyObject* __Pyx_PyUnicode_Join(PyObject** values, Py_ssize_t value_count, Py_ssize_t result_ulength,
+                                      Py_UCS4 max_char) {
+#if CYTHON_USE_UNICODE_INTERNALS && CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
+    PyObject *result_uval;
+    int result_ukind, kind_shift;
+    Py_ssize_t i, char_pos;
+    void *result_udata;
+    if (max_char > 1114111) max_char = 1114111;
+    result_uval = PyUnicode_New(result_ulength, max_char);
+    if (unlikely(!result_uval)) return NULL;
+    result_ukind = (max_char <= 255) ? PyUnicode_1BYTE_KIND : (max_char <= 65535) ? PyUnicode_2BYTE_KIND : PyUnicode_4BYTE_KIND;
+    kind_shift = (result_ukind == PyUnicode_4BYTE_KIND) ? 2 : result_ukind - 1;
+    result_udata = PyUnicode_DATA(result_uval);
+    assert(kind_shift == 2 || kind_shift == 1 || kind_shift == 0);
+    if (unlikely((PY_SSIZE_T_MAX >> kind_shift) - result_ulength < 0))
+        goto overflow;
+    char_pos = 0;
+    for (i=0; i < value_count; i++) {
+        int ukind;
+        Py_ssize_t ulength;
+        void *udata;
+        PyObject *uval = values[i];
+        #if !CYTHON_COMPILING_IN_LIMITED_API
+        if (__Pyx_PyUnicode_READY(uval) == (-1))
+            goto bad;
+        #endif
+        ulength = __Pyx_PyUnicode_GET_LENGTH(uval);
+        #if !CYTHON_ASSUME_SAFE_SIZE
+        if (unlikely(ulength < 0)) goto bad;
+        #endif
+        if (unlikely(!ulength))
+            continue;
+        if (unlikely((PY_SSIZE_T_MAX >> kind_shift) - ulength < char_pos))
+            goto overflow;
+        ukind = __Pyx_PyUnicode_KIND(uval);
+        udata = __Pyx_PyUnicode_DATA(uval);
+        if (ukind == result_ukind) {
+            memcpy((char *)result_udata + (char_pos << kind_shift), udata, (size_t) (ulength << kind_shift));
+        } else {
+            #if PY_VERSION_HEX >= 0x030d0000
+            if (unlikely(PyUnicode_CopyCharacters(result_uval, char_pos, uval, 0, ulength) < 0)) goto bad;
+            #elif CYTHON_COMPILING_IN_CPYTHON || defined(_PyUnicode_FastCopyCharacters)
+            _PyUnicode_FastCopyCharacters(result_uval, char_pos, uval, 0, ulength);
+            #else
+            Py_ssize_t j;
+            for (j=0; j < ulength; j++) {
+                Py_UCS4 uchar = __Pyx_PyUnicode_READ(ukind, udata, j);
+                __Pyx_PyUnicode_WRITE(result_ukind, result_udata, char_pos+j, uchar);
+            }
+            #endif
+        }
+        char_pos += ulength;
+    }
+    return result_uval;
+overflow:
+    PyErr_SetString(PyExc_OverflowError, "join() result is too long for a Python string");
+bad:
+    Py_DECREF(result_uval);
+    return NULL;
+#else
+    Py_ssize_t i;
+    PyObject *result = NULL;
+    PyObject *value_tuple = PyTuple_New(value_count);
+    if (unlikely(!value_tuple)) return NULL;
+    CYTHON_UNUSED_VAR(max_char);
+    CYTHON_UNUSED_VAR(result_ulength);
+    for (i=0; i<value_count; i++) {
+        Py_INCREF(values[i]);
+        if (__Pyx_PyTuple_SET_ITEM(value_tuple, i, values[i]) != (0)) goto bad;
+    }
+    result = PyUnicode_Join(__pyx_mstate_global->__pyx_empty_unicode, value_tuple);
+bad:
+    Py_DECREF(value_tuple);
+    return result;
+#endif
+}
+
+/* PyLongBinop */
+#if !CYTHON_COMPILING_IN_PYPY
+static PyObject* __Pyx_Fallback___Pyx_PyLong_AddObjC(PyObject *op1, PyObject *op2, int inplace) {
+    return (inplace ? PyNumber_InPlaceAdd : PyNumber_Add)(op1, op2);
+}
+#if CYTHON_USE_PYLONG_INTERNALS
+static PyObject* __Pyx_Unpacked___Pyx_PyLong_AddObjC(PyObject *op1, PyObject *op2, long intval, int inplace, int zerodivision_check) {
+    CYTHON_MAYBE_UNUSED_VAR(inplace);
+    CYTHON_UNUSED_VAR(zerodivision_check);
+    const long b = intval;
+    long a;
+    const PY_LONG_LONG llb = intval;
+    PY_LONG_LONG lla;
+    if (unlikely(__Pyx_PyLong_IsZero(op1))) {
+        return __Pyx_NewRef(op2);
+    }
+    const int is_positive = __Pyx_PyLong_IsPos(op1);
+    const digit* digits = __Pyx_PyLong_Digits(op1);
+    const Py_ssize_t size = __Pyx_PyLong_DigitCount(op1);
+    if (likely(size == 1)) {
+        a = (long) digits[0];
+        if (!is_positive) a *= -1;
+    } else {
+        switch (size) {
+            case 2:
+                if (8 * sizeof(long) - 1 > 2 * PyLong_SHIFT) {
+                    a = (long) (((((unsigned long)digits[1]) << PyLong_SHIFT) | (unsigned long)digits[0]));
+                    if (!is_positive) a *= -1;
+                    goto calculate_long;
+                } else if (8 * sizeof(PY_LONG_LONG) - 1 > 2 * PyLong_SHIFT) {
+                    lla = (PY_LONG_LONG) (((((unsigned PY_LONG_LONG)digits[1]) << PyLong_SHIFT) | (unsigned PY_LONG_LONG)digits[0]));
+                    if (!is_positive) lla *= -1;
+                    goto calculate_long_long;
+                }
+                break;
+            case 3:
+                if (8 * sizeof(long) - 1 > 3 * PyLong_SHIFT) {
+                    a = (long) (((((((unsigned long)digits[2]) << PyLong_SHIFT) | (unsigned long)digits[1]) << PyLong_SHIFT) | (unsigned long)digits[0]));
+                    if (!is_positive) a *= -1;
+                    goto calculate_long;
+                } else if (8 * sizeof(PY_LONG_LONG) - 1 > 3 * PyLong_SHIFT) {
+                    lla = (PY_LONG_LONG) (((((((unsigned PY_LONG_LONG)digits[2]) << PyLong_SHIFT) | (unsigned PY_LONG_LONG)digits[1]) << PyLong_SHIFT) | (unsigned PY_LONG_LONG)digits[0]));
+                    if (!is_positive) lla *= -1;
+                    goto calculate_long_long;
+                }
+                break;
+            case 4:
+                if (8 * sizeof(long) - 1 > 4 * PyLong_SHIFT) {
+                    a = (long) (((((((((unsigned long)digits[3]) << PyLong_SHIFT) | (unsigned long)digits[2]) << PyLong_SHIFT) | (unsigned long)digits[1]) << PyLong_SHIFT) | (unsigned long)digits[0]));
+                    if (!is_positive) a *= -1;
+                    goto calculate_long;
+                } else if (8 * sizeof(PY_LONG_LONG) - 1 > 4 * PyLong_SHIFT) {
+                    lla = (PY_LONG_LONG) (((((((((unsigned PY_LONG_LONG)digits[3]) << PyLong_SHIFT) | (unsigned PY_LONG_LONG)digits[2]) << PyLong_SHIFT) | (unsigned PY_LONG_LONG)digits[1]) << PyLong_SHIFT) | (unsigned PY_LONG_LONG)digits[0]));
+                    if (!is_positive) lla *= -1;
+                    goto calculate_long_long;
+                }
+                break;
+        }
+        return PyLong_Type.tp_as_number->nb_add(op1, op2);
+    }
+    calculate_long:
+        {
+            long x;
+            x = a + b;
+            return PyLong_FromLong(x);
+        }
+    calculate_long_long:
+        {
+            PY_LONG_LONG llx;
+            llx = lla + llb;
+            return PyLong_FromLongLong(llx);
+        }
+    
+}
+#endif
+static PyObject* __Pyx_Float___Pyx_PyLong_AddObjC(PyObject *float_val, long intval, int zerodivision_check) {
+    CYTHON_UNUSED_VAR(zerodivision_check);
+    const long b = intval;
+    double a = __Pyx_PyFloat_AS_DOUBLE(float_val);
+        double result;
+        
+        result = ((double)a) + (double)b;
+        return PyFloat_FromDouble(result);
+}
+static CYTHON_INLINE PyObject* __Pyx_PyLong_AddObjC(PyObject *op1, PyObject *op2, long intval, int inplace, int zerodivision_check) {
+    CYTHON_MAYBE_UNUSED_VAR(intval);
+    CYTHON_UNUSED_VAR(zerodivision_check);
+    #if CYTHON_USE_PYLONG_INTERNALS
+    if (likely(PyLong_CheckExact(op1))) {
+        return __Pyx_Unpacked___Pyx_PyLong_AddObjC(op1, op2, intval, inplace, zerodivision_check);
+    }
+    #endif
+    if (PyFloat_CheckExact(op1)) {
+        return __Pyx_Float___Pyx_PyLong_AddObjC(op1, intval, zerodivision_check);
+    }
+    return __Pyx_Fallback___Pyx_PyLong_AddObjC(op1, op2, inplace);
+}
+#endif
+
+/* pybytes_as_double (used by pynumber_float) */
 static double __Pyx_SlowPyString_AsDouble(PyObject *obj) {
     PyObject *float_value = PyFloat_FromString(obj);
     if (likely(float_value)) {
@@ -10645,325 +14060,51 @@ fallback:
     return __Pyx_SlowPyString_AsDouble(obj);
 }
 
-/* pyobject_as_double */
-static double __Pyx__PyObject_AsDouble(PyObject* obj) {
-    if (PyUnicode_CheckExact(obj)) {
-        return __Pyx_PyUnicode_AsDouble(obj);
+/* pynumber_float */
+static CYTHON_INLINE PyObject* __Pyx__PyNumber_Float(PyObject* obj) {
+    double val;
+    if (PyLong_CheckExact(obj)) {
+#if CYTHON_USE_PYLONG_INTERNALS
+        if (likely(__Pyx_PyLong_IsCompact(obj))) {
+            val = (double) __Pyx_PyLong_CompactValue(obj);
+            goto no_error;
+        }
+#endif
+        val = PyLong_AsDouble(obj);
+    } else if (PyUnicode_CheckExact(obj)) {
+        val = __Pyx_PyUnicode_AsDouble(obj);
     } else if (PyBytes_CheckExact(obj)) {
-        return __Pyx_PyBytes_AsDouble(obj);
+        val = __Pyx_PyBytes_AsDouble(obj);
     } else if (PyByteArray_CheckExact(obj)) {
-        return __Pyx_PyByteArray_AsDouble(obj);
+        val = __Pyx_PyByteArray_AsDouble(obj);
     } else {
-        PyObject* float_value;
-#if !CYTHON_USE_TYPE_SLOTS
-        float_value = PyNumber_Float(obj);  if ((0)) goto bad;
-        (void)__Pyx_PyObject_CallOneArg;
+        return PyNumber_Float(obj);
+    }
+    if (unlikely(val == -1 && PyErr_Occurred())) {
+        return NULL;
+    }
+#if CYTHON_USE_PYLONG_INTERNALS
+no_error:
+#endif
+    return PyFloat_FromDouble(val);
+}
+
+/* dict_setdefault (used by FetchCommonType) */
+static CYTHON_INLINE PyObject *__Pyx_PyDict_SetDefault(PyObject *d, PyObject *key, PyObject *default_value) {
+    PyObject* value;
+#if __PYX_LIMITED_VERSION_HEX >= 0x030F0000 || (!CYTHON_COMPILING_IN_LIMITED_API && PY_VERSION_HEX >= 0x030d00A4)
+    PyDict_SetDefaultRef(d, key, default_value, &value);
+#elif CYTHON_COMPILING_IN_LIMITED_API && __PYX_LIMITED_VERSION_HEX >= 0x030C0000
+    PyObject *args[] = {d, key, default_value};
+    value = PyObject_VectorcallMethod(__pyx_mstate_global->__pyx_n_u_setdefault, args, 3 | PY_VECTORCALL_ARGUMENTS_OFFSET, NULL);
+#elif CYTHON_COMPILING_IN_LIMITED_API
+    value = PyObject_CallMethodObjArgs(d, __pyx_mstate_global->__pyx_n_u_setdefault, key, default_value, NULL);
 #else
-        PyNumberMethods *nb = Py_TYPE(obj)->tp_as_number;
-        if (likely(nb) && likely(nb->nb_float)) {
-            float_value = nb->nb_float(obj);
-            if (likely(float_value) && unlikely(!PyFloat_Check(float_value))) {
-                __Pyx_TypeName float_value_type_name = __Pyx_PyType_GetFullyQualifiedName(Py_TYPE(float_value));
-                PyErr_Format(PyExc_TypeError,
-                    "__float__ returned non-float (type " __Pyx_FMT_TYPENAME ")",
-                    float_value_type_name);
-                __Pyx_DECREF_TypeName(float_value_type_name);
-                Py_DECREF(float_value);
-                goto bad;
-            }
-        } else {
-            float_value = __Pyx_PyObject_CallOneArg((PyObject*)&PyFloat_Type, obj);
-        }
+    value = PyDict_SetDefault(d, key, default_value);
+    if (unlikely(!value)) return NULL;
+    Py_INCREF(value);
 #endif
-        if (likely(float_value)) {
-            double value = __Pyx_PyFloat_AS_DOUBLE(float_value);
-            Py_DECREF(float_value);
-            return value;
-        }
-    }
-bad:
-    return (double)-1;
-}
-
-/* RaiseUnexpectedTypeError */
-static int
-__Pyx_RaiseUnexpectedTypeError(const char *expected, PyObject *obj)
-{
-    __Pyx_TypeName obj_type_name = __Pyx_PyType_GetFullyQualifiedName(Py_TYPE(obj));
-    PyErr_Format(PyExc_TypeError, "Expected %s, got " __Pyx_FMT_TYPENAME,
-                 expected, obj_type_name);
-    __Pyx_DECREF_TypeName(obj_type_name);
-    return 0;
-}
-
-/* CIntToPyUnicode */
-static CYTHON_INLINE PyObject* __Pyx_uchar___Pyx_PyUnicode_From_size_t(size_t value, Py_ssize_t width, char padding_char) {
-#ifdef __Pyx_HAS_GCC_DIAGNOSTIC
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wconversion"
-#endif
-    const size_t neg_one = (size_t) -1, const_zero = (size_t) 0;
-#ifdef __Pyx_HAS_GCC_DIAGNOSTIC
-#pragma GCC diagnostic pop
-#endif
-    const int is_unsigned = neg_one > const_zero;
-    if (unlikely(!(is_unsigned || value == 0 || value > 0) ||
-                    !(sizeof(value) <= 2 || value & ~ (size_t) 0x01fffff || __Pyx_CheckUnicodeValue((int) value)))) {
-        PyErr_SetString(PyExc_OverflowError, "%c arg not in range(0x110000)");
-        return NULL;
-    }
-    if (width <= 1) {
-        return PyUnicode_FromOrdinal((int) value);
-    }
-    return __Pyx_PyUnicode_FromOrdinal_Padded((int) value, width, padding_char);
-}
-static CYTHON_INLINE PyObject* __Pyx____Pyx_PyUnicode_From_size_t(size_t value, Py_ssize_t width, char padding_char, char format_char) {
-    char digits[sizeof(size_t)*3+2];
-    char *dpos, *end = digits + sizeof(size_t)*3+2;
-    const char *hex_digits = DIGITS_HEX;
-    Py_ssize_t length, ulength;
-    int prepend_sign, last_one_off;
-    size_t remaining;
-#ifdef __Pyx_HAS_GCC_DIAGNOSTIC
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wconversion"
-#endif
-    const size_t neg_one = (size_t) -1, const_zero = (size_t) 0;
-#ifdef __Pyx_HAS_GCC_DIAGNOSTIC
-#pragma GCC diagnostic pop
-#endif
-    const int is_unsigned = neg_one > const_zero;
-    if (format_char == 'X') {
-        hex_digits += 16;
-        format_char = 'x';
-    }
-    remaining = value;
-    last_one_off = 0;
-    dpos = end;
-    do {
-        int digit_pos;
-        switch (format_char) {
-        case 'o':
-            digit_pos = abs((int)(remaining % (8*8)));
-            remaining = (size_t) (remaining / (8*8));
-            dpos -= 2;
-            memcpy(dpos, DIGIT_PAIRS_8 + digit_pos * 2, 2);
-            last_one_off = (digit_pos < 8);
-            break;
-        case 'd':
-            digit_pos = abs((int)(remaining % (10*10)));
-            remaining = (size_t) (remaining / (10*10));
-            dpos -= 2;
-            memcpy(dpos, DIGIT_PAIRS_10 + digit_pos * 2, 2);
-            last_one_off = (digit_pos < 10);
-            break;
-        case 'x':
-            *(--dpos) = hex_digits[abs((int)(remaining % 16))];
-            remaining = (size_t) (remaining / 16);
-            break;
-        default:
-            assert(0);
-            break;
-        }
-    } while (unlikely(remaining != 0));
-    assert(!last_one_off || *dpos == '0');
-    dpos += last_one_off;
-    length = end - dpos;
-    ulength = length;
-    prepend_sign = 0;
-    if (!is_unsigned && value <= neg_one) {
-        if (padding_char == ' ' || width <= length + 1) {
-            *(--dpos) = '-';
-            ++length;
-        } else {
-            prepend_sign = 1;
-        }
-        ++ulength;
-    }
-    if (width > ulength) {
-        ulength = width;
-    }
-    if (ulength == 1) {
-        return PyUnicode_FromOrdinal(*dpos);
-    }
-    return __Pyx_PyUnicode_BuildFromAscii(ulength, dpos, (int) length, prepend_sign, padding_char);
-}
-
-/* CIntToPyUnicode */
-static CYTHON_INLINE PyObject* __Pyx_uchar___Pyx_PyUnicode_From_int64_t(int64_t value, Py_ssize_t width, char padding_char) {
-#ifdef __Pyx_HAS_GCC_DIAGNOSTIC
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wconversion"
-#endif
-    const int64_t neg_one = (int64_t) -1, const_zero = (int64_t) 0;
-#ifdef __Pyx_HAS_GCC_DIAGNOSTIC
-#pragma GCC diagnostic pop
-#endif
-    const int is_unsigned = neg_one > const_zero;
-    if (unlikely(!(is_unsigned || value == 0 || value > 0) ||
-                    !(sizeof(value) <= 2 || value & ~ (int64_t) 0x01fffff || __Pyx_CheckUnicodeValue((int) value)))) {
-        PyErr_SetString(PyExc_OverflowError, "%c arg not in range(0x110000)");
-        return NULL;
-    }
-    if (width <= 1) {
-        return PyUnicode_FromOrdinal((int) value);
-    }
-    return __Pyx_PyUnicode_FromOrdinal_Padded((int) value, width, padding_char);
-}
-static CYTHON_INLINE PyObject* __Pyx____Pyx_PyUnicode_From_int64_t(int64_t value, Py_ssize_t width, char padding_char, char format_char) {
-    char digits[sizeof(int64_t)*3+2];
-    char *dpos, *end = digits + sizeof(int64_t)*3+2;
-    const char *hex_digits = DIGITS_HEX;
-    Py_ssize_t length, ulength;
-    int prepend_sign, last_one_off;
-    int64_t remaining;
-#ifdef __Pyx_HAS_GCC_DIAGNOSTIC
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wconversion"
-#endif
-    const int64_t neg_one = (int64_t) -1, const_zero = (int64_t) 0;
-#ifdef __Pyx_HAS_GCC_DIAGNOSTIC
-#pragma GCC diagnostic pop
-#endif
-    const int is_unsigned = neg_one > const_zero;
-    if (format_char == 'X') {
-        hex_digits += 16;
-        format_char = 'x';
-    }
-    remaining = value;
-    last_one_off = 0;
-    dpos = end;
-    do {
-        int digit_pos;
-        switch (format_char) {
-        case 'o':
-            digit_pos = abs((int)(remaining % (8*8)));
-            remaining = (int64_t) (remaining / (8*8));
-            dpos -= 2;
-            memcpy(dpos, DIGIT_PAIRS_8 + digit_pos * 2, 2);
-            last_one_off = (digit_pos < 8);
-            break;
-        case 'd':
-            digit_pos = abs((int)(remaining % (10*10)));
-            remaining = (int64_t) (remaining / (10*10));
-            dpos -= 2;
-            memcpy(dpos, DIGIT_PAIRS_10 + digit_pos * 2, 2);
-            last_one_off = (digit_pos < 10);
-            break;
-        case 'x':
-            *(--dpos) = hex_digits[abs((int)(remaining % 16))];
-            remaining = (int64_t) (remaining / 16);
-            break;
-        default:
-            assert(0);
-            break;
-        }
-    } while (unlikely(remaining != 0));
-    assert(!last_one_off || *dpos == '0');
-    dpos += last_one_off;
-    length = end - dpos;
-    ulength = length;
-    prepend_sign = 0;
-    if (!is_unsigned && value <= neg_one) {
-        if (padding_char == ' ' || width <= length + 1) {
-            *(--dpos) = '-';
-            ++length;
-        } else {
-            prepend_sign = 1;
-        }
-        ++ulength;
-    }
-    if (width > ulength) {
-        ulength = width;
-    }
-    if (ulength == 1) {
-        return PyUnicode_FromOrdinal(*dpos);
-    }
-    return __Pyx_PyUnicode_BuildFromAscii(ulength, dpos, (int) length, prepend_sign, padding_char);
-}
-
-/* PyObjectFastCallMethod */
-#if !CYTHON_VECTORCALL || PY_VERSION_HEX < 0x03090000
-static PyObject *__Pyx_PyObject_FastCallMethod(PyObject *name, PyObject *const *args, size_t nargsf) {
-    PyObject *result;
-    PyObject *attr = PyObject_GetAttr(args[0], name);
-    if (unlikely(!attr))
-        return NULL;
-    result = __Pyx_PyObject_FastCall(attr, args+1, nargsf - 1);
-    Py_DECREF(attr);
-    return result;
-}
-#endif
-
-/* RaiseTooManyValuesToUnpack */
-static CYTHON_INLINE void __Pyx_RaiseTooManyValuesError(Py_ssize_t expected) {
-    PyErr_Format(PyExc_ValueError,
-                 "too many values to unpack (expected %" CYTHON_FORMAT_SSIZE_T "d)", expected);
-}
-
-/* RaiseNeedMoreValuesToUnpack */
-static CYTHON_INLINE void __Pyx_RaiseNeedMoreValuesError(Py_ssize_t index) {
-    PyErr_Format(PyExc_ValueError,
-                 "need more than %" CYTHON_FORMAT_SSIZE_T "d value%.1s to unpack",
-                 index, (index == 1) ? "" : "s");
-}
-
-/* IterFinish */
-static CYTHON_INLINE int __Pyx_IterFinish(void) {
-    PyObject* exc_type;
-    __Pyx_PyThreadState_declare
-    __Pyx_PyThreadState_assign
-    exc_type = __Pyx_PyErr_CurrentExceptionType();
-    if (unlikely(exc_type)) {
-        if (unlikely(!__Pyx_PyErr_GivenExceptionMatches(exc_type, PyExc_StopIteration)))
-            return -1;
-        __Pyx_PyErr_Clear();
-        return 0;
-    }
-    return 0;
-}
-
-/* UnpackItemEndCheck */
-static int __Pyx_IternextUnpackEndCheck(PyObject *retval, Py_ssize_t expected) {
-    if (unlikely(retval)) {
-        Py_DECREF(retval);
-        __Pyx_RaiseTooManyValuesError(expected);
-        return -1;
-    }
-    return __Pyx_IterFinish();
-}
-
-/* DivInt[Py_ssize_t] */
-static CYTHON_INLINE Py_ssize_t __Pyx_div_Py_ssize_t(Py_ssize_t a, Py_ssize_t b, int b_is_constant) {
-    Py_ssize_t q = a / b;
-    Py_ssize_t r = a - q*b;
-    Py_ssize_t adapt_python = (b_is_constant ?
-        ((r != 0) & ((r < 0) ^ (b < 0))) :
-        ((r != 0) & ((r ^ b) < 0))
-    );
-    return q - adapt_python;
-}
-
-/* AllocateExtensionType */
-static PyObject *__Pyx_AllocateExtensionType(PyTypeObject *t, int is_final) {
-    if (is_final || likely(!__Pyx_PyType_HasFeature(t, Py_TPFLAGS_IS_ABSTRACT))) {
-        allocfunc alloc_func = __Pyx_PyType_GetSlot(t, tp_alloc, allocfunc);
-        return alloc_func(t, 0);
-    } else {
-        newfunc tp_new = __Pyx_PyType_TryGetSlot(&PyBaseObject_Type, tp_new, newfunc);
-    #if CYTHON_COMPILING_IN_LIMITED_API && __PYX_LIMITED_VERSION_HEX < 0x030A0000
-        if (!tp_new) {
-            PyObject *new_str = PyUnicode_FromString("__new__");
-            if (likely(new_str)) {
-                PyObject *o = PyObject_CallMethodObjArgs((PyObject *)&PyBaseObject_Type, new_str, t, NULL);
-                Py_DECREF(new_str);
-                return o;
-            } else
-                return NULL;
-        } else
-    #endif
-        return tp_new(t, __pyx_mstate_global->__pyx_empty_tuple, 0);
-    }
+    return value;
 }
 
 /* LimitedApiGetTypeDict (used by SetItemOnTypeDict) */
@@ -11024,7 +14165,7 @@ static int __Pyx__SetItemOnTypeDict(PyTypeObject *tp, PyObject *k, PyObject *v) 
     return result;
 }
 
-/* FixUpExtensionType */
+/* FixUpExtensionType (used by FetchCommonType) */
 static int __Pyx_fix_up_extension_type_from_spec(PyType_Spec *spec, PyTypeObject *type) {
 #if __PYX_LIMITED_VERSION_HEX > 0x030900B1
     CYTHON_UNUSED_VAR(spec);
@@ -11123,633 +14264,6 @@ static int __Pyx_fix_up_extension_type_from_spec(PyType_Spec *spec, PyTypeObject
         PyType_Modified(type);
 #endif  // PY_VERSION_HEX > 0x030900B1
     return 0;
-}
-
-/* PyObjectCallNoArg (used by PyObjectCallMethod0) */
-static CYTHON_INLINE PyObject* __Pyx_PyObject_CallNoArg(PyObject *func) {
-    PyObject *arg[2] = {NULL, NULL};
-    return __Pyx_PyObject_FastCall(func, arg + 1, 0 | __Pyx_PY_VECTORCALL_ARGUMENTS_OFFSET);
-}
-
-/* PyObjectGetMethod (used by PyObjectCallMethod0) */
-#if !(CYTHON_VECTORCALL && (__PYX_LIMITED_VERSION_HEX >= 0x030C0000 || (!CYTHON_COMPILING_IN_LIMITED_API && PY_VERSION_HEX >= 0x03090000)))
-static int __Pyx_PyObject_GetMethod(PyObject *obj, PyObject *name, PyObject **method) {
-    PyObject *attr;
-#if CYTHON_UNPACK_METHODS && CYTHON_COMPILING_IN_CPYTHON && CYTHON_USE_PYTYPE_LOOKUP
-    __Pyx_TypeName type_name;
-    PyTypeObject *tp = Py_TYPE(obj);
-    PyObject *descr;
-    descrgetfunc f = NULL;
-    PyObject **dictptr, *dict;
-    int meth_found = 0;
-    assert (*method == NULL);
-    if (unlikely(tp->tp_getattro != PyObject_GenericGetAttr)) {
-        attr = __Pyx_PyObject_GetAttrStr(obj, name);
-        goto try_unpack;
-    }
-    if (unlikely(tp->tp_dict == NULL) && unlikely(PyType_Ready(tp) < 0)) {
-        return 0;
-    }
-    descr = _PyType_Lookup(tp, name);
-    if (likely(descr != NULL)) {
-        Py_INCREF(descr);
-#if defined(Py_TPFLAGS_METHOD_DESCRIPTOR) && Py_TPFLAGS_METHOD_DESCRIPTOR
-        if (__Pyx_PyType_HasFeature(Py_TYPE(descr), Py_TPFLAGS_METHOD_DESCRIPTOR))
-#else
-        #ifdef __Pyx_CyFunction_USED
-        if (likely(PyFunction_Check(descr) || __Pyx_IS_TYPE(descr, &PyMethodDescr_Type) || __Pyx_CyFunction_Check(descr)))
-        #else
-        if (likely(PyFunction_Check(descr) || __Pyx_IS_TYPE(descr, &PyMethodDescr_Type)))
-        #endif
-#endif
-        {
-            meth_found = 1;
-        } else {
-            f = Py_TYPE(descr)->tp_descr_get;
-            if (f != NULL && PyDescr_IsData(descr)) {
-                attr = f(descr, obj, (PyObject *)Py_TYPE(obj));
-                Py_DECREF(descr);
-                goto try_unpack;
-            }
-        }
-    }
-    dictptr = _PyObject_GetDictPtr(obj);
-    if (dictptr != NULL && (dict = *dictptr) != NULL) {
-        Py_INCREF(dict);
-        attr = __Pyx_PyDict_GetItemStr(dict, name);
-        if (attr != NULL) {
-            Py_INCREF(attr);
-            Py_DECREF(dict);
-            Py_XDECREF(descr);
-            goto try_unpack;
-        }
-        Py_DECREF(dict);
-    }
-    if (meth_found) {
-        *method = descr;
-        return 1;
-    }
-    if (f != NULL) {
-        attr = f(descr, obj, (PyObject *)Py_TYPE(obj));
-        Py_DECREF(descr);
-        goto try_unpack;
-    }
-    if (likely(descr != NULL)) {
-        *method = descr;
-        return 0;
-    }
-    type_name = __Pyx_PyType_GetFullyQualifiedName(tp);
-    PyErr_Format(PyExc_AttributeError,
-                 "'" __Pyx_FMT_TYPENAME "' object has no attribute '%U'",
-                 type_name, name);
-    __Pyx_DECREF_TypeName(type_name);
-    return 0;
-#else
-    attr = __Pyx_PyObject_GetAttrStr(obj, name);
-    goto try_unpack;
-#endif
-try_unpack:
-#if CYTHON_UNPACK_METHODS
-    if (likely(attr) && PyMethod_Check(attr) && likely(PyMethod_GET_SELF(attr) == obj)) {
-        PyObject *function = PyMethod_GET_FUNCTION(attr);
-        Py_INCREF(function);
-        Py_DECREF(attr);
-        *method = function;
-        return 1;
-    }
-#endif
-    *method = attr;
-    return 0;
-}
-#endif
-
-/* PyObjectCallMethod0 (used by PyType_Ready) */
-static PyObject* __Pyx_PyObject_CallMethod0(PyObject* obj, PyObject* method_name) {
-#if CYTHON_VECTORCALL && (__PYX_LIMITED_VERSION_HEX >= 0x030C0000 || (!CYTHON_COMPILING_IN_LIMITED_API && PY_VERSION_HEX >= 0x03090000))
-    PyObject *args[1] = {obj};
-    (void) __Pyx_PyObject_CallOneArg;
-    (void) __Pyx_PyObject_CallNoArg;
-    return PyObject_VectorcallMethod(method_name, args, 1 | PY_VECTORCALL_ARGUMENTS_OFFSET, NULL);
-#else
-    PyObject *method = NULL, *result = NULL;
-    int is_method = __Pyx_PyObject_GetMethod(obj, method_name, &method);
-    if (likely(is_method)) {
-        result = __Pyx_PyObject_CallOneArg(method, obj);
-        Py_DECREF(method);
-        return result;
-    }
-    if (unlikely(!method)) goto bad;
-    result = __Pyx_PyObject_CallNoArg(method);
-    Py_DECREF(method);
-bad:
-    return result;
-#endif
-}
-
-/* ValidateBasesTuple (used by PyType_Ready) */
-#if CYTHON_COMPILING_IN_CPYTHON || CYTHON_COMPILING_IN_LIMITED_API || CYTHON_USE_TYPE_SPECS
-static int __Pyx_validate_bases_tuple(const char *type_name, Py_ssize_t dictoffset, PyObject *bases) {
-    Py_ssize_t i, n;
-#if CYTHON_ASSUME_SAFE_SIZE
-    n = PyTuple_GET_SIZE(bases);
-#else
-    n = PyTuple_Size(bases);
-    if (unlikely(n < 0)) return -1;
-#endif
-    for (i = 1; i < n; i++)
-    {
-        PyTypeObject *b;
-#if CYTHON_AVOID_BORROWED_REFS
-        PyObject *b0 = PySequence_GetItem(bases, i);
-        if (!b0) return -1;
-#elif CYTHON_ASSUME_SAFE_MACROS
-        PyObject *b0 = PyTuple_GET_ITEM(bases, i);
-#else
-        PyObject *b0 = PyTuple_GetItem(bases, i);
-        if (!b0) return -1;
-#endif
-        b = (PyTypeObject*) b0;
-        if (!__Pyx_PyType_HasFeature(b, Py_TPFLAGS_HEAPTYPE))
-        {
-            __Pyx_TypeName b_name = __Pyx_PyType_GetFullyQualifiedName(b);
-            PyErr_Format(PyExc_TypeError,
-                "base class '" __Pyx_FMT_TYPENAME "' is not a heap type", b_name);
-            __Pyx_DECREF_TypeName(b_name);
-#if CYTHON_AVOID_BORROWED_REFS
-            Py_DECREF(b0);
-#endif
-            return -1;
-        }
-        if (dictoffset == 0)
-        {
-            Py_ssize_t b_dictoffset = 0;
-#if CYTHON_USE_TYPE_SLOTS
-            b_dictoffset = b->tp_dictoffset;
-#else
-            PyObject *py_b_dictoffset = PyObject_GetAttrString((PyObject*)b, "__dictoffset__");
-            if (!py_b_dictoffset) goto dictoffset_return;
-            b_dictoffset = PyLong_AsSsize_t(py_b_dictoffset);
-            Py_DECREF(py_b_dictoffset);
-            if (b_dictoffset == -1 && PyErr_Occurred()) goto dictoffset_return;
-#endif
-            if (b_dictoffset) {
-                {
-                    __Pyx_TypeName b_name = __Pyx_PyType_GetFullyQualifiedName(b);
-                    PyErr_Format(PyExc_TypeError,
-                        "extension type '%.200s' has no __dict__ slot, "
-                        "but base type '" __Pyx_FMT_TYPENAME "' has: "
-                        "either add 'cdef dict __dict__' to the extension type "
-                        "or add '__slots__ = [...]' to the base type",
-                        type_name, b_name);
-                    __Pyx_DECREF_TypeName(b_name);
-                }
-#if !CYTHON_USE_TYPE_SLOTS
-              dictoffset_return:
-#endif
-#if CYTHON_AVOID_BORROWED_REFS
-                Py_DECREF(b0);
-#endif
-                return -1;
-            }
-        }
-#if CYTHON_AVOID_BORROWED_REFS
-        Py_DECREF(b0);
-#endif
-    }
-    return 0;
-}
-#endif
-
-/* PyType_Ready */
-CYTHON_UNUSED static int __Pyx_PyType_HasMultipleInheritance(PyTypeObject *t) {
-    while (t) {
-        PyObject *bases = __Pyx_PyType_GetSlot(t, tp_bases, PyObject*);
-        if (bases) {
-            return 1;
-        }
-        t = __Pyx_PyType_GetSlot(t, tp_base, PyTypeObject*);
-    }
-    return 0;
-}
-static int __Pyx_PyType_Ready(PyTypeObject *t) {
-#if CYTHON_USE_TYPE_SPECS || !CYTHON_COMPILING_IN_CPYTHON || defined(PYSTON_MAJOR_VERSION)
-    (void)__Pyx_PyObject_CallMethod0;
-#if CYTHON_USE_TYPE_SPECS
-    (void)__Pyx_validate_bases_tuple;
-#endif
-    return PyType_Ready(t);
-#else
-    int r;
-    if (!__Pyx_PyType_HasMultipleInheritance(t)) {
-        return PyType_Ready(t);
-    }
-    PyObject *bases = __Pyx_PyType_GetSlot(t, tp_bases, PyObject*);
-    if (bases && unlikely(__Pyx_validate_bases_tuple(t->tp_name, t->tp_dictoffset, bases) == -1))
-        return -1;
-#if !defined(PYSTON_MAJOR_VERSION)
-    {
-        int gc_was_enabled;
-    #if PY_VERSION_HEX >= 0x030A00b1
-        gc_was_enabled = PyGC_Disable();
-        (void)__Pyx_PyObject_CallMethod0;
-    #else
-        PyObject *ret, *py_status;
-        PyObject *gc = NULL;
-        #if (!CYTHON_COMPILING_IN_PYPY || PYPY_VERSION_NUM+0 >= 0x07030400) &&\
-                !CYTHON_COMPILING_IN_GRAAL
-        gc = PyImport_GetModule(__pyx_mstate_global->__pyx_kp_u_gc);
-        #endif
-        if (unlikely(!gc)) gc = PyImport_Import(__pyx_mstate_global->__pyx_kp_u_gc);
-        if (unlikely(!gc)) return -1;
-        py_status = __Pyx_PyObject_CallMethod0(gc, __pyx_mstate_global->__pyx_kp_u_isenabled);
-        if (unlikely(!py_status)) {
-            Py_DECREF(gc);
-            return -1;
-        }
-        gc_was_enabled = __Pyx_PyObject_IsTrue(py_status);
-        Py_DECREF(py_status);
-        if (gc_was_enabled > 0) {
-            ret = __Pyx_PyObject_CallMethod0(gc, __pyx_mstate_global->__pyx_kp_u_disable);
-            if (unlikely(!ret)) {
-                Py_DECREF(gc);
-                return -1;
-            }
-            Py_DECREF(ret);
-        } else if (unlikely(gc_was_enabled == -1)) {
-            Py_DECREF(gc);
-            return -1;
-        }
-    #endif
-        t->tp_flags |= Py_TPFLAGS_HEAPTYPE;
-#if PY_VERSION_HEX >= 0x030A0000
-        t->tp_flags |= Py_TPFLAGS_IMMUTABLETYPE;
-#endif
-#else
-        (void)__Pyx_PyObject_CallMethod0;
-#endif
-    r = PyType_Ready(t);
-#if !defined(PYSTON_MAJOR_VERSION)
-        t->tp_flags &= ~Py_TPFLAGS_HEAPTYPE;
-    #if PY_VERSION_HEX >= 0x030A00b1
-        if (gc_was_enabled)
-            PyGC_Enable();
-    #else
-        if (gc_was_enabled) {
-            PyObject *tp, *v, *tb;
-            PyErr_Fetch(&tp, &v, &tb);
-            ret = __Pyx_PyObject_CallMethod0(gc, __pyx_mstate_global->__pyx_kp_u_enable);
-            if (likely(ret || r == -1)) {
-                Py_XDECREF(ret);
-                PyErr_Restore(tp, v, tb);
-            } else {
-                Py_XDECREF(tp);
-                Py_XDECREF(v);
-                Py_XDECREF(tb);
-                r = -1;
-            }
-        }
-        Py_DECREF(gc);
-    #endif
-    }
-#endif
-    return r;
-#endif
-}
-
-/* SetVTable */
-static int __Pyx_SetVtable(PyTypeObject *type, void *vtable) {
-    PyObject *ob = PyCapsule_New(vtable, 0, 0);
-    if (unlikely(!ob))
-        goto bad;
-#if CYTHON_COMPILING_IN_LIMITED_API
-    if (unlikely(PyObject_SetAttr((PyObject *) type, __pyx_mstate_global->__pyx_n_u_pyx_vtable, ob) < 0))
-#else
-    if (unlikely(PyDict_SetItem(type->tp_dict, __pyx_mstate_global->__pyx_n_u_pyx_vtable, ob) < 0))
-#endif
-        goto bad;
-    Py_DECREF(ob);
-    return 0;
-bad:
-    Py_XDECREF(ob);
-    return -1;
-}
-
-/* GetVTable (used by MergeVTables) */
-static void* __Pyx_GetVtable(PyTypeObject *type) {
-    void* ptr;
-#if CYTHON_COMPILING_IN_LIMITED_API
-    PyObject *ob = PyObject_GetAttr((PyObject *)type, __pyx_mstate_global->__pyx_n_u_pyx_vtable);
-#else
-    PyObject *ob = PyObject_GetItem(type->tp_dict, __pyx_mstate_global->__pyx_n_u_pyx_vtable);
-#endif
-    if (!ob)
-        goto bad;
-    ptr = PyCapsule_GetPointer(ob, 0);
-    if (!ptr && !PyErr_Occurred())
-        PyErr_SetString(PyExc_RuntimeError, "invalid vtable found for imported type");
-    Py_DECREF(ob);
-    return ptr;
-bad:
-    Py_XDECREF(ob);
-    return NULL;
-}
-
-/* MergeVTables */
-static int __Pyx_MergeVtables(PyTypeObject *type) {
-    int i=0;
-    Py_ssize_t size;
-    void** base_vtables;
-    __Pyx_TypeName tp_base_name = NULL;
-    __Pyx_TypeName base_name = NULL;
-    void* unknown = (void*)-1;
-    PyObject* bases = __Pyx_PyType_GetSlot(type, tp_bases, PyObject*);
-    int base_depth = 0;
-    {
-        PyTypeObject* base = __Pyx_PyType_GetSlot(type, tp_base, PyTypeObject*);
-        while (base) {
-            base_depth += 1;
-            base = __Pyx_PyType_GetSlot(base, tp_base, PyTypeObject*);
-        }
-    }
-    base_vtables = (void**) PyMem_Malloc(sizeof(void*) * (size_t)(base_depth + 1));
-    base_vtables[0] = unknown;
-#if CYTHON_COMPILING_IN_LIMITED_API
-    size = PyTuple_Size(bases);
-    if (size < 0) goto other_failure;
-#else
-    size = PyTuple_GET_SIZE(bases);
-#endif
-    for (i = 1; i < size; i++) {
-        PyObject *basei;
-        void* base_vtable;
-#if CYTHON_AVOID_BORROWED_REFS
-        basei = PySequence_GetItem(bases, i);
-        if (unlikely(!basei)) goto other_failure;
-#elif !CYTHON_ASSUME_SAFE_MACROS
-        basei = PyTuple_GetItem(bases, i);
-        if (unlikely(!basei)) goto other_failure;
-#else
-        basei = PyTuple_GET_ITEM(bases, i);
-#endif
-        base_vtable = __Pyx_GetVtable((PyTypeObject*)basei);
-#if CYTHON_AVOID_BORROWED_REFS
-        Py_DECREF(basei);
-#endif
-        if (base_vtable != NULL) {
-            int j;
-            PyTypeObject* base = __Pyx_PyType_GetSlot(type, tp_base, PyTypeObject*);
-            for (j = 0; j < base_depth; j++) {
-                if (base_vtables[j] == unknown) {
-                    base_vtables[j] = __Pyx_GetVtable(base);
-                    base_vtables[j + 1] = unknown;
-                }
-                if (base_vtables[j] == base_vtable) {
-                    break;
-                } else if (base_vtables[j] == NULL) {
-                    goto bad;
-                }
-                base = __Pyx_PyType_GetSlot(base, tp_base, PyTypeObject*);
-            }
-        }
-    }
-    PyErr_Clear();
-    PyMem_Free(base_vtables);
-    return 0;
-bad:
-    {
-        PyTypeObject* basei = NULL;
-        PyTypeObject* tp_base = __Pyx_PyType_GetSlot(type, tp_base, PyTypeObject*);
-        tp_base_name = __Pyx_PyType_GetFullyQualifiedName(tp_base);
-#if CYTHON_AVOID_BORROWED_REFS
-        basei = (PyTypeObject*)PySequence_GetItem(bases, i);
-        if (unlikely(!basei)) goto really_bad;
-#elif !CYTHON_ASSUME_SAFE_MACROS
-        basei = (PyTypeObject*)PyTuple_GetItem(bases, i);
-        if (unlikely(!basei)) goto really_bad;
-#else
-        basei = (PyTypeObject*)PyTuple_GET_ITEM(bases, i);
-#endif
-        base_name = __Pyx_PyType_GetFullyQualifiedName(basei);
-#if CYTHON_AVOID_BORROWED_REFS
-        Py_DECREF(basei);
-#endif
-    }
-    PyErr_Format(PyExc_TypeError,
-        "multiple bases have vtable conflict: '" __Pyx_FMT_TYPENAME "' and '" __Pyx_FMT_TYPENAME "'", tp_base_name, base_name);
-#if CYTHON_AVOID_BORROWED_REFS || !CYTHON_ASSUME_SAFE_MACROS
-really_bad: // bad has failed!
-#endif
-    __Pyx_DECREF_TypeName(tp_base_name);
-    __Pyx_DECREF_TypeName(base_name);
-#if CYTHON_COMPILING_IN_LIMITED_API || CYTHON_AVOID_BORROWED_REFS || !CYTHON_ASSUME_SAFE_MACROS
-other_failure:
-#endif
-    PyMem_Free(base_vtables);
-    return -1;
-}
-
-/* DelItemOnTypeDict (used by SetupReduce) */
-static int __Pyx__DelItemOnTypeDict(PyTypeObject *tp, PyObject *k) {
-    int result;
-    PyObject *tp_dict;
-#if CYTHON_COMPILING_IN_LIMITED_API
-    tp_dict = __Pyx_GetTypeDict(tp);
-    if (unlikely(!tp_dict)) return -1;
-#else
-    tp_dict = tp->tp_dict;
-#endif
-    result = PyDict_DelItem(tp_dict, k);
-    if (likely(!result)) PyType_Modified(tp);
-    return result;
-}
-
-/* SetupReduce */
-static int __Pyx_setup_reduce_is_named(PyObject* meth, PyObject* name) {
-  int ret;
-  PyObject *name_attr;
-  name_attr = __Pyx_PyObject_GetAttrStrNoError(meth, __pyx_mstate_global->__pyx_n_u_name);
-  if (likely(name_attr)) {
-      ret = PyObject_RichCompareBool(name_attr, name, Py_EQ);
-  } else {
-      ret = -1;
-  }
-  if (unlikely(ret < 0)) {
-      PyErr_Clear();
-      ret = 0;
-  }
-  Py_XDECREF(name_attr);
-  return ret;
-}
-static int __Pyx_setup_reduce(PyObject* type_obj) {
-    int ret = 0;
-    PyObject *object_reduce = NULL;
-    PyObject *object_getstate = NULL;
-    PyObject *object_reduce_ex = NULL;
-    PyObject *reduce = NULL;
-    PyObject *reduce_ex = NULL;
-    PyObject *reduce_cython = NULL;
-    PyObject *setstate = NULL;
-    PyObject *setstate_cython = NULL;
-    PyObject *getstate = NULL;
-#if CYTHON_USE_PYTYPE_LOOKUP
-    getstate = _PyType_Lookup((PyTypeObject*)type_obj, __pyx_mstate_global->__pyx_n_u_getstate);
-#else
-    getstate = __Pyx_PyObject_GetAttrStrNoError(type_obj, __pyx_mstate_global->__pyx_n_u_getstate);
-    if (!getstate && PyErr_Occurred()) {
-        goto __PYX_BAD;
-    }
-#endif
-    if (getstate) {
-#if CYTHON_USE_PYTYPE_LOOKUP
-        object_getstate = _PyType_Lookup(&PyBaseObject_Type, __pyx_mstate_global->__pyx_n_u_getstate);
-#else
-        object_getstate = __Pyx_PyObject_GetAttrStrNoError((PyObject*)&PyBaseObject_Type, __pyx_mstate_global->__pyx_n_u_getstate);
-        if (!object_getstate && PyErr_Occurred()) {
-            goto __PYX_BAD;
-        }
-#endif
-        if (object_getstate != getstate) {
-            goto __PYX_GOOD;
-        }
-    }
-#if CYTHON_USE_PYTYPE_LOOKUP
-    object_reduce_ex = _PyType_Lookup(&PyBaseObject_Type, __pyx_mstate_global->__pyx_n_u_reduce_ex); if (!object_reduce_ex) goto __PYX_BAD;
-#else
-    object_reduce_ex = __Pyx_PyObject_GetAttrStr((PyObject*)&PyBaseObject_Type, __pyx_mstate_global->__pyx_n_u_reduce_ex); if (!object_reduce_ex) goto __PYX_BAD;
-#endif
-    reduce_ex = __Pyx_PyObject_GetAttrStr(type_obj, __pyx_mstate_global->__pyx_n_u_reduce_ex); if (unlikely(!reduce_ex)) goto __PYX_BAD;
-    if (reduce_ex == object_reduce_ex) {
-#if CYTHON_USE_PYTYPE_LOOKUP
-        object_reduce = _PyType_Lookup(&PyBaseObject_Type, __pyx_mstate_global->__pyx_n_u_reduce); if (!object_reduce) goto __PYX_BAD;
-#else
-        object_reduce = __Pyx_PyObject_GetAttrStr((PyObject*)&PyBaseObject_Type, __pyx_mstate_global->__pyx_n_u_reduce); if (!object_reduce) goto __PYX_BAD;
-#endif
-        reduce = __Pyx_PyObject_GetAttrStr(type_obj, __pyx_mstate_global->__pyx_n_u_reduce); if (unlikely(!reduce)) goto __PYX_BAD;
-        if (reduce == object_reduce || __Pyx_setup_reduce_is_named(reduce, __pyx_mstate_global->__pyx_n_u_reduce_cython)) {
-            reduce_cython = __Pyx_PyObject_GetAttrStrNoError(type_obj, __pyx_mstate_global->__pyx_n_u_reduce_cython);
-            if (likely(reduce_cython)) {
-                ret = __Pyx_SetItemOnTypeDict((PyTypeObject*)type_obj, __pyx_mstate_global->__pyx_n_u_reduce, reduce_cython); if (unlikely(ret < 0)) goto __PYX_BAD;
-                ret = __Pyx_DelItemOnTypeDict((PyTypeObject*)type_obj, __pyx_mstate_global->__pyx_n_u_reduce_cython); if (unlikely(ret < 0)) goto __PYX_BAD;
-            } else if (reduce == object_reduce || PyErr_Occurred()) {
-                goto __PYX_BAD;
-            }
-            setstate = __Pyx_PyObject_GetAttrStrNoError(type_obj, __pyx_mstate_global->__pyx_n_u_setstate);
-            if (!setstate) PyErr_Clear();
-            if (!setstate || __Pyx_setup_reduce_is_named(setstate, __pyx_mstate_global->__pyx_n_u_setstate_cython)) {
-                setstate_cython = __Pyx_PyObject_GetAttrStrNoError(type_obj, __pyx_mstate_global->__pyx_n_u_setstate_cython);
-                if (likely(setstate_cython)) {
-                    ret = __Pyx_SetItemOnTypeDict((PyTypeObject*)type_obj, __pyx_mstate_global->__pyx_n_u_setstate, setstate_cython); if (unlikely(ret < 0)) goto __PYX_BAD;
-                    ret = __Pyx_DelItemOnTypeDict((PyTypeObject*)type_obj, __pyx_mstate_global->__pyx_n_u_setstate_cython); if (unlikely(ret < 0)) goto __PYX_BAD;
-                } else if (!setstate || PyErr_Occurred()) {
-                    goto __PYX_BAD;
-                }
-            }
-            PyType_Modified((PyTypeObject*)type_obj);
-        }
-    }
-    goto __PYX_GOOD;
-__PYX_BAD:
-    if (!PyErr_Occurred()) {
-        __Pyx_TypeName type_obj_name =
-            __Pyx_PyType_GetFullyQualifiedName((PyTypeObject*)type_obj);
-        PyErr_Format(PyExc_RuntimeError,
-            "Unable to initialize pickling for " __Pyx_FMT_TYPENAME, type_obj_name);
-        __Pyx_DECREF_TypeName(type_obj_name);
-    }
-    ret = -1;
-__PYX_GOOD:
-#if !CYTHON_USE_PYTYPE_LOOKUP
-    Py_XDECREF(object_reduce);
-    Py_XDECREF(object_reduce_ex);
-    Py_XDECREF(object_getstate);
-    Py_XDECREF(getstate);
-#endif
-    Py_XDECREF(reduce);
-    Py_XDECREF(reduce_ex);
-    Py_XDECREF(reduce_cython);
-    Py_XDECREF(setstate);
-    Py_XDECREF(setstate_cython);
-    return ret;
-}
-
-/* PyDictVersioning (used by GetModuleGlobalName) */
-#if CYTHON_USE_DICT_VERSIONS && CYTHON_USE_TYPE_SLOTS
-static CYTHON_INLINE PY_UINT64_T __Pyx_get_tp_dict_version(PyObject *obj) {
-    PyObject *dict = Py_TYPE(obj)->tp_dict;
-    return likely(dict) ? __PYX_GET_DICT_VERSION(dict) : 0;
-}
-static CYTHON_INLINE PY_UINT64_T __Pyx_get_object_dict_version(PyObject *obj) {
-    PyObject **dictptr = NULL;
-    Py_ssize_t offset = Py_TYPE(obj)->tp_dictoffset;
-    if (offset) {
-#if CYTHON_COMPILING_IN_CPYTHON
-        dictptr = (likely(offset > 0)) ? (PyObject **) ((char *)obj + offset) : _PyObject_GetDictPtr(obj);
-#else
-        dictptr = _PyObject_GetDictPtr(obj);
-#endif
-    }
-    return (dictptr && *dictptr) ? __PYX_GET_DICT_VERSION(*dictptr) : 0;
-}
-static CYTHON_INLINE int __Pyx_object_dict_version_matches(PyObject* obj, PY_UINT64_T tp_dict_version, PY_UINT64_T obj_dict_version) {
-    PyObject *dict = Py_TYPE(obj)->tp_dict;
-    if (unlikely(!dict) || unlikely(tp_dict_version != __PYX_GET_DICT_VERSION(dict)))
-        return 0;
-    return obj_dict_version == __Pyx_get_object_dict_version(obj);
-}
-#endif
-
-/* GetModuleGlobalName */
-#if CYTHON_USE_DICT_VERSIONS
-static PyObject *__Pyx__GetModuleGlobalName(PyObject *name, PY_UINT64_T *dict_version, PyObject **dict_cached_value)
-#else
-static CYTHON_INLINE PyObject *__Pyx__GetModuleGlobalName(PyObject *name)
-#endif
-{
-    PyObject *result;
-#if CYTHON_COMPILING_IN_LIMITED_API
-    if (unlikely(!__pyx_m)) {
-        if (!PyErr_Occurred())
-            PyErr_SetNone(PyExc_NameError);
-        return NULL;
-    }
-    result = PyObject_GetAttr(__pyx_m, name);
-    if (likely(result)) {
-        return result;
-    }
-    PyErr_Clear();
-#elif CYTHON_AVOID_BORROWED_REFS || CYTHON_AVOID_THREAD_UNSAFE_BORROWED_REFS
-    if (unlikely(__Pyx_PyDict_GetItemRef(__pyx_mstate_global->__pyx_d, name, &result) == -1)) PyErr_Clear();
-    __PYX_UPDATE_DICT_CACHE(__pyx_mstate_global->__pyx_d, result, *dict_cached_value, *dict_version)
-    if (likely(result)) {
-        return result;
-    }
-#else
-    result = _PyDict_GetItem_KnownHash(__pyx_mstate_global->__pyx_d, name, ((PyASCIIObject *) name)->hash);
-    __PYX_UPDATE_DICT_CACHE(__pyx_mstate_global->__pyx_d, result, *dict_cached_value, *dict_version)
-    if (likely(result)) {
-        return __Pyx_NewRef(result);
-    }
-    PyErr_Clear();
-#endif
-    return __Pyx_GetBuiltinName(name);
-}
-
-/* dict_setdefault (used by FetchCommonType) */
-static CYTHON_INLINE PyObject *__Pyx_PyDict_SetDefault(PyObject *d, PyObject *key, PyObject *default_value) {
-    PyObject* value;
-#if __PYX_LIMITED_VERSION_HEX >= 0x030F0000 || (!CYTHON_COMPILING_IN_LIMITED_API && PY_VERSION_HEX >= 0x030d00A4)
-    PyDict_SetDefaultRef(d, key, default_value, &value);
-#elif CYTHON_COMPILING_IN_LIMITED_API && __PYX_LIMITED_VERSION_HEX >= 0x030C0000
-    PyObject *args[] = {d, key, default_value};
-    value = PyObject_VectorcallMethod(__pyx_mstate_global->__pyx_n_u_setdefault, args, 3 | PY_VECTORCALL_ARGUMENTS_OFFSET, NULL);
-#elif CYTHON_COMPILING_IN_LIMITED_API
-    value = PyObject_CallMethodObjArgs(d, __pyx_mstate_global->__pyx_n_u_setdefault, key, default_value, NULL);
-#else
-    value = PyDict_SetDefault(d, key, default_value);
-    if (unlikely(!value)) return NULL;
-    Py_INCREF(value);
-#endif
-    return value;
 }
 
 /* AddModuleRef (used by FetchSharedCythonModule) */
@@ -13232,6 +15746,1270 @@ static PyObject *__Pyx_CyFunction_New(PyMethodDef *ml, int flags, PyObject* qual
     return op;
 }
 
+/* GetException */
+#if CYTHON_FAST_THREAD_STATE
+static int __Pyx__GetException(PyThreadState *tstate, PyObject **type, PyObject **value, PyObject **tb)
+#else
+static int __Pyx_GetException(PyObject **type, PyObject **value, PyObject **tb)
+#endif
+{
+    PyObject *local_type = NULL, *local_value, *local_tb = NULL;
+#if CYTHON_FAST_THREAD_STATE
+    PyObject *tmp_type, *tmp_value, *tmp_tb;
+  #if PY_VERSION_HEX >= 0x030C0000
+    local_value = tstate->current_exception;
+    tstate->current_exception = 0;
+  #else
+    local_type = tstate->curexc_type;
+    local_value = tstate->curexc_value;
+    local_tb = tstate->curexc_traceback;
+    tstate->curexc_type = 0;
+    tstate->curexc_value = 0;
+    tstate->curexc_traceback = 0;
+  #endif
+#elif __PYX_LIMITED_VERSION_HEX > 0x030C0000
+    local_value = PyErr_GetRaisedException();
+#else
+    PyErr_Fetch(&local_type, &local_value, &local_tb);
+#endif
+#if __PYX_LIMITED_VERSION_HEX > 0x030C0000
+    if (likely(local_value)) {
+        local_type = (PyObject*) Py_TYPE(local_value);
+        Py_INCREF(local_type);
+        local_tb = PyException_GetTraceback(local_value);
+    }
+#else
+    PyErr_NormalizeException(&local_type, &local_value, &local_tb);
+#if CYTHON_FAST_THREAD_STATE
+    if (unlikely(tstate->curexc_type))
+#else
+    if (unlikely(PyErr_Occurred()))
+#endif
+        goto bad;
+    if (local_tb) {
+        if (unlikely(PyException_SetTraceback(local_value, local_tb) < 0))
+            goto bad;
+    }
+#endif // __PYX_LIMITED_VERSION_HEX > 0x030C0000
+    Py_XINCREF(local_tb);
+    Py_XINCREF(local_type);
+    Py_XINCREF(local_value);
+    *type = local_type;
+    *value = local_value;
+    *tb = local_tb;
+#if CYTHON_FAST_THREAD_STATE
+    #if CYTHON_USE_EXC_INFO_STACK
+    {
+        _PyErr_StackItem *exc_info = tstate->exc_info;
+      #if PY_VERSION_HEX >= 0x030B00a4
+        tmp_value = exc_info->exc_value;
+        exc_info->exc_value = local_value;
+        tmp_type = NULL;
+        tmp_tb = NULL;
+        Py_XDECREF(local_type);
+        Py_XDECREF(local_tb);
+      #else
+        tmp_type = exc_info->exc_type;
+        tmp_value = exc_info->exc_value;
+        tmp_tb = exc_info->exc_traceback;
+        exc_info->exc_type = local_type;
+        exc_info->exc_value = local_value;
+        exc_info->exc_traceback = local_tb;
+      #endif
+    }
+    #else
+    tmp_type = tstate->exc_type;
+    tmp_value = tstate->exc_value;
+    tmp_tb = tstate->exc_traceback;
+    tstate->exc_type = local_type;
+    tstate->exc_value = local_value;
+    tstate->exc_traceback = local_tb;
+    #endif
+    Py_XDECREF(tmp_type);
+    Py_XDECREF(tmp_value);
+    Py_XDECREF(tmp_tb);
+#elif __PYX_LIMITED_VERSION_HEX >= 0x030b0000
+    PyErr_SetHandledException(local_value);
+    Py_XDECREF(local_value);
+    Py_XDECREF(local_type);
+    Py_XDECREF(local_tb);
+#else
+    PyErr_SetExcInfo(local_type, local_value, local_tb);
+#endif
+    return 0;
+#if __PYX_LIMITED_VERSION_HEX <= 0x030C0000
+bad:
+    *type = 0;
+    *value = 0;
+    *tb = 0;
+    Py_XDECREF(local_type);
+    Py_XDECREF(local_value);
+    Py_XDECREF(local_tb);
+    return -1;
+#endif
+}
+
+/* SwapException */
+#if CYTHON_FAST_THREAD_STATE
+static CYTHON_INLINE void __Pyx__ExceptionSwap(PyThreadState *tstate, PyObject **type, PyObject **value, PyObject **tb) {
+    PyObject *tmp_type, *tmp_value, *tmp_tb;
+  #if CYTHON_USE_EXC_INFO_STACK && PY_VERSION_HEX >= 0x030B00a4
+    _PyErr_StackItem *exc_info = tstate->exc_info;
+    tmp_value = exc_info->exc_value;
+    exc_info->exc_value = *value;
+    if (tmp_value == NULL || tmp_value == Py_None) {
+        Py_XDECREF(tmp_value);
+        tmp_value = NULL;
+        tmp_type = NULL;
+        tmp_tb = NULL;
+    } else {
+        tmp_type = (PyObject*) Py_TYPE(tmp_value);
+        Py_INCREF(tmp_type);
+        #if CYTHON_COMPILING_IN_CPYTHON
+        tmp_tb = ((PyBaseExceptionObject*) tmp_value)->traceback;
+        Py_XINCREF(tmp_tb);
+        #else
+        tmp_tb = PyException_GetTraceback(tmp_value);
+        #endif
+    }
+  #elif CYTHON_USE_EXC_INFO_STACK
+    _PyErr_StackItem *exc_info = tstate->exc_info;
+    tmp_type = exc_info->exc_type;
+    tmp_value = exc_info->exc_value;
+    tmp_tb = exc_info->exc_traceback;
+    exc_info->exc_type = *type;
+    exc_info->exc_value = *value;
+    exc_info->exc_traceback = *tb;
+  #else
+    tmp_type = tstate->exc_type;
+    tmp_value = tstate->exc_value;
+    tmp_tb = tstate->exc_traceback;
+    tstate->exc_type = *type;
+    tstate->exc_value = *value;
+    tstate->exc_traceback = *tb;
+  #endif
+    *type = tmp_type;
+    *value = tmp_value;
+    *tb = tmp_tb;
+}
+#else
+static CYTHON_INLINE void __Pyx_ExceptionSwap(PyObject **type, PyObject **value, PyObject **tb) {
+    PyObject *tmp_type, *tmp_value, *tmp_tb;
+    PyErr_GetExcInfo(&tmp_type, &tmp_value, &tmp_tb);
+    PyErr_SetExcInfo(*type, *value, *tb);
+    *type = tmp_type;
+    *value = tmp_value;
+    *tb = tmp_tb;
+}
+#endif
+
+/* GetTopmostException (used by SaveResetException) */
+#if CYTHON_USE_EXC_INFO_STACK && CYTHON_FAST_THREAD_STATE
+static _PyErr_StackItem *
+__Pyx_PyErr_GetTopmostException(PyThreadState *tstate)
+{
+    _PyErr_StackItem *exc_info = tstate->exc_info;
+    while ((exc_info->exc_value == NULL || exc_info->exc_value == Py_None) &&
+           exc_info->previous_item != NULL)
+    {
+        exc_info = exc_info->previous_item;
+    }
+    return exc_info;
+}
+#endif
+
+/* SaveResetException */
+#if CYTHON_FAST_THREAD_STATE
+static CYTHON_INLINE void __Pyx__ExceptionSave(PyThreadState *tstate, PyObject **type, PyObject **value, PyObject **tb) {
+  #if CYTHON_USE_EXC_INFO_STACK && PY_VERSION_HEX >= 0x030B00a4
+    _PyErr_StackItem *exc_info = __Pyx_PyErr_GetTopmostException(tstate);
+    PyObject *exc_value = exc_info->exc_value;
+    if (exc_value == NULL || exc_value == Py_None) {
+        *value = NULL;
+        *type = NULL;
+        *tb = NULL;
+    } else {
+        *value = exc_value;
+        Py_INCREF(*value);
+        *type = (PyObject*) Py_TYPE(exc_value);
+        Py_INCREF(*type);
+        *tb = PyException_GetTraceback(exc_value);
+    }
+  #elif CYTHON_USE_EXC_INFO_STACK
+    _PyErr_StackItem *exc_info = __Pyx_PyErr_GetTopmostException(tstate);
+    *type = exc_info->exc_type;
+    *value = exc_info->exc_value;
+    *tb = exc_info->exc_traceback;
+    Py_XINCREF(*type);
+    Py_XINCREF(*value);
+    Py_XINCREF(*tb);
+  #else
+    *type = tstate->exc_type;
+    *value = tstate->exc_value;
+    *tb = tstate->exc_traceback;
+    Py_XINCREF(*type);
+    Py_XINCREF(*value);
+    Py_XINCREF(*tb);
+  #endif
+}
+static CYTHON_INLINE void __Pyx__ExceptionReset(PyThreadState *tstate, PyObject *type, PyObject *value, PyObject *tb) {
+  #if CYTHON_USE_EXC_INFO_STACK && PY_VERSION_HEX >= 0x030B00a4
+    _PyErr_StackItem *exc_info = tstate->exc_info;
+    PyObject *tmp_value = exc_info->exc_value;
+    exc_info->exc_value = value;
+    Py_XDECREF(tmp_value);
+    Py_XDECREF(type);
+    Py_XDECREF(tb);
+  #else
+    PyObject *tmp_type, *tmp_value, *tmp_tb;
+    #if CYTHON_USE_EXC_INFO_STACK
+    _PyErr_StackItem *exc_info = tstate->exc_info;
+    tmp_type = exc_info->exc_type;
+    tmp_value = exc_info->exc_value;
+    tmp_tb = exc_info->exc_traceback;
+    exc_info->exc_type = type;
+    exc_info->exc_value = value;
+    exc_info->exc_traceback = tb;
+    #else
+    tmp_type = tstate->exc_type;
+    tmp_value = tstate->exc_value;
+    tmp_tb = tstate->exc_traceback;
+    tstate->exc_type = type;
+    tstate->exc_value = value;
+    tstate->exc_traceback = tb;
+    #endif
+    Py_XDECREF(tmp_type);
+    Py_XDECREF(tmp_value);
+    Py_XDECREF(tmp_tb);
+  #endif
+}
+#endif
+
+/* RejectKeywords */
+static void __Pyx_RejectKeywords(const char* function_name, PyObject *kwds) {
+    PyObject *key = NULL;
+    if (CYTHON_METH_FASTCALL && likely(PyTuple_Check(kwds))) {
+        key = __Pyx_PySequence_ITEM(kwds, 0);
+    } else {
+#if CYTHON_AVOID_BORROWED_REFS
+        PyObject *pos = NULL;
+#else
+        Py_ssize_t pos = 0;
+#endif
+#if !CYTHON_COMPILING_IN_PYPY || defined(PyArg_ValidateKeywordArguments)
+        if (unlikely(!PyArg_ValidateKeywordArguments(kwds))) return;
+#endif
+        __Pyx_PyDict_NextRef(kwds, &pos, &key, NULL);
+#if CYTHON_AVOID_BORROWED_REFS
+        Py_XDECREF(pos);
+#endif
+    }
+    if (likely(key)) {
+        PyErr_Format(PyExc_TypeError,
+            "%s() got an unexpected keyword argument '%U'",
+            function_name, key);
+        Py_DECREF(key);
+    }
+}
+
+/* CIntToPyUnicode */
+static CYTHON_INLINE PyObject* __Pyx_uchar___Pyx_PyUnicode_From_size_t(size_t value, Py_ssize_t width, char padding_char) {
+#ifdef __Pyx_HAS_GCC_DIAGNOSTIC
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wconversion"
+#endif
+    const size_t neg_one = (size_t) -1, const_zero = (size_t) 0;
+#ifdef __Pyx_HAS_GCC_DIAGNOSTIC
+#pragma GCC diagnostic pop
+#endif
+    const int is_unsigned = neg_one > const_zero;
+    if (unlikely(!(is_unsigned || value == 0 || value > 0) ||
+                    !(sizeof(value) <= 2 || value & ~ (size_t) 0x01fffff || __Pyx_CheckUnicodeValue((int) value)))) {
+        PyErr_SetString(PyExc_OverflowError, "%c arg not in range(0x110000)");
+        return NULL;
+    }
+    if (width <= 1) {
+        return PyUnicode_FromOrdinal((int) value);
+    }
+    return __Pyx_PyUnicode_FromOrdinal_Padded((int) value, width, padding_char);
+}
+static CYTHON_INLINE PyObject* __Pyx____Pyx_PyUnicode_From_size_t(size_t value, Py_ssize_t width, char padding_char, char format_char) {
+    char digits[sizeof(size_t)*3+2];
+    char *dpos, *end = digits + sizeof(size_t)*3+2;
+    const char *hex_digits = DIGITS_HEX;
+    Py_ssize_t length, ulength;
+    int prepend_sign, last_one_off;
+    size_t remaining;
+#ifdef __Pyx_HAS_GCC_DIAGNOSTIC
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wconversion"
+#endif
+    const size_t neg_one = (size_t) -1, const_zero = (size_t) 0;
+#ifdef __Pyx_HAS_GCC_DIAGNOSTIC
+#pragma GCC diagnostic pop
+#endif
+    const int is_unsigned = neg_one > const_zero;
+    if (format_char == 'X') {
+        hex_digits += 16;
+        format_char = 'x';
+    }
+    remaining = value;
+    last_one_off = 0;
+    dpos = end;
+    do {
+        int digit_pos;
+        switch (format_char) {
+        case 'o':
+            digit_pos = abs((int)(remaining % (8*8)));
+            remaining = (size_t) (remaining / (8*8));
+            dpos -= 2;
+            memcpy(dpos, DIGIT_PAIRS_8 + digit_pos * 2, 2);
+            last_one_off = (digit_pos < 8);
+            break;
+        case 'd':
+            digit_pos = abs((int)(remaining % (10*10)));
+            remaining = (size_t) (remaining / (10*10));
+            dpos -= 2;
+            memcpy(dpos, DIGIT_PAIRS_10 + digit_pos * 2, 2);
+            last_one_off = (digit_pos < 10);
+            break;
+        case 'x':
+            *(--dpos) = hex_digits[abs((int)(remaining % 16))];
+            remaining = (size_t) (remaining / 16);
+            break;
+        default:
+            assert(0);
+            break;
+        }
+    } while (unlikely(remaining != 0));
+    assert(!last_one_off || *dpos == '0');
+    dpos += last_one_off;
+    length = end - dpos;
+    ulength = length;
+    prepend_sign = 0;
+    if (!is_unsigned && value <= neg_one) {
+        if (padding_char == ' ' || width <= length + 1) {
+            *(--dpos) = '-';
+            ++length;
+        } else {
+            prepend_sign = 1;
+        }
+        ++ulength;
+    }
+    if (width > ulength) {
+        ulength = width;
+    }
+    if (ulength == 1) {
+        return PyUnicode_FromOrdinal(*dpos);
+    }
+    return __Pyx_PyUnicode_BuildFromAscii(ulength, dpos, (int) length, prepend_sign, padding_char);
+}
+
+/* pyobject_as_double */
+static double __Pyx__PyObject_AsDouble(PyObject* obj) {
+    if (PyUnicode_CheckExact(obj)) {
+        return __Pyx_PyUnicode_AsDouble(obj);
+    } else if (PyBytes_CheckExact(obj)) {
+        return __Pyx_PyBytes_AsDouble(obj);
+    } else if (PyByteArray_CheckExact(obj)) {
+        return __Pyx_PyByteArray_AsDouble(obj);
+    } else {
+        PyObject* float_value;
+#if !CYTHON_USE_TYPE_SLOTS
+        float_value = PyNumber_Float(obj);  if ((0)) goto bad;
+        (void)__Pyx_PyObject_CallOneArg;
+#else
+        PyNumberMethods *nb = Py_TYPE(obj)->tp_as_number;
+        if (likely(nb) && likely(nb->nb_float)) {
+            float_value = nb->nb_float(obj);
+            if (likely(float_value) && unlikely(!PyFloat_Check(float_value))) {
+                __Pyx_TypeName float_value_type_name = __Pyx_PyType_GetFullyQualifiedName(Py_TYPE(float_value));
+                PyErr_Format(PyExc_TypeError,
+                    "__float__ returned non-float (type " __Pyx_FMT_TYPENAME ")",
+                    float_value_type_name);
+                __Pyx_DECREF_TypeName(float_value_type_name);
+                Py_DECREF(float_value);
+                goto bad;
+            }
+        } else {
+            float_value = __Pyx_PyObject_CallOneArg((PyObject*)&PyFloat_Type, obj);
+        }
+#endif
+        if (likely(float_value)) {
+            double value = __Pyx_PyFloat_AS_DOUBLE(float_value);
+            Py_DECREF(float_value);
+            return value;
+        }
+    }
+bad:
+    return (double)-1;
+}
+
+/* ExtTypeTest */
+static CYTHON_INLINE int __Pyx_TypeTest(PyObject *obj, PyTypeObject *type) {
+    __Pyx_TypeName obj_type_name;
+    __Pyx_TypeName type_name;
+    if (unlikely(!type)) {
+        PyErr_SetString(PyExc_SystemError, "Missing type object");
+        return 0;
+    }
+    if (likely(__Pyx_TypeCheck(obj, type)))
+        return 1;
+    obj_type_name = __Pyx_PyType_GetFullyQualifiedName(Py_TYPE(obj));
+    type_name = __Pyx_PyType_GetFullyQualifiedName(type);
+    PyErr_Format(PyExc_TypeError,
+                 "Cannot convert " __Pyx_FMT_TYPENAME " to " __Pyx_FMT_TYPENAME,
+                 obj_type_name, type_name);
+    __Pyx_DECREF_TypeName(obj_type_name);
+    __Pyx_DECREF_TypeName(type_name);
+    return 0;
+}
+
+/* PyDictVersioning (used by GetModuleGlobalName) */
+#if CYTHON_USE_DICT_VERSIONS && CYTHON_USE_TYPE_SLOTS
+static CYTHON_INLINE PY_UINT64_T __Pyx_get_tp_dict_version(PyObject *obj) {
+    PyObject *dict = Py_TYPE(obj)->tp_dict;
+    return likely(dict) ? __PYX_GET_DICT_VERSION(dict) : 0;
+}
+static CYTHON_INLINE PY_UINT64_T __Pyx_get_object_dict_version(PyObject *obj) {
+    PyObject **dictptr = NULL;
+    Py_ssize_t offset = Py_TYPE(obj)->tp_dictoffset;
+    if (offset) {
+#if CYTHON_COMPILING_IN_CPYTHON
+        dictptr = (likely(offset > 0)) ? (PyObject **) ((char *)obj + offset) : _PyObject_GetDictPtr(obj);
+#else
+        dictptr = _PyObject_GetDictPtr(obj);
+#endif
+    }
+    return (dictptr && *dictptr) ? __PYX_GET_DICT_VERSION(*dictptr) : 0;
+}
+static CYTHON_INLINE int __Pyx_object_dict_version_matches(PyObject* obj, PY_UINT64_T tp_dict_version, PY_UINT64_T obj_dict_version) {
+    PyObject *dict = Py_TYPE(obj)->tp_dict;
+    if (unlikely(!dict) || unlikely(tp_dict_version != __PYX_GET_DICT_VERSION(dict)))
+        return 0;
+    return obj_dict_version == __Pyx_get_object_dict_version(obj);
+}
+#endif
+
+/* GetModuleGlobalName */
+#if CYTHON_USE_DICT_VERSIONS
+static PyObject *__Pyx__GetModuleGlobalName(PyObject *name, PY_UINT64_T *dict_version, PyObject **dict_cached_value)
+#else
+static CYTHON_INLINE PyObject *__Pyx__GetModuleGlobalName(PyObject *name)
+#endif
+{
+    PyObject *result;
+#if CYTHON_COMPILING_IN_LIMITED_API
+    if (unlikely(!__pyx_m)) {
+        if (!PyErr_Occurred())
+            PyErr_SetNone(PyExc_NameError);
+        return NULL;
+    }
+    result = PyObject_GetAttr(__pyx_m, name);
+    if (likely(result)) {
+        return result;
+    }
+    PyErr_Clear();
+#elif CYTHON_AVOID_BORROWED_REFS || CYTHON_AVOID_THREAD_UNSAFE_BORROWED_REFS
+    if (unlikely(__Pyx_PyDict_GetItemRef(__pyx_mstate_global->__pyx_d, name, &result) == -1)) PyErr_Clear();
+    __PYX_UPDATE_DICT_CACHE(__pyx_mstate_global->__pyx_d, result, *dict_cached_value, *dict_version)
+    if (likely(result)) {
+        return result;
+    }
+#else
+    result = _PyDict_GetItem_KnownHash(__pyx_mstate_global->__pyx_d, name, ((PyASCIIObject *) name)->hash);
+    __PYX_UPDATE_DICT_CACHE(__pyx_mstate_global->__pyx_d, result, *dict_cached_value, *dict_version)
+    if (likely(result)) {
+        return __Pyx_NewRef(result);
+    }
+    PyErr_Clear();
+#endif
+    return __Pyx_GetBuiltinName(name);
+}
+
+/* RaiseTooManyValuesToUnpack */
+static CYTHON_INLINE void __Pyx_RaiseTooManyValuesError(Py_ssize_t expected) {
+    PyErr_Format(PyExc_ValueError,
+                 "too many values to unpack (expected %" CYTHON_FORMAT_SSIZE_T "d)", expected);
+}
+
+/* RaiseNeedMoreValuesToUnpack */
+static CYTHON_INLINE void __Pyx_RaiseNeedMoreValuesError(Py_ssize_t index) {
+    PyErr_Format(PyExc_ValueError,
+                 "need more than %" CYTHON_FORMAT_SSIZE_T "d value%.1s to unpack",
+                 index, (index == 1) ? "" : "s");
+}
+
+/* IterFinish */
+static CYTHON_INLINE int __Pyx_IterFinish(void) {
+    PyObject* exc_type;
+    __Pyx_PyThreadState_declare
+    __Pyx_PyThreadState_assign
+    exc_type = __Pyx_PyErr_CurrentExceptionType();
+    if (unlikely(exc_type)) {
+        if (unlikely(!__Pyx_PyErr_GivenExceptionMatches(exc_type, PyExc_StopIteration)))
+            return -1;
+        __Pyx_PyErr_Clear();
+        return 0;
+    }
+    return 0;
+}
+
+/* UnpackItemEndCheck */
+static int __Pyx_IternextUnpackEndCheck(PyObject *retval, Py_ssize_t expected) {
+    if (unlikely(retval)) {
+        Py_DECREF(retval);
+        __Pyx_RaiseTooManyValuesError(expected);
+        return -1;
+    }
+    return __Pyx_IterFinish();
+}
+
+/* RaiseUnexpectedTypeError */
+static int
+__Pyx_RaiseUnexpectedTypeError(const char *expected, PyObject *obj)
+{
+    __Pyx_TypeName obj_type_name = __Pyx_PyType_GetFullyQualifiedName(Py_TYPE(obj));
+    PyErr_Format(PyExc_TypeError, "Expected %s, got " __Pyx_FMT_TYPENAME,
+                 expected, obj_type_name);
+    __Pyx_DECREF_TypeName(obj_type_name);
+    return 0;
+}
+
+/* ArgTypeTestFunc (used by ArgTypeTest) */
+static int __Pyx__ArgTypeTest(PyObject *obj, PyTypeObject *type, const char *name, int exact)
+{
+    __Pyx_TypeName type_name;
+    __Pyx_TypeName obj_type_name;
+    PyObject *extra_info = __pyx_mstate_global->__pyx_empty_unicode;
+    int from_annotation_subclass = 0;
+    if (unlikely(!type)) {
+        PyErr_SetString(PyExc_SystemError, "Missing type object");
+        return 0;
+    }
+    else if (!exact) {
+        if (likely(__Pyx_TypeCheck(obj, type))) return 1;
+    } else if (exact == 2) {
+        if (__Pyx_TypeCheck(obj, type)) {
+            from_annotation_subclass = 1;
+            extra_info = __pyx_mstate_global->__pyx_kp_u_Note_that_Cython_is_deliberately;
+        }
+    }
+    type_name = __Pyx_PyType_GetFullyQualifiedName(type);
+    obj_type_name = __Pyx_PyType_GetFullyQualifiedName(Py_TYPE(obj));
+    PyErr_Format(PyExc_TypeError,
+        "Argument '%.200s' has incorrect type (expected " __Pyx_FMT_TYPENAME
+        ", got " __Pyx_FMT_TYPENAME ")"
+#if __PYX_LIMITED_VERSION_HEX < 0x030C0000
+        "%s%U"
+#endif
+        , name, type_name, obj_type_name
+#if __PYX_LIMITED_VERSION_HEX < 0x030C0000
+        , (from_annotation_subclass ? ". " : ""), extra_info
+#endif
+        );
+#if __PYX_LIMITED_VERSION_HEX >= 0x030C0000
+    if (exact == 2 && from_annotation_subclass) {
+        PyObject *res;
+        PyObject *vargs[2];
+        vargs[0] = PyErr_GetRaisedException();
+        vargs[1] = extra_info;
+        res = PyObject_VectorcallMethod(__pyx_mstate_global->__pyx_kp_u_add_note, vargs, 2, NULL);
+        Py_XDECREF(res);
+        PyErr_SetRaisedException(vargs[0]);
+    }
+#endif
+    __Pyx_DECREF_TypeName(type_name);
+    __Pyx_DECREF_TypeName(obj_type_name);
+    return 0;
+}
+
+/* CIntToPyUnicode */
+static CYTHON_INLINE PyObject* __Pyx_uchar___Pyx_PyUnicode_From_int64_t(int64_t value, Py_ssize_t width, char padding_char) {
+#ifdef __Pyx_HAS_GCC_DIAGNOSTIC
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wconversion"
+#endif
+    const int64_t neg_one = (int64_t) -1, const_zero = (int64_t) 0;
+#ifdef __Pyx_HAS_GCC_DIAGNOSTIC
+#pragma GCC diagnostic pop
+#endif
+    const int is_unsigned = neg_one > const_zero;
+    if (unlikely(!(is_unsigned || value == 0 || value > 0) ||
+                    !(sizeof(value) <= 2 || value & ~ (int64_t) 0x01fffff || __Pyx_CheckUnicodeValue((int) value)))) {
+        PyErr_SetString(PyExc_OverflowError, "%c arg not in range(0x110000)");
+        return NULL;
+    }
+    if (width <= 1) {
+        return PyUnicode_FromOrdinal((int) value);
+    }
+    return __Pyx_PyUnicode_FromOrdinal_Padded((int) value, width, padding_char);
+}
+static CYTHON_INLINE PyObject* __Pyx____Pyx_PyUnicode_From_int64_t(int64_t value, Py_ssize_t width, char padding_char, char format_char) {
+    char digits[sizeof(int64_t)*3+2];
+    char *dpos, *end = digits + sizeof(int64_t)*3+2;
+    const char *hex_digits = DIGITS_HEX;
+    Py_ssize_t length, ulength;
+    int prepend_sign, last_one_off;
+    int64_t remaining;
+#ifdef __Pyx_HAS_GCC_DIAGNOSTIC
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wconversion"
+#endif
+    const int64_t neg_one = (int64_t) -1, const_zero = (int64_t) 0;
+#ifdef __Pyx_HAS_GCC_DIAGNOSTIC
+#pragma GCC diagnostic pop
+#endif
+    const int is_unsigned = neg_one > const_zero;
+    if (format_char == 'X') {
+        hex_digits += 16;
+        format_char = 'x';
+    }
+    remaining = value;
+    last_one_off = 0;
+    dpos = end;
+    do {
+        int digit_pos;
+        switch (format_char) {
+        case 'o':
+            digit_pos = abs((int)(remaining % (8*8)));
+            remaining = (int64_t) (remaining / (8*8));
+            dpos -= 2;
+            memcpy(dpos, DIGIT_PAIRS_8 + digit_pos * 2, 2);
+            last_one_off = (digit_pos < 8);
+            break;
+        case 'd':
+            digit_pos = abs((int)(remaining % (10*10)));
+            remaining = (int64_t) (remaining / (10*10));
+            dpos -= 2;
+            memcpy(dpos, DIGIT_PAIRS_10 + digit_pos * 2, 2);
+            last_one_off = (digit_pos < 10);
+            break;
+        case 'x':
+            *(--dpos) = hex_digits[abs((int)(remaining % 16))];
+            remaining = (int64_t) (remaining / 16);
+            break;
+        default:
+            assert(0);
+            break;
+        }
+    } while (unlikely(remaining != 0));
+    assert(!last_one_off || *dpos == '0');
+    dpos += last_one_off;
+    length = end - dpos;
+    ulength = length;
+    prepend_sign = 0;
+    if (!is_unsigned && value <= neg_one) {
+        if (padding_char == ' ' || width <= length + 1) {
+            *(--dpos) = '-';
+            ++length;
+        } else {
+            prepend_sign = 1;
+        }
+        ++ulength;
+    }
+    if (width > ulength) {
+        ulength = width;
+    }
+    if (ulength == 1) {
+        return PyUnicode_FromOrdinal(*dpos);
+    }
+    return __Pyx_PyUnicode_BuildFromAscii(ulength, dpos, (int) length, prepend_sign, padding_char);
+}
+
+/* PyObjectFastCallMethod */
+#if !CYTHON_VECTORCALL || PY_VERSION_HEX < 0x03090000
+static PyObject *__Pyx_PyObject_FastCallMethod(PyObject *name, PyObject *const *args, size_t nargsf) {
+    PyObject *result;
+    PyObject *attr = PyObject_GetAttr(args[0], name);
+    if (unlikely(!attr))
+        return NULL;
+    result = __Pyx_PyObject_FastCall(attr, args+1, nargsf - 1);
+    Py_DECREF(attr);
+    return result;
+}
+#endif
+
+/* DivInt[Py_ssize_t] */
+static CYTHON_INLINE Py_ssize_t __Pyx_div_Py_ssize_t(Py_ssize_t a, Py_ssize_t b, int b_is_constant) {
+    Py_ssize_t q = a / b;
+    Py_ssize_t r = a - q*b;
+    Py_ssize_t adapt_python = (b_is_constant ?
+        ((r != 0) & ((r < 0) ^ (b < 0))) :
+        ((r != 0) & ((r ^ b) < 0))
+    );
+    return q - adapt_python;
+}
+
+/* AllocateExtensionType */
+static PyObject *__Pyx_AllocateExtensionType(PyTypeObject *t, int is_final) {
+    if (is_final || likely(!__Pyx_PyType_HasFeature(t, Py_TPFLAGS_IS_ABSTRACT))) {
+        allocfunc alloc_func = __Pyx_PyType_GetSlot(t, tp_alloc, allocfunc);
+        return alloc_func(t, 0);
+    } else {
+        newfunc tp_new = __Pyx_PyType_TryGetSlot(&PyBaseObject_Type, tp_new, newfunc);
+    #if CYTHON_COMPILING_IN_LIMITED_API && __PYX_LIMITED_VERSION_HEX < 0x030A0000
+        if (!tp_new) {
+            PyObject *new_str = PyUnicode_FromString("__new__");
+            if (likely(new_str)) {
+                PyObject *o = PyObject_CallMethodObjArgs((PyObject *)&PyBaseObject_Type, new_str, t, NULL);
+                Py_DECREF(new_str);
+                return o;
+            } else
+                return NULL;
+        } else
+    #endif
+        return tp_new(t, __pyx_mstate_global->__pyx_empty_tuple, 0);
+    }
+}
+
+/* PyObjectCallNoArg (used by PyObjectCallMethod0) */
+static CYTHON_INLINE PyObject* __Pyx_PyObject_CallNoArg(PyObject *func) {
+    PyObject *arg[2] = {NULL, NULL};
+    return __Pyx_PyObject_FastCall(func, arg + 1, 0 | __Pyx_PY_VECTORCALL_ARGUMENTS_OFFSET);
+}
+
+/* PyObjectGetMethod (used by PyObjectCallMethod0) */
+#if !(CYTHON_VECTORCALL && (__PYX_LIMITED_VERSION_HEX >= 0x030C0000 || (!CYTHON_COMPILING_IN_LIMITED_API && PY_VERSION_HEX >= 0x03090000)))
+static int __Pyx_PyObject_GetMethod(PyObject *obj, PyObject *name, PyObject **method) {
+    PyObject *attr;
+#if CYTHON_UNPACK_METHODS && CYTHON_COMPILING_IN_CPYTHON && CYTHON_USE_PYTYPE_LOOKUP
+    __Pyx_TypeName type_name;
+    PyTypeObject *tp = Py_TYPE(obj);
+    PyObject *descr;
+    descrgetfunc f = NULL;
+    PyObject **dictptr, *dict;
+    int meth_found = 0;
+    assert (*method == NULL);
+    if (unlikely(tp->tp_getattro != PyObject_GenericGetAttr)) {
+        attr = __Pyx_PyObject_GetAttrStr(obj, name);
+        goto try_unpack;
+    }
+    if (unlikely(tp->tp_dict == NULL) && unlikely(PyType_Ready(tp) < 0)) {
+        return 0;
+    }
+    descr = _PyType_Lookup(tp, name);
+    if (likely(descr != NULL)) {
+        Py_INCREF(descr);
+#if defined(Py_TPFLAGS_METHOD_DESCRIPTOR) && Py_TPFLAGS_METHOD_DESCRIPTOR
+        if (__Pyx_PyType_HasFeature(Py_TYPE(descr), Py_TPFLAGS_METHOD_DESCRIPTOR))
+#else
+        #ifdef __Pyx_CyFunction_USED
+        if (likely(PyFunction_Check(descr) || __Pyx_IS_TYPE(descr, &PyMethodDescr_Type) || __Pyx_CyFunction_Check(descr)))
+        #else
+        if (likely(PyFunction_Check(descr) || __Pyx_IS_TYPE(descr, &PyMethodDescr_Type)))
+        #endif
+#endif
+        {
+            meth_found = 1;
+        } else {
+            f = Py_TYPE(descr)->tp_descr_get;
+            if (f != NULL && PyDescr_IsData(descr)) {
+                attr = f(descr, obj, (PyObject *)Py_TYPE(obj));
+                Py_DECREF(descr);
+                goto try_unpack;
+            }
+        }
+    }
+    dictptr = _PyObject_GetDictPtr(obj);
+    if (dictptr != NULL && (dict = *dictptr) != NULL) {
+        Py_INCREF(dict);
+        attr = __Pyx_PyDict_GetItemStr(dict, name);
+        if (attr != NULL) {
+            Py_INCREF(attr);
+            Py_DECREF(dict);
+            Py_XDECREF(descr);
+            goto try_unpack;
+        }
+        Py_DECREF(dict);
+    }
+    if (meth_found) {
+        *method = descr;
+        return 1;
+    }
+    if (f != NULL) {
+        attr = f(descr, obj, (PyObject *)Py_TYPE(obj));
+        Py_DECREF(descr);
+        goto try_unpack;
+    }
+    if (likely(descr != NULL)) {
+        *method = descr;
+        return 0;
+    }
+    type_name = __Pyx_PyType_GetFullyQualifiedName(tp);
+    PyErr_Format(PyExc_AttributeError,
+                 "'" __Pyx_FMT_TYPENAME "' object has no attribute '%U'",
+                 type_name, name);
+    __Pyx_DECREF_TypeName(type_name);
+    return 0;
+#else
+    attr = __Pyx_PyObject_GetAttrStr(obj, name);
+    goto try_unpack;
+#endif
+try_unpack:
+#if CYTHON_UNPACK_METHODS
+    if (likely(attr) && PyMethod_Check(attr) && likely(PyMethod_GET_SELF(attr) == obj)) {
+        PyObject *function = PyMethod_GET_FUNCTION(attr);
+        Py_INCREF(function);
+        Py_DECREF(attr);
+        *method = function;
+        return 1;
+    }
+#endif
+    *method = attr;
+    return 0;
+}
+#endif
+
+/* PyObjectCallMethod0 (used by PyType_Ready) */
+static PyObject* __Pyx_PyObject_CallMethod0(PyObject* obj, PyObject* method_name) {
+#if CYTHON_VECTORCALL && (__PYX_LIMITED_VERSION_HEX >= 0x030C0000 || (!CYTHON_COMPILING_IN_LIMITED_API && PY_VERSION_HEX >= 0x03090000))
+    PyObject *args[1] = {obj};
+    (void) __Pyx_PyObject_CallOneArg;
+    (void) __Pyx_PyObject_CallNoArg;
+    return PyObject_VectorcallMethod(method_name, args, 1 | PY_VECTORCALL_ARGUMENTS_OFFSET, NULL);
+#else
+    PyObject *method = NULL, *result = NULL;
+    int is_method = __Pyx_PyObject_GetMethod(obj, method_name, &method);
+    if (likely(is_method)) {
+        result = __Pyx_PyObject_CallOneArg(method, obj);
+        Py_DECREF(method);
+        return result;
+    }
+    if (unlikely(!method)) goto bad;
+    result = __Pyx_PyObject_CallNoArg(method);
+    Py_DECREF(method);
+bad:
+    return result;
+#endif
+}
+
+/* ValidateBasesTuple (used by PyType_Ready) */
+#if CYTHON_COMPILING_IN_CPYTHON || CYTHON_COMPILING_IN_LIMITED_API || CYTHON_USE_TYPE_SPECS
+static int __Pyx_validate_bases_tuple(const char *type_name, Py_ssize_t dictoffset, PyObject *bases) {
+    Py_ssize_t i, n;
+#if CYTHON_ASSUME_SAFE_SIZE
+    n = PyTuple_GET_SIZE(bases);
+#else
+    n = PyTuple_Size(bases);
+    if (unlikely(n < 0)) return -1;
+#endif
+    for (i = 1; i < n; i++)
+    {
+        PyTypeObject *b;
+#if CYTHON_AVOID_BORROWED_REFS
+        PyObject *b0 = PySequence_GetItem(bases, i);
+        if (!b0) return -1;
+#elif CYTHON_ASSUME_SAFE_MACROS
+        PyObject *b0 = PyTuple_GET_ITEM(bases, i);
+#else
+        PyObject *b0 = PyTuple_GetItem(bases, i);
+        if (!b0) return -1;
+#endif
+        b = (PyTypeObject*) b0;
+        if (!__Pyx_PyType_HasFeature(b, Py_TPFLAGS_HEAPTYPE))
+        {
+            __Pyx_TypeName b_name = __Pyx_PyType_GetFullyQualifiedName(b);
+            PyErr_Format(PyExc_TypeError,
+                "base class '" __Pyx_FMT_TYPENAME "' is not a heap type", b_name);
+            __Pyx_DECREF_TypeName(b_name);
+#if CYTHON_AVOID_BORROWED_REFS
+            Py_DECREF(b0);
+#endif
+            return -1;
+        }
+        if (dictoffset == 0)
+        {
+            Py_ssize_t b_dictoffset = 0;
+#if CYTHON_USE_TYPE_SLOTS
+            b_dictoffset = b->tp_dictoffset;
+#else
+            PyObject *py_b_dictoffset = PyObject_GetAttrString((PyObject*)b, "__dictoffset__");
+            if (!py_b_dictoffset) goto dictoffset_return;
+            b_dictoffset = PyLong_AsSsize_t(py_b_dictoffset);
+            Py_DECREF(py_b_dictoffset);
+            if (b_dictoffset == -1 && PyErr_Occurred()) goto dictoffset_return;
+#endif
+            if (b_dictoffset) {
+                {
+                    __Pyx_TypeName b_name = __Pyx_PyType_GetFullyQualifiedName(b);
+                    PyErr_Format(PyExc_TypeError,
+                        "extension type '%.200s' has no __dict__ slot, "
+                        "but base type '" __Pyx_FMT_TYPENAME "' has: "
+                        "either add 'cdef dict __dict__' to the extension type "
+                        "or add '__slots__ = [...]' to the base type",
+                        type_name, b_name);
+                    __Pyx_DECREF_TypeName(b_name);
+                }
+#if !CYTHON_USE_TYPE_SLOTS
+              dictoffset_return:
+#endif
+#if CYTHON_AVOID_BORROWED_REFS
+                Py_DECREF(b0);
+#endif
+                return -1;
+            }
+        }
+#if CYTHON_AVOID_BORROWED_REFS
+        Py_DECREF(b0);
+#endif
+    }
+    return 0;
+}
+#endif
+
+/* PyType_Ready */
+CYTHON_UNUSED static int __Pyx_PyType_HasMultipleInheritance(PyTypeObject *t) {
+    while (t) {
+        PyObject *bases = __Pyx_PyType_GetSlot(t, tp_bases, PyObject*);
+        if (bases) {
+            return 1;
+        }
+        t = __Pyx_PyType_GetSlot(t, tp_base, PyTypeObject*);
+    }
+    return 0;
+}
+static int __Pyx_PyType_Ready(PyTypeObject *t) {
+#if CYTHON_USE_TYPE_SPECS || !CYTHON_COMPILING_IN_CPYTHON || defined(PYSTON_MAJOR_VERSION)
+    (void)__Pyx_PyObject_CallMethod0;
+#if CYTHON_USE_TYPE_SPECS
+    (void)__Pyx_validate_bases_tuple;
+#endif
+    return PyType_Ready(t);
+#else
+    int r;
+    if (!__Pyx_PyType_HasMultipleInheritance(t)) {
+        return PyType_Ready(t);
+    }
+    PyObject *bases = __Pyx_PyType_GetSlot(t, tp_bases, PyObject*);
+    if (bases && unlikely(__Pyx_validate_bases_tuple(t->tp_name, t->tp_dictoffset, bases) == -1))
+        return -1;
+#if !defined(PYSTON_MAJOR_VERSION)
+    {
+        int gc_was_enabled;
+    #if PY_VERSION_HEX >= 0x030A00b1
+        gc_was_enabled = PyGC_Disable();
+        (void)__Pyx_PyObject_CallMethod0;
+    #else
+        PyObject *ret, *py_status;
+        PyObject *gc = NULL;
+        #if (!CYTHON_COMPILING_IN_PYPY || PYPY_VERSION_NUM+0 >= 0x07030400) &&\
+                !CYTHON_COMPILING_IN_GRAAL
+        gc = PyImport_GetModule(__pyx_mstate_global->__pyx_kp_u_gc);
+        #endif
+        if (unlikely(!gc)) gc = PyImport_Import(__pyx_mstate_global->__pyx_kp_u_gc);
+        if (unlikely(!gc)) return -1;
+        py_status = __Pyx_PyObject_CallMethod0(gc, __pyx_mstate_global->__pyx_kp_u_isenabled);
+        if (unlikely(!py_status)) {
+            Py_DECREF(gc);
+            return -1;
+        }
+        gc_was_enabled = __Pyx_PyObject_IsTrue(py_status);
+        Py_DECREF(py_status);
+        if (gc_was_enabled > 0) {
+            ret = __Pyx_PyObject_CallMethod0(gc, __pyx_mstate_global->__pyx_kp_u_disable);
+            if (unlikely(!ret)) {
+                Py_DECREF(gc);
+                return -1;
+            }
+            Py_DECREF(ret);
+        } else if (unlikely(gc_was_enabled == -1)) {
+            Py_DECREF(gc);
+            return -1;
+        }
+    #endif
+        t->tp_flags |= Py_TPFLAGS_HEAPTYPE;
+#if PY_VERSION_HEX >= 0x030A0000
+        t->tp_flags |= Py_TPFLAGS_IMMUTABLETYPE;
+#endif
+#else
+        (void)__Pyx_PyObject_CallMethod0;
+#endif
+    r = PyType_Ready(t);
+#if !defined(PYSTON_MAJOR_VERSION)
+        t->tp_flags &= ~Py_TPFLAGS_HEAPTYPE;
+    #if PY_VERSION_HEX >= 0x030A00b1
+        if (gc_was_enabled)
+            PyGC_Enable();
+    #else
+        if (gc_was_enabled) {
+            PyObject *tp, *v, *tb;
+            PyErr_Fetch(&tp, &v, &tb);
+            ret = __Pyx_PyObject_CallMethod0(gc, __pyx_mstate_global->__pyx_kp_u_enable);
+            if (likely(ret || r == -1)) {
+                Py_XDECREF(ret);
+                PyErr_Restore(tp, v, tb);
+            } else {
+                Py_XDECREF(tp);
+                Py_XDECREF(v);
+                Py_XDECREF(tb);
+                r = -1;
+            }
+        }
+        Py_DECREF(gc);
+    #endif
+    }
+#endif
+    return r;
+#endif
+}
+
+/* SetVTable */
+static int __Pyx_SetVtable(PyTypeObject *type, void *vtable) {
+    PyObject *ob = PyCapsule_New(vtable, 0, 0);
+    if (unlikely(!ob))
+        goto bad;
+#if CYTHON_COMPILING_IN_LIMITED_API
+    if (unlikely(PyObject_SetAttr((PyObject *) type, __pyx_mstate_global->__pyx_n_u_pyx_vtable, ob) < 0))
+#else
+    if (unlikely(PyDict_SetItem(type->tp_dict, __pyx_mstate_global->__pyx_n_u_pyx_vtable, ob) < 0))
+#endif
+        goto bad;
+    Py_DECREF(ob);
+    return 0;
+bad:
+    Py_XDECREF(ob);
+    return -1;
+}
+
+/* GetVTable (used by MergeVTables) */
+static void* __Pyx_GetVtable(PyTypeObject *type) {
+    void* ptr;
+#if CYTHON_COMPILING_IN_LIMITED_API
+    PyObject *ob = PyObject_GetAttr((PyObject *)type, __pyx_mstate_global->__pyx_n_u_pyx_vtable);
+#else
+    PyObject *ob = PyObject_GetItem(type->tp_dict, __pyx_mstate_global->__pyx_n_u_pyx_vtable);
+#endif
+    if (!ob)
+        goto bad;
+    ptr = PyCapsule_GetPointer(ob, 0);
+    if (!ptr && !PyErr_Occurred())
+        PyErr_SetString(PyExc_RuntimeError, "invalid vtable found for imported type");
+    Py_DECREF(ob);
+    return ptr;
+bad:
+    Py_XDECREF(ob);
+    return NULL;
+}
+
+/* MergeVTables */
+static int __Pyx_MergeVtables(PyTypeObject *type) {
+    int i=0;
+    Py_ssize_t size;
+    void** base_vtables;
+    __Pyx_TypeName tp_base_name = NULL;
+    __Pyx_TypeName base_name = NULL;
+    void* unknown = (void*)-1;
+    PyObject* bases = __Pyx_PyType_GetSlot(type, tp_bases, PyObject*);
+    int base_depth = 0;
+    {
+        PyTypeObject* base = __Pyx_PyType_GetSlot(type, tp_base, PyTypeObject*);
+        while (base) {
+            base_depth += 1;
+            base = __Pyx_PyType_GetSlot(base, tp_base, PyTypeObject*);
+        }
+    }
+    base_vtables = (void**) PyMem_Malloc(sizeof(void*) * (size_t)(base_depth + 1));
+    base_vtables[0] = unknown;
+#if CYTHON_COMPILING_IN_LIMITED_API
+    size = PyTuple_Size(bases);
+    if (size < 0) goto other_failure;
+#else
+    size = PyTuple_GET_SIZE(bases);
+#endif
+    for (i = 1; i < size; i++) {
+        PyObject *basei;
+        void* base_vtable;
+#if CYTHON_AVOID_BORROWED_REFS
+        basei = PySequence_GetItem(bases, i);
+        if (unlikely(!basei)) goto other_failure;
+#elif !CYTHON_ASSUME_SAFE_MACROS
+        basei = PyTuple_GetItem(bases, i);
+        if (unlikely(!basei)) goto other_failure;
+#else
+        basei = PyTuple_GET_ITEM(bases, i);
+#endif
+        base_vtable = __Pyx_GetVtable((PyTypeObject*)basei);
+#if CYTHON_AVOID_BORROWED_REFS
+        Py_DECREF(basei);
+#endif
+        if (base_vtable != NULL) {
+            int j;
+            PyTypeObject* base = __Pyx_PyType_GetSlot(type, tp_base, PyTypeObject*);
+            for (j = 0; j < base_depth; j++) {
+                if (base_vtables[j] == unknown) {
+                    base_vtables[j] = __Pyx_GetVtable(base);
+                    base_vtables[j + 1] = unknown;
+                }
+                if (base_vtables[j] == base_vtable) {
+                    break;
+                } else if (base_vtables[j] == NULL) {
+                    goto bad;
+                }
+                base = __Pyx_PyType_GetSlot(base, tp_base, PyTypeObject*);
+            }
+        }
+    }
+    PyErr_Clear();
+    PyMem_Free(base_vtables);
+    return 0;
+bad:
+    {
+        PyTypeObject* basei = NULL;
+        PyTypeObject* tp_base = __Pyx_PyType_GetSlot(type, tp_base, PyTypeObject*);
+        tp_base_name = __Pyx_PyType_GetFullyQualifiedName(tp_base);
+#if CYTHON_AVOID_BORROWED_REFS
+        basei = (PyTypeObject*)PySequence_GetItem(bases, i);
+        if (unlikely(!basei)) goto really_bad;
+#elif !CYTHON_ASSUME_SAFE_MACROS
+        basei = (PyTypeObject*)PyTuple_GetItem(bases, i);
+        if (unlikely(!basei)) goto really_bad;
+#else
+        basei = (PyTypeObject*)PyTuple_GET_ITEM(bases, i);
+#endif
+        base_name = __Pyx_PyType_GetFullyQualifiedName(basei);
+#if CYTHON_AVOID_BORROWED_REFS
+        Py_DECREF(basei);
+#endif
+    }
+    PyErr_Format(PyExc_TypeError,
+        "multiple bases have vtable conflict: '" __Pyx_FMT_TYPENAME "' and '" __Pyx_FMT_TYPENAME "'", tp_base_name, base_name);
+#if CYTHON_AVOID_BORROWED_REFS || !CYTHON_ASSUME_SAFE_MACROS
+really_bad: // bad has failed!
+#endif
+    __Pyx_DECREF_TypeName(tp_base_name);
+    __Pyx_DECREF_TypeName(base_name);
+#if CYTHON_COMPILING_IN_LIMITED_API || CYTHON_AVOID_BORROWED_REFS || !CYTHON_ASSUME_SAFE_MACROS
+other_failure:
+#endif
+    PyMem_Free(base_vtables);
+    return -1;
+}
+
+/* DelItemOnTypeDict (used by SetupReduce) */
+static int __Pyx__DelItemOnTypeDict(PyTypeObject *tp, PyObject *k) {
+    int result;
+    PyObject *tp_dict;
+#if CYTHON_COMPILING_IN_LIMITED_API
+    tp_dict = __Pyx_GetTypeDict(tp);
+    if (unlikely(!tp_dict)) return -1;
+#else
+    tp_dict = tp->tp_dict;
+#endif
+    result = PyDict_DelItem(tp_dict, k);
+    if (likely(!result)) PyType_Modified(tp);
+    return result;
+}
+
+/* SetupReduce */
+static int __Pyx_setup_reduce_is_named(PyObject* meth, PyObject* name) {
+  int ret;
+  PyObject *name_attr;
+  name_attr = __Pyx_PyObject_GetAttrStrNoError(meth, __pyx_mstate_global->__pyx_n_u_name);
+  if (likely(name_attr)) {
+      ret = PyObject_RichCompareBool(name_attr, name, Py_EQ);
+  } else {
+      ret = -1;
+  }
+  if (unlikely(ret < 0)) {
+      PyErr_Clear();
+      ret = 0;
+  }
+  Py_XDECREF(name_attr);
+  return ret;
+}
+static int __Pyx_setup_reduce(PyObject* type_obj) {
+    int ret = 0;
+    PyObject *object_reduce = NULL;
+    PyObject *object_getstate = NULL;
+    PyObject *object_reduce_ex = NULL;
+    PyObject *reduce = NULL;
+    PyObject *reduce_ex = NULL;
+    PyObject *reduce_cython = NULL;
+    PyObject *setstate = NULL;
+    PyObject *setstate_cython = NULL;
+    PyObject *getstate = NULL;
+#if CYTHON_USE_PYTYPE_LOOKUP
+    getstate = _PyType_Lookup((PyTypeObject*)type_obj, __pyx_mstate_global->__pyx_n_u_getstate);
+#else
+    getstate = __Pyx_PyObject_GetAttrStrNoError(type_obj, __pyx_mstate_global->__pyx_n_u_getstate);
+    if (!getstate && PyErr_Occurred()) {
+        goto __PYX_BAD;
+    }
+#endif
+    if (getstate) {
+#if CYTHON_USE_PYTYPE_LOOKUP
+        object_getstate = _PyType_Lookup(&PyBaseObject_Type, __pyx_mstate_global->__pyx_n_u_getstate);
+#else
+        object_getstate = __Pyx_PyObject_GetAttrStrNoError((PyObject*)&PyBaseObject_Type, __pyx_mstate_global->__pyx_n_u_getstate);
+        if (!object_getstate && PyErr_Occurred()) {
+            goto __PYX_BAD;
+        }
+#endif
+        if (object_getstate != getstate) {
+            goto __PYX_GOOD;
+        }
+    }
+#if CYTHON_USE_PYTYPE_LOOKUP
+    object_reduce_ex = _PyType_Lookup(&PyBaseObject_Type, __pyx_mstate_global->__pyx_n_u_reduce_ex); if (!object_reduce_ex) goto __PYX_BAD;
+#else
+    object_reduce_ex = __Pyx_PyObject_GetAttrStr((PyObject*)&PyBaseObject_Type, __pyx_mstate_global->__pyx_n_u_reduce_ex); if (!object_reduce_ex) goto __PYX_BAD;
+#endif
+    reduce_ex = __Pyx_PyObject_GetAttrStr(type_obj, __pyx_mstate_global->__pyx_n_u_reduce_ex); if (unlikely(!reduce_ex)) goto __PYX_BAD;
+    if (reduce_ex == object_reduce_ex) {
+#if CYTHON_USE_PYTYPE_LOOKUP
+        object_reduce = _PyType_Lookup(&PyBaseObject_Type, __pyx_mstate_global->__pyx_n_u_reduce); if (!object_reduce) goto __PYX_BAD;
+#else
+        object_reduce = __Pyx_PyObject_GetAttrStr((PyObject*)&PyBaseObject_Type, __pyx_mstate_global->__pyx_n_u_reduce); if (!object_reduce) goto __PYX_BAD;
+#endif
+        reduce = __Pyx_PyObject_GetAttrStr(type_obj, __pyx_mstate_global->__pyx_n_u_reduce); if (unlikely(!reduce)) goto __PYX_BAD;
+        if (reduce == object_reduce || __Pyx_setup_reduce_is_named(reduce, __pyx_mstate_global->__pyx_n_u_reduce_cython)) {
+            reduce_cython = __Pyx_PyObject_GetAttrStrNoError(type_obj, __pyx_mstate_global->__pyx_n_u_reduce_cython);
+            if (likely(reduce_cython)) {
+                ret = __Pyx_SetItemOnTypeDict((PyTypeObject*)type_obj, __pyx_mstate_global->__pyx_n_u_reduce, reduce_cython); if (unlikely(ret < 0)) goto __PYX_BAD;
+                ret = __Pyx_DelItemOnTypeDict((PyTypeObject*)type_obj, __pyx_mstate_global->__pyx_n_u_reduce_cython); if (unlikely(ret < 0)) goto __PYX_BAD;
+            } else if (reduce == object_reduce || PyErr_Occurred()) {
+                goto __PYX_BAD;
+            }
+            setstate = __Pyx_PyObject_GetAttrStrNoError(type_obj, __pyx_mstate_global->__pyx_n_u_setstate);
+            if (!setstate) PyErr_Clear();
+            if (!setstate || __Pyx_setup_reduce_is_named(setstate, __pyx_mstate_global->__pyx_n_u_setstate_cython)) {
+                setstate_cython = __Pyx_PyObject_GetAttrStrNoError(type_obj, __pyx_mstate_global->__pyx_n_u_setstate_cython);
+                if (likely(setstate_cython)) {
+                    ret = __Pyx_SetItemOnTypeDict((PyTypeObject*)type_obj, __pyx_mstate_global->__pyx_n_u_setstate, setstate_cython); if (unlikely(ret < 0)) goto __PYX_BAD;
+                    ret = __Pyx_DelItemOnTypeDict((PyTypeObject*)type_obj, __pyx_mstate_global->__pyx_n_u_setstate_cython); if (unlikely(ret < 0)) goto __PYX_BAD;
+                } else if (!setstate || PyErr_Occurred()) {
+                    goto __PYX_BAD;
+                }
+            }
+            PyType_Modified((PyTypeObject*)type_obj);
+        }
+    }
+    goto __PYX_GOOD;
+__PYX_BAD:
+    if (!PyErr_Occurred()) {
+        __Pyx_TypeName type_obj_name =
+            __Pyx_PyType_GetFullyQualifiedName((PyTypeObject*)type_obj);
+        PyErr_Format(PyExc_RuntimeError,
+            "Unable to initialize pickling for " __Pyx_FMT_TYPENAME, type_obj_name);
+        __Pyx_DECREF_TypeName(type_obj_name);
+    }
+    ret = -1;
+__PYX_GOOD:
+#if !CYTHON_USE_PYTYPE_LOOKUP
+    Py_XDECREF(object_reduce);
+    Py_XDECREF(object_reduce_ex);
+    Py_XDECREF(object_getstate);
+    Py_XDECREF(getstate);
+#endif
+    Py_XDECREF(reduce);
+    Py_XDECREF(reduce_ex);
+    Py_XDECREF(reduce_cython);
+    Py_XDECREF(setstate);
+    Py_XDECREF(setstate_cython);
+    return ret;
+}
+
 /* CLineInTraceback (used by AddTraceback) */
 #if CYTHON_CLINE_IN_TRACEBACK && CYTHON_CLINE_IN_TRACEBACK_RUNTIME
 #if CYTHON_COMPILING_IN_LIMITED_API && __PYX_LIMITED_VERSION_HEX < 0x030A0000
@@ -14218,6 +17996,75 @@ static CYTHON_INLINE PyObject* __Pyx_PyLong_From_int(int value) {
     }
 }
 
+/* CIntToPy */
+static CYTHON_INLINE PyObject* __Pyx_PyLong_From_long(long value) {
+#ifdef __Pyx_HAS_GCC_DIAGNOSTIC
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wconversion"
+#endif
+    const long neg_one = (long) -1, const_zero = (long) 0;
+#ifdef __Pyx_HAS_GCC_DIAGNOSTIC
+#pragma GCC diagnostic pop
+#endif
+    const int is_unsigned = neg_one > const_zero;
+    if (is_unsigned) {
+        if (sizeof(long) < sizeof(long)) {
+            return PyLong_FromLong((long) value);
+        } else if (sizeof(long) <= sizeof(unsigned long)) {
+            return PyLong_FromUnsignedLong((unsigned long) value);
+#if !CYTHON_COMPILING_IN_PYPY
+        } else if (sizeof(long) <= sizeof(unsigned PY_LONG_LONG)) {
+            return PyLong_FromUnsignedLongLong((unsigned PY_LONG_LONG) value);
+#endif
+        }
+    } else {
+        if (sizeof(long) <= sizeof(long)) {
+            return PyLong_FromLong((long) value);
+        } else if (sizeof(long) <= sizeof(PY_LONG_LONG)) {
+            return PyLong_FromLongLong((PY_LONG_LONG) value);
+        }
+    }
+    {
+        unsigned char *bytes = (unsigned char *)&value;
+#if !CYTHON_COMPILING_IN_LIMITED_API && PY_VERSION_HEX >= 0x030d00A4
+        if (is_unsigned) {
+            return PyLong_FromUnsignedNativeBytes(bytes, sizeof(value), -1);
+        } else {
+            return PyLong_FromNativeBytes(bytes, sizeof(value), -1);
+        }
+#elif !CYTHON_COMPILING_IN_LIMITED_API && PY_VERSION_HEX < 0x030d0000
+        int one = 1; int little = (int)*(unsigned char *)&one;
+        return _PyLong_FromByteArray(bytes, sizeof(long),
+                                     little, !is_unsigned);
+#else
+        int one = 1; int little = (int)*(unsigned char *)&one;
+        PyObject *from_bytes, *result = NULL, *kwds = NULL;
+        PyObject *py_bytes = NULL, *order_str = NULL;
+        from_bytes = PyObject_GetAttrString((PyObject*)&PyLong_Type, "from_bytes");
+        if (!from_bytes) return NULL;
+        py_bytes = PyBytes_FromStringAndSize((char*)bytes, sizeof(long));
+        if (!py_bytes) goto limited_bad;
+        order_str = PyUnicode_FromString(little ? "little" : "big");
+        if (!order_str) goto limited_bad;
+        {
+            PyObject *args[3+(CYTHON_VECTORCALL ? 1 : 0)] = { NULL, py_bytes, order_str };
+            if (!is_unsigned) {
+                kwds = __Pyx_MakeVectorcallBuilderKwds(1);
+                if (!kwds) goto limited_bad;
+                if (__Pyx_VectorcallBuilder_AddArgStr("signed", __Pyx_NewRef(Py_True), kwds, args+3, 0) < 0) goto limited_bad;
+            }
+            result = __Pyx_Object_Vectorcall_CallFromBuilder(from_bytes, args+1, 2 | __Pyx_PY_VECTORCALL_ARGUMENTS_OFFSET, kwds);
+        }
+        limited_bad:
+        Py_XDECREF(kwds);
+        Py_XDECREF(order_str);
+        Py_XDECREF(py_bytes);
+        Py_XDECREF(from_bytes);
+        return result;
+#endif
+    }
+}
+
 /* CIntFromPy */
 static CYTHON_INLINE int64_t __Pyx_PyLong_As_int64_t(PyObject *x) {
 #ifdef __Pyx_HAS_GCC_DIAGNOSTIC
@@ -14765,75 +18612,6 @@ static CYTHON_INLINE PyObject* __Pyx_PyLong_From_int64_t(int64_t value) {
         from_bytes = PyObject_GetAttrString((PyObject*)&PyLong_Type, "from_bytes");
         if (!from_bytes) return NULL;
         py_bytes = PyBytes_FromStringAndSize((char*)bytes, sizeof(int64_t));
-        if (!py_bytes) goto limited_bad;
-        order_str = PyUnicode_FromString(little ? "little" : "big");
-        if (!order_str) goto limited_bad;
-        {
-            PyObject *args[3+(CYTHON_VECTORCALL ? 1 : 0)] = { NULL, py_bytes, order_str };
-            if (!is_unsigned) {
-                kwds = __Pyx_MakeVectorcallBuilderKwds(1);
-                if (!kwds) goto limited_bad;
-                if (__Pyx_VectorcallBuilder_AddArgStr("signed", __Pyx_NewRef(Py_True), kwds, args+3, 0) < 0) goto limited_bad;
-            }
-            result = __Pyx_Object_Vectorcall_CallFromBuilder(from_bytes, args+1, 2 | __Pyx_PY_VECTORCALL_ARGUMENTS_OFFSET, kwds);
-        }
-        limited_bad:
-        Py_XDECREF(kwds);
-        Py_XDECREF(order_str);
-        Py_XDECREF(py_bytes);
-        Py_XDECREF(from_bytes);
-        return result;
-#endif
-    }
-}
-
-/* CIntToPy */
-static CYTHON_INLINE PyObject* __Pyx_PyLong_From_long(long value) {
-#ifdef __Pyx_HAS_GCC_DIAGNOSTIC
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wconversion"
-#endif
-    const long neg_one = (long) -1, const_zero = (long) 0;
-#ifdef __Pyx_HAS_GCC_DIAGNOSTIC
-#pragma GCC diagnostic pop
-#endif
-    const int is_unsigned = neg_one > const_zero;
-    if (is_unsigned) {
-        if (sizeof(long) < sizeof(long)) {
-            return PyLong_FromLong((long) value);
-        } else if (sizeof(long) <= sizeof(unsigned long)) {
-            return PyLong_FromUnsignedLong((unsigned long) value);
-#if !CYTHON_COMPILING_IN_PYPY
-        } else if (sizeof(long) <= sizeof(unsigned PY_LONG_LONG)) {
-            return PyLong_FromUnsignedLongLong((unsigned PY_LONG_LONG) value);
-#endif
-        }
-    } else {
-        if (sizeof(long) <= sizeof(long)) {
-            return PyLong_FromLong((long) value);
-        } else if (sizeof(long) <= sizeof(PY_LONG_LONG)) {
-            return PyLong_FromLongLong((PY_LONG_LONG) value);
-        }
-    }
-    {
-        unsigned char *bytes = (unsigned char *)&value;
-#if !CYTHON_COMPILING_IN_LIMITED_API && PY_VERSION_HEX >= 0x030d00A4
-        if (is_unsigned) {
-            return PyLong_FromUnsignedNativeBytes(bytes, sizeof(value), -1);
-        } else {
-            return PyLong_FromNativeBytes(bytes, sizeof(value), -1);
-        }
-#elif !CYTHON_COMPILING_IN_LIMITED_API && PY_VERSION_HEX < 0x030d0000
-        int one = 1; int little = (int)*(unsigned char *)&one;
-        return _PyLong_FromByteArray(bytes, sizeof(long),
-                                     little, !is_unsigned);
-#else
-        int one = 1; int little = (int)*(unsigned char *)&one;
-        PyObject *from_bytes, *result = NULL, *kwds = NULL;
-        PyObject *py_bytes = NULL, *order_str = NULL;
-        from_bytes = PyObject_GetAttrString((PyObject*)&PyLong_Type, "from_bytes");
-        if (!from_bytes) return NULL;
-        py_bytes = PyBytes_FromStringAndSize((char*)bytes, sizeof(long));
         if (!py_bytes) goto limited_bad;
         order_str = PyUnicode_FromString(little ? "little" : "big");
         if (!order_str) goto limited_bad;

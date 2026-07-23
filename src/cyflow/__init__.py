@@ -45,7 +45,6 @@ def tensor(data=None, shape: tuple = None, device: int = CPU) -> Tensor:
 
     if data is None:
         if isinstance(shape, int):
-            # Handle cases where user passes shape=5 instead of shape=(5,)
             shape = [shape]
         t = Tensor(shape, device=device)
         t.fill_uniform()
@@ -55,7 +54,6 @@ def tensor(data=None, shape: tuple = None, device: int = CPU) -> Tensor:
 
     final_shape = shape if shape is not None else inferred_shape
 
-    # Calculate expected number of elements
     expected_numel = 1
     for dim in final_shape:
         expected_numel *= dim
@@ -65,10 +63,8 @@ def tensor(data=None, shape: tuple = None, device: int = CPU) -> Tensor:
             f"Shape {final_shape} is invalid for input with {len(flat_data)} elements"
         )
 
-    # Create the uninitialized backend tensor using the final shape
     t = Tensor(final_shape, device=device)
 
-    # Blast the flat data into C/CUDA memory
     t._set_data_from_list(flat_data)
 
     return t
