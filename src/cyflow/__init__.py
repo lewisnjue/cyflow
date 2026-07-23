@@ -1,4 +1,4 @@
-from .tensor import Tensor, CPU, CUDA, manual_seed
+from cyflow import Tensor, CPU, CUDA, manual_seed
 
 
 def _infer_shape_and_flatten(data):
