@@ -71,6 +71,8 @@
 // ============================================================================
 // MEMORY AND INITIALIZATION ROUTINES
 // ============================================================================
+static uint32_t g_rng_state = 123456789;
+
 
 Storage *storage_create_cpu(size_t size) {
   Storage *storage = (Storage *)malloc(sizeof(Storage));
@@ -150,18 +152,52 @@ void tensor_free_cpu(TensorImpl *tensor) {
   free(tensor);
 }
 
-void tensor_fill_uniform_cpu(TensorImpl *tensor) { 
+void tensor_fill_uniform_cpu(TensorImpl *tensor) {
   if (!tensor || !tensor->storage || !tensor->storage->data)
     return;
+  
   float *data = tensor->storage->data + tensor->storage_offset;
   size_t numel = tensor->numel;
 
+  // Pre-load state locally to help the compiler optimize the loop register
+  uint32_t state = g_rng_state;
+
+  // Multiplier to map uint32 [0, 4294967295] to float [0.0, 1.0)
+  // 1.0f / 4294967296.0f
+  const float scale = 2.3283064365386963e-10f;
+
   for (size_t i = 0; i < numel; i++) {
-    data[i] = (float)rand() / (float)RAND_MAX;
+    // Inline xorshift step
+    uint32_t x = state;
+    x ^= x << 13;
+    x ^= x >> 17;
+    x ^= x << 5;
+    state = x;
+
+    // Convert to float via multiplication instead of division
+    data[i] = (float)x * scale;
+  }
+
+  g_rng_state = state;
+}
+
+void cyflow_manual_seed(unsigned int seed) { cyflow_manual_seed_cpu(seed); } // remove 
+void cyflow_manual_seed_cpu(unsigned long long seed) {
+  // Ensure state is never 0 (which breaks Xorshift)
+  g_rng_state = (uint32_t)(seed ^ (seed >> 32));
+  if (g_rng_state == 0) {
+    g_rng_state = 1;
   }
 }
 
-void cyflow_manual_seed(unsigned int seed) { srand(seed); }
+static inline uint32_t xorshift32(void) {
+  uint32_t x = g_rng_state;
+  x ^= x << 13;
+  x ^= x >> 17;
+  x ^= x << 5;
+  g_rng_state = x;
+  return x;
+}
 
 void tensor_set_data_cpu(TensorImpl *tensor, const float *data) {
   if (!tensor || !tensor->storage || !tensor->storage->data || !data)
