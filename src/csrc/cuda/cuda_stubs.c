@@ -189,3 +189,9 @@ cudaError_t cudaFree(void *devPtr) {
 }
 
 cudaError_t cudaDeviceSynchronize(void) { return cudaSuccess; }
+
+
+TensorImpl* tensor_unbroadcast_cuda(const TensorImpl* grad, const int64_t* target_shape, size_t target_ndim) {
+    cuda_not_available_error("tensor_unbroadcast_cuda");
+    return NULL;
+}

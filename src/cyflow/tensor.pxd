@@ -36,3 +36,6 @@ cdef class Tensor:
     cdef _fill_from_flat_list(self, list flat_vals)
     cdef _copy_from_tensor(self, Tensor src)
     cpdef _apply_inplace(self, object other, str op)
+
+
+cpdef Tensor unbroadcast(Tensor grad, tuple target_shape)

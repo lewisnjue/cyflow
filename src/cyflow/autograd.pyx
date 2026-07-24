@@ -1,47 +1,51 @@
-
 from cyflow.tensor cimport Tensor
+from cyflow.tensor cimport unbroadcast
 
-# 1. Base Node
 cdef class AutogradNode:
-    cdef list next_functions # A list of nodes to pass gradients to
+    def __init__(self):
+        self.next_functions = []
 
-    def apply(self, Tensor grad_output):
+    cpdef tuple apply(self, Tensor grad_output):
         raise NotImplementedError("Must be implemented by subclasses")
 
 
-# 2. Addition Backward Node
 cdef class AddBackward(AutogradNode):
-    # We must save references to the input tensors to pass gradients to them
-    cdef Tensor saved_self
-    cdef Tensor saved_other
+    def __init__(self, Tensor self_tensor, object other):
+        super().__init__()
+        self.self_tensor = self_tensor
+        self.other = other
+        
+        # Build graph edges. If a tensor is a leaf (created by user), its grad_fn is None.
+        # We append None so the engine knows it reached a leaf and should accumulate the gradient.
+        if self.self_tensor.requires_grad:
+            self.next_functions.append(self.self_tensor.grad_fn)
+            
+        if not isinstance(self.other, (int, float)):
+            if (<Tensor>self.other).requires_grad:
+                self.next_functions.append((<Tensor>self.other).grad_fn)
 
-    def __init__(self, Tensor self_tensor, Tensor other_tensor):
-        self.next_functions = []
-        self.saved_self = self_tensor
-        self.saved_other = other_tensor
+    cpdef tuple apply(self, Tensor grad_output):
+        cdef Tensor grad_self = None
+        cdef Tensor grad_other = None
+        cdef Tensor other_t
+        
+        # 1. Gradient for `self_tensor`
+        if self.self_tensor.requires_grad:
+            if self.self_tensor.shape != grad_output.shape:
+                # Unbroadcast sum for self
+                grad_self = unbroadcast(grad_output, self.self_tensor.shape)
+            else:
+                # Direct pass-through
+                grad_self = grad_output
 
-        # Build the graph edges: if the input tensor was created by an operation,
-        # we append its grad_fn. Otherwise, it's a leaf tensor, and we will
-        # accumulate the gradient directly into it later.
-        if self_tensor.grad_fn is not None:
-            self.next_functions.append(self_tensor.grad_fn)
-        if other_tensor.grad_fn is not None:
-            self.next_functions.append(other_tensor.grad_fn)
+        # 2. Gradient for `other` (only if it's a Tensor)
+        if not isinstance(self.other, (int, float)):
+            other_t = <Tensor>self.other
+            if other_t.requires_grad:
+                if other_t.shape != grad_output.shape:
+                    # Unbroadcast sum for other
+                    grad_other = unbroadcast(grad_output, other_t.shape)
+                else:
+                    grad_other = grad_output
 
-    def apply(self, Tensor grad_output):
-        """
-        The calculus of Addition:
-        If z = x + y
-        Then dz/dx = 1  -> Therefore, gradient of x = grad_output * 1
-        And  dz/dy = 1  -> Therefore, gradient of y = grad_output * 1
-        """
-
-        # In addition, the gradient flows backwards equally to both inputs.
-        # grad_self  = grad_output * 1
-        # grad_other = grad_output * 1
-
-        # NOTE: We return two gradients because this operation took two inputs.
-        # We will implement the actual tensor engine traversing later, but for now,
-        # it just returns the gradients it calculated.
-
-        return grad_output, grad_output
+        return grad_self, grad_other

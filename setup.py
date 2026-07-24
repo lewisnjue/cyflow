@@ -106,6 +106,7 @@ tensor_sources = [
     str(CSRC_DIR / "core" / "utils.c"),
     str(CSRC_DIR / "cpu" / "inline_op_cpu.c"),
     str(CSRC_DIR / "cpu" / "out_op_cpu.c"),
+    str(CSRC_DIR / "core" / "utils_cuda.cu")
 ]
 
 tensor_libraries = []

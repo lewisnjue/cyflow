@@ -4,7 +4,7 @@ from libc.stddef cimport size_t
 from libc.stdint cimport int64_t
 from libc.string cimport memcpy
 
-# from cyflow.autograd cimport AddBackward
+from cyflow.autograd cimport AddBackward
 
 
 cdef extern from "cyflow/tensor.h":
@@ -56,6 +56,8 @@ cdef extern  from "cyflow/utils.h":
         const int64_t *shape_b, size_t ndim_b,
         int64_t *out_shape, size_t *out_ndim
     )
+    TensorImpl* tensor_unbroadcast_cpu(const TensorImpl* grad, const int64_t* target_shape, size_t target_ndim)
+    TensorImpl* tensor_unbroadcast_cuda(const TensorImpl* grad, const int64_t* target_shape, size_t target_ndim)
 
 cdef extern from "cyflow/out_op_cpu.h":
     void tensor_add_out_scalar_contiguous_cpu(TensorImpl *dst, const TensorImpl *src, float val)
@@ -129,6 +131,49 @@ cdef extern from "cuda_runtime.h":
 CPU = DEVICE_CPU
 CUDA = DEVICE_CUDA
 
+
+
+cpdef Tensor unbroadcast(Tensor grad, tuple target_shape):
+    """
+    Calls the C/CUDA backend to unbroadcast a gradient tensor back to its original target_shape.
+    Always returns a new, independent Tensor object to prevent pointer aliasing.
+    """
+    cdef size_t target_ndim = len(target_shape)
+    cdef int64_t* c_shape = NULL
+    cdef int i
+
+    # If shapes match, we still want an independent Tensor wrapper/impl 
+    # pointing to the same storage safely (using tensor_view).
+    if grad.shape == target_shape:
+        return grad.view(target_shape)
+
+    if target_ndim > 0:
+        c_shape = <int64_t*>malloc(target_ndim * sizeof(int64_t))
+        if not c_shape:
+            raise MemoryError("Failed to allocate shape array for unbroadcast")
+        for i in range(target_ndim):
+            c_shape[i] = target_shape[i]
+
+    cdef Tensor result = Tensor(shape=None)
+
+    try:
+        if grad._tensor.storage.device == CPU:  
+            result._tensor = tensor_unbroadcast_cpu(grad._tensor, c_shape, target_ndim)
+        elif grad._tensor.storage.device == CUDA:  
+            result._tensor = tensor_unbroadcast_cuda(grad._tensor, c_shape, target_ndim)
+
+        if result._tensor is NULL:
+            raise MemoryError("Failed to allocate unbroadcasted tensor")
+            
+        result.requires_grad = False
+
+    finally:
+        if c_shape is not NULL:
+            free(c_shape)
+
+    return result
+
+
 cpdef manual_seed(unsigned long long seed, int device=CPU):
     if device == DEVICE_CPU:
         cyflow_manual_seed_cpu(seed)
@@ -175,7 +220,7 @@ cdef tuple _get_nested_list_shape_and_flat(object lst):
     return tuple(shape), flat
 
 cdef class Tensor:
-    def __cinit__(self, shape=None, int device=CPU):
+    def __cinit__(self, shape=None, int device=CPU,requires_grad=False):
         cdef size_t ndim
         cdef int64_t* c_shape
         cdef int i
@@ -297,11 +342,17 @@ cdef class Tensor:
                     tensor_add_out_tensor_contiguous_cuda(result._tensor, self._tensor, other_t._tensor)
                 else:
                     tensor_add_out_tensor_strided_cuda(result._tensor, self._tensor, other_t._tensor)
+
+        cdef bint self_req = self.requires_grad
+        cdef bint other_req = False if isinstance(other, (int, float)) else (<Tensor>other).requires_grad
+        
+        if self_req or other_req:
+            result.requires_grad = True
+            
+            # Import AddBackward at the top of tensor.pyx or inline to avoid circular imports
+            result.grad_fn = AddBackward(self, other)
                 
-        # (Optional) Re-attach Autograd graph here if needed:
-        # if getattr(self, 'requires_grad', False) or (isinstance(other, Tensor) and getattr(other_t, 'requires_grad', False)):
-        #     result.requires_grad = True
-        #     result.grad_fn = AddBackward(self, other_t)
+    
             
         return result
 
@@ -403,7 +454,6 @@ cdef class Tensor:
             tensor_fill_uniform_cuda(self._tensor)
 
     cdef _fill_scalar(self, float val):
-        """Zeroes tensor and adds scalar using fast parallel kernels."""
         if self._tensor.numel == 0:
             return
 
@@ -415,7 +465,6 @@ cdef class Tensor:
             tensor_add_scalar_cuda(self._tensor, val)
 
     cdef _fill_from_flat_list(self, list flat_vals):
-        """Fills tensor from flat python list with contiguous fast-path."""
         cdef bint is_contig
         if self._tensor.storage.device == 0:
             is_contig = tensor_is_contiguous(self._tensor)

@@ -33,7 +33,7 @@ def _infer_shape_and_flatten(data):
     raise TypeError(f"Unsupported data type for tensor: {type(data)}")
 
 
-def tensor(data=None, shape: tuple = None, device: int = CPU) -> Tensor:
+def tensor(data=None, shape: tuple = None, device: int = CPU,requires_grad:bool = False) -> Tensor:
     """
     Creates a cyflow Tensor.
     Can be initialized from data, an empty shape, or both.
@@ -46,7 +46,7 @@ def tensor(data=None, shape: tuple = None, device: int = CPU) -> Tensor:
     if data is None:
         if isinstance(shape, int):
             shape = [shape]
-        t = Tensor(shape, device=device)
+        t = Tensor(shape, device=device,requires_grad=requires_grad)
         t.fill_uniform()
         return t
 
@@ -63,7 +63,7 @@ def tensor(data=None, shape: tuple = None, device: int = CPU) -> Tensor:
             f"Shape {final_shape} is invalid for input with {len(flat_data)} elements"
         )
 
-    t = Tensor(final_shape, device=device)
+    t = Tensor(final_shape, device=device, requires_grad=requires_grad)
 
     t._set_data_from_list(flat_data)
 
