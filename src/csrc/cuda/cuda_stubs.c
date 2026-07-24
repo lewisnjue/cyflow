@@ -1,12 +1,11 @@
 #include "cyflow/common.h"
 #include "cyflow/tensor.h"
-#include "cyflow/tensor_cuda.h"
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 
-    static void cuda_not_available_error(const char *func_name) {
+static void cuda_not_available_error(const char *func_name) {
   fprintf(
       stderr,
       "Cyflow Error: %s called, but Cyflow was built without CUDA support.\n",
@@ -89,6 +88,72 @@ void tensor_mul_tensor_cuda(TensorImpl *dst, const TensorImpl *src) {
 
 void tensor_div_tensor_cuda(TensorImpl *dst, const TensorImpl *src) {
   cuda_not_available_error("tensor_div_tensor_cuda");
+}
+
+/* ============================================================================
+ * Out-of-Place Scalar Math Stubs (Contiguous & Strided)
+ * ============================================================================
+ */
+
+// Contiguous Scalar Out-of-Place
+void tensor_add_out_scalar_contiguous_cuda(TensorImpl *dst, const TensorImpl *src, float val) {
+  cuda_not_available_error("tensor_add_out_scalar_contiguous_cuda");
+}
+void tensor_sub_out_scalar_contiguous_cuda(TensorImpl *dst, const TensorImpl *src, float val) {
+  cuda_not_available_error("tensor_sub_out_scalar_contiguous_cuda");
+}
+void tensor_mul_out_scalar_contiguous_cuda(TensorImpl *dst, const TensorImpl *src, float val) {
+  cuda_not_available_error("tensor_mul_out_scalar_contiguous_cuda");
+}
+void tensor_div_out_scalar_contiguous_cuda(TensorImpl *dst, const TensorImpl *src, float val) {
+  cuda_not_available_error("tensor_div_out_scalar_contiguous_cuda");
+}
+
+// Strided Scalar Out-of-Place
+void tensor_add_out_scalar_strided_cuda(TensorImpl *dst, const TensorImpl *src, float val) {
+  cuda_not_available_error("tensor_add_out_scalar_strided_cuda");
+}
+void tensor_sub_out_scalar_strided_cuda(TensorImpl *dst, const TensorImpl *src, float val) {
+  cuda_not_available_error("tensor_sub_out_scalar_strided_cuda");
+}
+void tensor_mul_out_scalar_strided_cuda(TensorImpl *dst, const TensorImpl *src, float val) {
+  cuda_not_available_error("tensor_mul_out_scalar_strided_cuda");
+}
+void tensor_div_out_scalar_strided_cuda(TensorImpl *dst, const TensorImpl *src, float val) {
+  cuda_not_available_error("tensor_div_out_scalar_strided_cuda");
+}
+
+/* ============================================================================
+ * Out-of-Place Tensor Math Stubs (Contiguous & Strided)
+ * ============================================================================
+ */
+
+// Contiguous Tensor Out-of-Place (Fast Path)
+void tensor_add_out_tensor_contiguous_cuda(TensorImpl *dst, const TensorImpl *src1, const TensorImpl *src2) {
+  cuda_not_available_error("tensor_add_out_tensor_contiguous_cuda");
+}
+void tensor_sub_out_tensor_contiguous_cuda(TensorImpl *dst, const TensorImpl *src1, const TensorImpl *src2) {
+  cuda_not_available_error("tensor_sub_out_tensor_contiguous_cuda");
+}
+void tensor_mul_out_tensor_contiguous_cuda(TensorImpl *dst, const TensorImpl *src1, const TensorImpl *src2) {
+  cuda_not_available_error("tensor_mul_out_tensor_contiguous_cuda");
+}
+void tensor_div_out_tensor_contiguous_cuda(TensorImpl *dst, const TensorImpl *src1, const TensorImpl *src2) {
+  cuda_not_available_error("tensor_div_out_tensor_contiguous_cuda");
+}
+
+// Strided Tensor Out-of-Place (Broadcasting / Slicing)
+void tensor_add_out_tensor_strided_cuda(TensorImpl *dst, const TensorImpl *src1, const TensorImpl *src2) {
+  cuda_not_available_error("tensor_add_out_tensor_strided_cuda");
+}
+void tensor_sub_out_tensor_strided_cuda(TensorImpl *dst, const TensorImpl *src1, const TensorImpl *src2) {
+  cuda_not_available_error("tensor_sub_out_tensor_strided_cuda");
+}
+void tensor_mul_out_tensor_strided_cuda(TensorImpl *dst, const TensorImpl *src1, const TensorImpl *src2) {
+  cuda_not_available_error("tensor_mul_out_tensor_strided_cuda");
+}
+void tensor_div_out_tensor_strided_cuda(TensorImpl *dst, const TensorImpl *src1, const TensorImpl *src2) {
+  cuda_not_available_error("tensor_div_out_tensor_strided_cuda");
 }
 
 /* ============================================================================

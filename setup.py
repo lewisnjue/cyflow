@@ -103,7 +103,9 @@ if _env_flag("CYFLOW_ENABLE_CUDA") and not USE_CUDA:
 tensor_sources = [
     str(SRC_DIR / "cyflow" / "tensor.pyx"),
     str(CSRC_DIR / "core" / "tensor.c"),
+    str(CSRC_DIR / "core" / "utils.c"),
     str(CSRC_DIR / "cpu" / "inline_op_cpu.c"),
+    str(CSRC_DIR / "cpu" / "out_op_cpu.c"),
 ]
 
 tensor_libraries = []
@@ -113,6 +115,7 @@ if USE_CUDA:
         [
             str(CSRC_DIR / "cuda" / "inline_op.cu"),
             str(CSRC_DIR / "cuda" / "tensor_cuda.cu"),
+            str(CSRC_DIR / "cuda" / "out_op_cuda.cu"),  # <-- Added CUDA out-of-place ops
         ]
     )
     tensor_libraries.extend(["cudart", "cublas", "curand"])

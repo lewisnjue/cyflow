@@ -4,10 +4,8 @@ from libc.stddef cimport size_t
 from libc.stdint cimport int64_t
 from libc.string cimport memcpy
 
-try:
-    from cyflow.autograd import AddBackward
-except Exception:
-    AddBackward = None
+# from cyflow.autograd cimport AddBackward
+
 
 cdef extern from "cyflow/tensor.h":
     ctypedef enum DeviceType:
@@ -51,6 +49,53 @@ cdef extern from "cyflow/inline_op_cpu.h":
     void tensor_sub_tensor_cpu(TensorImpl *dst, const TensorImpl *src)
     void tensor_mul_tensor_cpu(TensorImpl *dst, const TensorImpl *src)
     void tensor_div_tensor_cpu(TensorImpl *dst, const TensorImpl *src)
+
+cdef extern  from "cyflow/utils.h":
+    int compute_broadcast_shape(
+        const int64_t *shape_a, size_t ndim_a,
+        const int64_t *shape_b, size_t ndim_b,
+        int64_t *out_shape, size_t *out_ndim
+    )
+
+cdef extern from "cyflow/out_op_cpu.h":
+    void tensor_add_out_scalar_contiguous_cpu(TensorImpl *dst, const TensorImpl *src, float val)
+    void tensor_sub_out_scalar_contiguous_cpu(TensorImpl *dst, const TensorImpl *src, float val)
+    void tensor_mul_out_scalar_contiguous_cpu(TensorImpl *dst, const TensorImpl *src, float val)
+    void tensor_div_out_scalar_contiguous_cpu(TensorImpl *dst, const TensorImpl *src, float val)
+
+    void tensor_add_out_scalar_strided_cpu(TensorImpl *dst, const TensorImpl *src, float val)
+    void tensor_sub_out_scalar_strided_cpu(TensorImpl *dst, const TensorImpl *src, float val)
+    void tensor_mul_out_scalar_strided_cpu(TensorImpl *dst, const TensorImpl *src, float val)
+    void tensor_div_out_scalar_strided_cpu(TensorImpl *dst, const TensorImpl *src, float val)
+
+    void tensor_add_out_tensor_contiguous_cpu(TensorImpl *dst, const TensorImpl *src1, const TensorImpl *src2)
+    void tensor_sub_out_tensor_contiguous_cpu(TensorImpl *dst, const TensorImpl *src1, const TensorImpl *src2)
+    void tensor_mul_out_tensor_contiguous_cpu(TensorImpl *dst, const TensorImpl *src1, const TensorImpl *src2)
+    void tensor_div_out_tensor_contiguous_cpu(TensorImpl *dst, const TensorImpl *src1, const TensorImpl *src2)
+
+    void tensor_add_out_tensor_strided_cpu(TensorImpl *dst, const TensorImpl *src1, const TensorImpl *src2)
+    void tensor_sub_out_tensor_strided_cpu(TensorImpl *dst, const TensorImpl *src1, const TensorImpl *src2)
+    void tensor_mul_out_tensor_strided_cpu(TensorImpl *dst, const TensorImpl *src1, const TensorImpl *src2)
+    void tensor_div_out_tensor_strided_cpu(TensorImpl *dst, const TensorImpl *src1, const TensorImpl *src2)
+
+
+cdef extern from "cyflow/out_op_cuda.h":
+    void tensor_add_out_scalar_contiguous_cuda(TensorImpl *dst, const TensorImpl *src, float val)
+    void tensor_sub_out_scalar_contiguous_cuda(TensorImpl *dst, const TensorImpl *src, float val)
+    void tensor_mul_out_scalar_contiguous_cuda(TensorImpl *dst, const TensorImpl *src, float val)
+    void tensor_div_out_scalar_contiguous_cuda(TensorImpl *dst, const TensorImpl *src, float val)
+    void tensor_add_out_scalar_strided_cuda(TensorImpl *dst, const TensorImpl *src, float val)
+    void tensor_sub_out_scalar_strided_cuda(TensorImpl *dst, const TensorImpl *src, float val)
+    void tensor_mul_out_scalar_strided_cuda(TensorImpl *dst, const TensorImpl *src, float val)
+    void tensor_div_out_scalar_strided_cuda(TensorImpl *dst, const TensorImpl *src, float val)
+    void tensor_add_out_tensor_contiguous_cuda(TensorImpl *dst, const TensorImpl *src1, const TensorImpl *src2)
+    void tensor_sub_out_tensor_contiguous_cuda(TensorImpl *dst, const TensorImpl *src1, const TensorImpl *src2)
+    void tensor_mul_out_tensor_contiguous_cuda(TensorImpl *dst, const TensorImpl *src1, const TensorImpl *src2)
+    void tensor_div_out_tensor_contiguous_cuda(TensorImpl *dst, const TensorImpl *src1, const TensorImpl *src2)
+    void tensor_add_out_tensor_strided_cuda(TensorImpl *dst, const TensorImpl *src1, const TensorImpl *src2)
+    void tensor_sub_out_tensor_strided_cuda(TensorImpl *dst, const TensorImpl *src1, const TensorImpl *src2)
+    void tensor_mul_out_tensor_strided_cuda(TensorImpl *dst, const TensorImpl *src1, const TensorImpl *src2)
+    void tensor_div_out_tensor_strided_cuda(TensorImpl *dst, const TensorImpl *src1, const TensorImpl *src2)
 
 cdef extern from "cyflow/tensor_cuda.h":
     Storage *storage_create_cuda(size_t size)
@@ -170,37 +215,94 @@ cdef class Tensor:
         self.grad = None
         self.grad_fn = None
 
+
     def __add__(self, other):
-        """Simple elementwise addition for now."""
         cdef Tensor result
         cdef Tensor other_t
+        cdef int64_t* out_c_shape
+        cdef size_t out_ndim, max_ndim
+        cdef int status
+        cdef tuple final_shape
+        cdef int _device
 
-        if not isinstance(other, Tensor):
-            raise TypeError("Addition currently only supports Tensor + Tensor")
+        if not isinstance(other, (Tensor, float, int)):
+            raise TypeError("Unsupported operand type for addition")
+        
+        if self.device == 'cuda':
+            _device = CUDA 
+        else:
+            _device = CPU 
+        # ==========================================
+        # SCALAR ADDITION
+        # ==========================================
+        if isinstance(other, (int, float)):
+    
+            result = Tensor(self.shape, device=_device) # i cant use self.device because that a string 
+    
+            if _device == CPU: # DEVICE_CPU
+                if tensor_is_contiguous(self._tensor):
+                    tensor_add_out_scalar_contiguous_cpu(result._tensor, self._tensor, <float>other)
+                else:
+                    tensor_add_out_scalar_strided_cpu(result._tensor, self._tensor, <float>other)
+            else: 
+                if tensor_is_contiguous(self._tensor):
+                    tensor_add_out_scalar_contiguous_cuda(result._tensor, self._tensor, <float>other)
+                else:
+                    tensor_add_out_scalar_strided_cuda(result._tensor, self._tensor, <float>other)
+                
+        # ==========================================
+        # TENSOR ADDITION
+        # ==========================================
+        elif isinstance(other, Tensor):
+            second_device = CUDA if other.device == 'cuda' else CPU
+            assert _device == second_device, f"Device mismatch: {self.device} vs {other.device}"
+            other_t = <Tensor>other
+            max_ndim = max(self._tensor.ndim, other_t._tensor.ndim)
+            
+            # 1. Compute broadcast shape
+            out_c_shape = <int64_t*>malloc(max_ndim * sizeof(int64_t))
+            if not out_c_shape:
+                raise MemoryError("Failed to allocate memory for broadcast shape")
 
-        other_t = <Tensor>other
-
-        if self._tensor is NULL or other_t._tensor is NULL:
-            raise ValueError("Cannot add uninitialized tensors")
-        if self.shape != other_t.shape:
-            raise ValueError(f"Cannot add tensors with different shapes: {self.shape} vs {other_t.shape}")
-        if self.device != other_t.device:
-            raise ValueError(f"Cannot add tensors on different devices: {self.device} vs {other_t.device}")
-
-        result = Tensor(self.shape, device=self._tensor.storage.device)
-
-        if self._tensor.storage.device == 0:
-            tensor_add_tensor_cpu(result._tensor, self._tensor)
-            tensor_add_tensor_cpu(result._tensor, other_t._tensor)
-        elif self._tensor.storage.device == 1:
-            tensor_add_tensor_cuda(result._tensor, self._tensor)
-            tensor_add_tensor_cuda(result._tensor, other_t._tensor)
-
-        if self.requires_grad or other_t.requires_grad:
-            result.requires_grad = True
-            if AddBackward is not None:
-                result.grad_fn = AddBackward(self, other_t)
-
+            status = compute_broadcast_shape(
+                self._tensor.shape, self._tensor.ndim,
+                other_t._tensor.shape, other_t._tensor.ndim,
+                out_c_shape, &out_ndim
+            )
+            
+            if status == -1:
+                free(out_c_shape)
+                raise ValueError(f"Operands could not be broadcast together with shapes {self.shape} and {other_t.shape}")
+                
+            final_shape = tuple([out_c_shape[i] for i in range(out_ndim)])
+            free(out_c_shape)
+            
+            # 2. Allocate destination tensor on the appropriate device
+            result = Tensor(final_shape, device=_device)
+            
+            # 3. Route to the correct C / CUDA kernel
+            if _device == CPU: # DEVICE_CPU
+                if (self.shape == other_t.shape and 
+                    tensor_is_contiguous(self._tensor) and 
+                    tensor_is_contiguous(other_t._tensor)):
+                    
+                    tensor_add_out_tensor_contiguous_cpu(result._tensor, self._tensor, other_t._tensor)
+                else:
+                    tensor_add_out_tensor_strided_cpu(result._tensor, self._tensor, other_t._tensor)
+            else: # CUDA
+                if (self.shape == other_t.shape and 
+                    tensor_is_contiguous(self._tensor) and 
+                    tensor_is_contiguous(other_t._tensor)):
+                    
+                    tensor_add_out_tensor_contiguous_cuda(result._tensor, self._tensor, other_t._tensor)
+                else:
+                    tensor_add_out_tensor_strided_cuda(result._tensor, self._tensor, other_t._tensor)
+                
+        # (Optional) Re-attach Autograd graph here if needed:
+        # if getattr(self, 'requires_grad', False) or (isinstance(other, Tensor) and getattr(other_t, 'requires_grad', False)):
+        #     result.requires_grad = True
+        #     result.grad_fn = AddBackward(self, other_t)
+            
         return result
 
     def __dealloc__(self):

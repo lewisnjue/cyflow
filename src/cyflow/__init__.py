@@ -1,6 +1,6 @@
 from .tensor import Tensor, CPU, CUDA, manual_seed
 
-
+USE_CUDA = False
 def _infer_shape_and_flatten(data):
     """
     Recursively inspects a nested list to determine its shape
