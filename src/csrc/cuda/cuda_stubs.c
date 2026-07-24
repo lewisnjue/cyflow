@@ -1,11 +1,12 @@
 #include "cyflow/common.h"
+#include "cyflow/tensor.h"
 #include "cyflow/tensor_cuda.h"
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 
-static void cuda_not_available_error(const char *func_name) {
+    static void cuda_not_available_error(const char *func_name) {
   fprintf(
       stderr,
       "Cyflow Error: %s called, but Cyflow was built without CUDA support.\n",
@@ -15,7 +16,8 @@ static void cuda_not_available_error(const char *func_name) {
 
 /* ============================================================================
  * Core Tensor Memory & Lifecycle Stubs
- * ============================================================================ */
+ * ============================================================================
+ */
 
 Storage *storage_create_cuda(size_t size) {
   cuda_not_available_error("storage_create_cuda");
@@ -47,14 +49,10 @@ void tensor_set_data_cuda(TensorImpl *tensor, const float *data) {
   cuda_not_available_error("tensor_set_data_cuda");
 }
 
-bool tensor_is_contiguous_cuda(const TensorImpl *tensor) {
-  cuda_not_available_error("tensor_is_contiguous_cuda");
-  return false;
-}
-
 /* ============================================================================
  * Inplace Scalar Math Stubs
- * ============================================================================ */
+ * ============================================================================
+ */
 
 void tensor_add_scalar_cuda(TensorImpl *tensor, float val) {
   cuda_not_available_error("tensor_add_scalar_cuda");
@@ -74,7 +72,8 @@ void tensor_div_scalar_cuda(TensorImpl *tensor, float val) {
 
 /* ============================================================================
  * Inplace Tensor Math Stubs
- * ============================================================================ */
+ * ============================================================================
+ */
 
 void tensor_add_tensor_cuda(TensorImpl *dst, const TensorImpl *src) {
   cuda_not_available_error("tensor_add_tensor_cuda");
@@ -94,7 +93,8 @@ void tensor_div_tensor_cuda(TensorImpl *dst, const TensorImpl *src) {
 
 /* ============================================================================
  * CUDA Runtime API Stubs
- * ============================================================================ */
+ * ============================================================================
+ */
 
 typedef int cudaError_t;
 #define cudaSuccess 0
@@ -123,6 +123,4 @@ cudaError_t cudaFree(void *devPtr) {
   return cudaSuccess;
 }
 
-cudaError_t cudaDeviceSynchronize(void) {
-  return cudaSuccess;
-}
+cudaError_t cudaDeviceSynchronize(void) { return cudaSuccess; }

@@ -9,117 +9,30 @@
 
 #define MAX_DIM(a, b) ((a) > (b) ? (a) : (b))
 
-typedef enum { DEVICE_CPU = 0, DEVICE_CUDA = 1 } DeviceType;
+#define CUDA_CHECK(err)                                                        \
+  do {                                                                         \
+    cudaError_t err_ = (err);                                                  \
+    if (err_ != cudaSuccess) {                                                 \
+      fprintf(stderr, "CUDA Error: %s at %s:%d\n", cudaGetErrorString(err_),   \
+              __FILE__, __LINE__);                                             \
+      exit(1);                                                                 \
+    }                                                                          \
+  } while (0)
 
-typedef struct {
-  float *data; // Pointer to data (can be CPU or GPU pointer)
-  size_t size; // Number of elements
-  int ref_count;
-  bool owns_data;
-  DeviceType device; // Tracks if data is on CPU or GPU
-} Storage;
+#define CURAND_CHECK(err)                                                      \
+  do {                                                                         \
+    curandStatus_t err_ = (err);                                               \
+    if (err_ != CURAND_STATUS_SUCCESS) {                                       \
+      fprintf(stderr, "cuRAND Error: %d at %s:%d\n", (int)err_, __FILE__,      \
+              __LINE__);                                                       \
+      exit(1);                                                                 \
+    }                                                                          \
+  } while (0)
 
-typedef struct {
-  Storage *storage;
-  int64_t *shape;   // ALWAYS on the CPU
-  int64_t *strides; // ALWAYS on the CPU
-  size_t ndim;
-  size_t numel;
-  size_t storage_offset;
-} TensorImpl;
+#ifndef MAX_DIMS
+#define MAX_DIMS 8
+#endif
 
-static inline void compute_contiguous_strides(int64_t *strides,
-                                              const int64_t *shape,
-                                              size_t ndim) {
-  if (ndim == 0)
-    return;
-  strides[ndim - 1] = 1;
-  for (int i = (int)ndim - 2; i >= 0; i--) {
-    strides[i] = strides[i + 1] * shape[i + 1];
-  }
-}
-
-static inline TensorImpl *tensor_view(TensorImpl *src, const int64_t *shape,
-                                      size_t ndim) {
-  if (!src || !src->storage)
-    return NULL;
-
-  size_t new_numel = 1;
-  for (size_t i = 0; i < ndim; i++) {
-    new_numel *= shape[i];
-  }
-
-  if (new_numel != src->numel) {
-    fprintf(stderr,
-            "Cyflow Error: Cannot reshape tensor of size %zu into shape with "
-            "size %zu\n",
-            src->numel, new_numel);
-    return NULL;
-  }
-
-  TensorImpl *tensor = (TensorImpl *)malloc(sizeof(TensorImpl));
-  if (!tensor)
-    return NULL;
-
-  tensor->ndim = ndim;
-  tensor->numel = new_numel;
-  tensor->storage_offset = src->storage_offset;
-
-  tensor->shape = (int64_t *)malloc(ndim * sizeof(int64_t));
-  tensor->strides = (int64_t *)malloc(ndim * sizeof(int64_t));
-  if (!tensor->shape || !tensor->strides) {
-    free(tensor->shape);
-    free(tensor->strides);
-    free(tensor);
-    return NULL;
-  }
-
-  memcpy(tensor->shape, shape, ndim * sizeof(int64_t));
-  compute_contiguous_strides(tensor->strides, tensor->shape, ndim);
-
-  tensor->storage = src->storage;
-  tensor->storage->ref_count++;
-
-  return tensor;
-}
-
-static inline TensorImpl *tensor_index(TensorImpl *src, int64_t index) {
-  if (!src || !src->storage)
-    return NULL;
-  size_t ndim = src->ndim;
-  if (ndim == 0) {
-    return NULL;
-  }
-  int64_t dim0 = src->shape[0];
-  if (index < 0)
-    index += dim0;
-  if (index < 0 || index >= dim0) {
-    fprintf(stderr, "Index %lld out of range for dimension size %zu\n",
-            (long long)index, dim0);
-    return NULL;
-  }
-  TensorImpl *tensor = (TensorImpl *)malloc(sizeof(TensorImpl));
-  if (!tensor)
-    return NULL;
-  tensor->storage = src->storage;
-  tensor->storage->ref_count++;
-  tensor->storage_offset = src->storage_offset + index * src->strides[0];
-  if (ndim > 1) {
-    tensor->ndim = ndim - 1;
-    tensor->numel = src->numel / dim0;
-    tensor->shape = (int64_t *)malloc((ndim - 1) * sizeof(int64_t));
-    tensor->strides = (int64_t *)malloc((ndim - 1) * sizeof(int64_t));
-    for (size_t i = 1; i < ndim; ++i) {
-      tensor->shape[i - 1] = src->shape[i];
-      tensor->strides[i - 1] = src->strides[i];
-    }
-  } else {
-    tensor->ndim = 0;
-    tensor->numel = 1;
-    tensor->shape = NULL;
-    tensor->strides = NULL;
-  }
-  return tensor;
-}
+#define CUDA_THREADS_PER_BLOCK 256
 
 #endif

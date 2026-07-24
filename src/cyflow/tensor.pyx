@@ -1,8 +1,15 @@
 # cython: language_level=3
 from libc.stdlib cimport malloc, free, calloc
+from libc.stddef cimport size_t
 from libc.stdint cimport int64_t
 from libc.string cimport memcpy
-cdef extern from "cyflow/common.h":
+
+try:
+    from cyflow.autograd import AddBackward
+except Exception:
+    AddBackward = None
+
+cdef extern from "cyflow/tensor.h":
     ctypedef enum DeviceType:
         DEVICE_CPU
         DEVICE_CUDA
@@ -25,24 +32,21 @@ cdef extern from "cyflow/common.h":
     void compute_contiguous_strides(int64_t *strides, const int64_t *shape, size_t ndim)
     TensorImpl *tensor_view(TensorImpl *src, const int64_t *shape, size_t ndim)
     TensorImpl *tensor_index(TensorImpl *src, int64_t index)
+    bint tensor_is_contiguous(const TensorImpl *tensor)
 
-cdef extern from "cyflow/tensor_cpu.h":
     Storage *storage_create_cpu(size_t size)
     void storage_free_cpu(Storage *storage)
     TensorImpl *tensor_create_cpu(const int64_t *shape, size_t ndim)
     void tensor_free_cpu(TensorImpl *tensor)
-
     void cyflow_manual_seed_cpu(unsigned long long seed)
     void tensor_fill_uniform_cpu(TensorImpl *tensor)
     void tensor_set_data_cpu(TensorImpl *tensor, const float *data)
 
-    bint tensor_is_contiguous_cpu(const TensorImpl *tensor)
-
+cdef extern from "cyflow/inline_op_cpu.h":
     void tensor_add_scalar_cpu(TensorImpl *dst, float val)
     void tensor_sub_scalar_cpu(TensorImpl *dst, float val)
     void tensor_mul_scalar_cpu(TensorImpl *dst, float val)
     void tensor_div_scalar_cpu(TensorImpl *dst, float val)
-
     void tensor_add_tensor_cpu(TensorImpl *dst, const TensorImpl *src)
     void tensor_sub_tensor_cpu(TensorImpl *dst, const TensorImpl *src)
     void tensor_mul_tensor_cpu(TensorImpl *dst, const TensorImpl *src)
@@ -53,18 +57,15 @@ cdef extern from "cyflow/tensor_cuda.h":
     void storage_free_cuda(Storage *storage)
     TensorImpl *tensor_create_cuda(const int64_t *shape, size_t ndim)
     void tensor_free_cuda(TensorImpl *tensor)
-
     void tensor_fill_uniform_cuda(TensorImpl *tensor)
     void cyflow_manual_seed_cuda(unsigned long long seed)
     void tensor_set_data_cuda(TensorImpl *tensor, const float *data)
 
-    bint tensor_is_contiguous_cuda(const TensorImpl *tensor)
-
+cdef extern from "cyflow/inline_op_cuda.h":
     void tensor_add_scalar_cuda(TensorImpl *dst, float val)
     void tensor_sub_scalar_cuda(TensorImpl *dst, float val)
     void tensor_mul_scalar_cuda(TensorImpl *dst, float val)
     void tensor_div_scalar_cuda(TensorImpl *dst, float val)
-
     void tensor_add_tensor_cuda(TensorImpl *dst, const TensorImpl *src)
     void tensor_sub_tensor_cuda(TensorImpl *dst, const TensorImpl *src)
     void tensor_mul_tensor_cuda(TensorImpl *dst, const TensorImpl *src)
@@ -79,8 +80,6 @@ cdef extern from "cuda_runtime.h":
 
     int cudaMemcpy(void* dst, const void* src, size_t count, cudaMemcpyKind kind)
 
-
- # cython: language_level=3
 
 CPU = DEVICE_CPU
 CUDA = DEVICE_CUDA
@@ -131,8 +130,6 @@ cdef tuple _get_nested_list_shape_and_flat(object lst):
     return tuple(shape), flat
 
 cdef class Tensor:
-    cdef TensorImpl* _tensor
-
     def __cinit__(self, shape=None, int device=CPU):
         cdef size_t ndim
         cdef int64_t* c_shape
@@ -168,12 +165,49 @@ cdef class Tensor:
                 raise MemoryError("Backend failed to allocate TensorImpl")
         finally:
             free(c_shape)
+    def __init__(self, shape=None, int device=DEVICE_CPU, bint requires_grad=False):
+        self.requires_grad = requires_grad
+        self.grad = None
+        self.grad_fn = None
+
+    def __add__(self, other):
+        """Simple elementwise addition for now."""
+        cdef Tensor result
+        cdef Tensor other_t
+
+        if not isinstance(other, Tensor):
+            raise TypeError("Addition currently only supports Tensor + Tensor")
+
+        other_t = <Tensor>other
+
+        if self._tensor is NULL or other_t._tensor is NULL:
+            raise ValueError("Cannot add uninitialized tensors")
+        if self.shape != other_t.shape:
+            raise ValueError(f"Cannot add tensors with different shapes: {self.shape} vs {other_t.shape}")
+        if self.device != other_t.device:
+            raise ValueError(f"Cannot add tensors on different devices: {self.device} vs {other_t.device}")
+
+        result = Tensor(self.shape, device=self._tensor.storage.device)
+
+        if self._tensor.storage.device == 0:
+            tensor_add_tensor_cpu(result._tensor, self._tensor)
+            tensor_add_tensor_cpu(result._tensor, other_t._tensor)
+        elif self._tensor.storage.device == 1:
+            tensor_add_tensor_cuda(result._tensor, self._tensor)
+            tensor_add_tensor_cuda(result._tensor, other_t._tensor)
+
+        if self.requires_grad or other_t.requires_grad:
+            result.requires_grad = True
+            if AddBackward is not None:
+                result.grad_fn = AddBackward(self, other_t)
+
+        return result
 
     def __dealloc__(self):
         if self._tensor is not NULL:
-            if self._tensor.storage.device == DEVICE_CPU:
+            if self._tensor.storage.device == 0:
                 tensor_free_cpu(self._tensor)
-            elif self._tensor.storage.device == DEVICE_CUDA:
+            elif self._tensor.storage.device == 1:
                 tensor_free_cuda(self._tensor)
 
     @staticmethod
@@ -200,9 +234,9 @@ cdef class Tensor:
 
     @property
     def device(self):
-        if self._tensor.storage.device == DEVICE_CPU:
+        if self._tensor.storage.device == 0:
             return "cpu"
-        elif self._tensor.storage.device == DEVICE_CUDA:
+        elif self._tensor.storage.device == 1:
             return "cuda"
         return "unknown"
 
@@ -224,9 +258,9 @@ cdef class Tensor:
 
         data_ptr = <float*>self._tensor.storage.data
 
-        if self._tensor.storage.device == DEVICE_CPU:
+        if self._tensor.storage.device == 0:
             val = data_ptr[self._tensor.storage_offset]
-        elif self._tensor.storage.device == DEVICE_CUDA:
+        elif self._tensor.storage.device == 1:
             cudaMemcpy(
                 &val,
                 data_ptr + self._tensor.storage_offset,
@@ -261,9 +295,9 @@ cdef class Tensor:
         return f"<Tensor shape={self.shape}, strides={self.strides}, device='{self.device}'>"
 
     def fill_uniform(self):
-        if self._tensor.storage.device == DEVICE_CPU:
+        if self._tensor.storage.device == 0:
             tensor_fill_uniform_cpu(self._tensor)
-        elif self._tensor.storage.device == DEVICE_CUDA:
+        elif self._tensor.storage.device == 1:
             tensor_fill_uniform_cuda(self._tensor)
 
     cdef _fill_scalar(self, float val):
@@ -271,20 +305,20 @@ cdef class Tensor:
         if self._tensor.numel == 0:
             return
 
-        if self._tensor.storage.device == DEVICE_CPU:
+        if self._tensor.storage.device == 0:
             tensor_mul_scalar_cpu(self._tensor, 0.0)
             tensor_add_scalar_cpu(self._tensor, val)
-        elif self._tensor.storage.device == DEVICE_CUDA:
+        elif self._tensor.storage.device == 1:
             tensor_mul_scalar_cuda(self._tensor, 0.0)
             tensor_add_scalar_cuda(self._tensor, val)
 
     cdef _fill_from_flat_list(self, list flat_vals):
         """Fills tensor from flat python list with contiguous fast-path."""
         cdef bint is_contig
-        if self._tensor.storage.device == DEVICE_CPU:
-            is_contig = tensor_is_contiguous_cpu(self._tensor)
+        if self._tensor.storage.device == 0:
+            is_contig = tensor_is_contiguous(self._tensor)
         else:
-            is_contig = tensor_is_contiguous_cuda(self._tensor)
+            is_contig = tensor_is_contiguous(self._tensor)
 
         # FAST PATH: If view is contiguous, use batch memory load
         if is_contig:
@@ -356,11 +390,11 @@ cdef class Tensor:
         cdef bint dst_contig, src_contig
 
         if device == DEVICE_CPU:
-            dst_contig = tensor_is_contiguous_cpu(self._tensor)
-            src_contig = tensor_is_contiguous_cpu(src._tensor)
+            dst_contig = tensor_is_contiguous(self._tensor)
+            src_contig = tensor_is_contiguous(src._tensor)
         else:
-            dst_contig = tensor_is_contiguous_cuda(self._tensor)
-            src_contig = tensor_is_contiguous_cuda(src._tensor)
+            dst_contig = tensor_is_contiguous(self._tensor)
+            src_contig = tensor_is_contiguous(src._tensor)
 
         # FAST PATH: Single block memory copy when both tensors are contiguous
         if dst_contig and src_contig:
@@ -571,9 +605,9 @@ cdef class Tensor:
             for i in range(numel):
                 c_data[i] = float(flat_data[i])
 
-            if self._tensor.storage.device == DEVICE_CPU:
+            if self._tensor.storage.device == 0:
                 tensor_set_data_cpu(self._tensor, c_data)
-            elif self._tensor.storage.device == DEVICE_CUDA:
+            elif self._tensor.storage.device == 1:
                 tensor_set_data_cuda(self._tensor, c_data)
         finally:
             free(c_data)
