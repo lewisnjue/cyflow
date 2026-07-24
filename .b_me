@@ -1,0 +1,3 @@
+
+CYFLOW_ENABLE_CUDA=1 uv run python setup.py build_ext --inplace --force > out.comple
+

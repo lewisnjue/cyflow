@@ -77,7 +77,6 @@ static inline TensorImpl *tensor_view(TensorImpl *src, const int64_t *shape,
   memcpy(tensor->shape, shape, ndim * sizeof(int64_t));
   compute_contiguous_strides(tensor->strides, tensor->shape, ndim);
 
-  // Increment shared storage reference count
   tensor->storage = src->storage;
   tensor->storage->ref_count++;
 

@@ -31,18 +31,18 @@ cdef extern from "cyflow/tensor_cpu.h":
     void storage_free_cpu(Storage *storage)
     TensorImpl *tensor_create_cpu(const int64_t *shape, size_t ndim)
     void tensor_free_cpu(TensorImpl *tensor)
-    
-    void cyflow_manual_seed(unsigned int seed)
+
+    void cyflow_manual_seed_cpu(unsigned long long seed)
     void tensor_fill_uniform_cpu(TensorImpl *tensor)
     void tensor_set_data_cpu(TensorImpl *tensor, const float *data)
-    
+
     bint tensor_is_contiguous_cpu(const TensorImpl *tensor)
-    
+
     void tensor_add_scalar_cpu(TensorImpl *dst, float val)
     void tensor_sub_scalar_cpu(TensorImpl *dst, float val)
     void tensor_mul_scalar_cpu(TensorImpl *dst, float val)
     void tensor_div_scalar_cpu(TensorImpl *dst, float val)
-    
+
     void tensor_add_tensor_cpu(TensorImpl *dst, const TensorImpl *src)
     void tensor_sub_tensor_cpu(TensorImpl *dst, const TensorImpl *src)
     void tensor_mul_tensor_cpu(TensorImpl *dst, const TensorImpl *src)
@@ -53,18 +53,18 @@ cdef extern from "cyflow/tensor_cuda.h":
     void storage_free_cuda(Storage *storage)
     TensorImpl *tensor_create_cuda(const int64_t *shape, size_t ndim)
     void tensor_free_cuda(TensorImpl *tensor)
-    
+
     void tensor_fill_uniform_cuda(TensorImpl *tensor)
     void cyflow_manual_seed_cuda(unsigned long long seed)
     void tensor_set_data_cuda(TensorImpl *tensor, const float *data)
-    
+
     bint tensor_is_contiguous_cuda(const TensorImpl *tensor)
-    
+
     void tensor_add_scalar_cuda(TensorImpl *dst, float val)
     void tensor_sub_scalar_cuda(TensorImpl *dst, float val)
     void tensor_mul_scalar_cuda(TensorImpl *dst, float val)
     void tensor_div_scalar_cuda(TensorImpl *dst, float val)
-    
+
     void tensor_add_tensor_cuda(TensorImpl *dst, const TensorImpl *src)
     void tensor_sub_tensor_cuda(TensorImpl *dst, const TensorImpl *src)
     void tensor_mul_tensor_cuda(TensorImpl *dst, const TensorImpl *src)
@@ -76,7 +76,7 @@ cdef extern from "cuda_runtime.h":
         cudaMemcpyHostToDevice
         cudaMemcpyDeviceToHost
         cudaMemcpyDeviceToDevice
-        
+
     int cudaMemcpy(void* dst, const void* src, size_t count, cudaMemcpyKind kind)
 
 
@@ -87,39 +87,47 @@ CUDA = DEVICE_CUDA
 
 cpdef manual_seed(unsigned long long seed, int device=CPU):
     if device == DEVICE_CPU:
-        cyflow_manual_seed(<unsigned int>seed)
+        cyflow_manual_seed_cpu(seed)
     elif device == DEVICE_CUDA:
         cyflow_manual_seed_cuda(seed)
     else:
         raise ValueError(f"Unsupported device integer: {device}")
 
-def _get_nested_list_shape_and_flat(lst):
+cdef int _flatten_helper(object item, list shape, list flat, int depth) except -1:
+    if isinstance(item, (list, tuple)):
+        if depth < len(shape) and len(item) != shape[depth]:
+            raise ValueError(
+                f"Inconsistent list dimension at depth {depth}: expected {shape[depth]}, got {len(item)}"
+            )
+        for sub in item:
+            _flatten_helper(sub, shape, flat, depth + 1)
+
+    elif isinstance(item, (int, float)):
+        flat.append(float(item))
+
+    else:
+        raise TypeError(f"Invalid element type in list: {type(item).__name__}")
+
+    return 0
+
+cdef tuple _get_nested_list_shape_and_flat(object lst):
     if not isinstance(lst, (list, tuple)):
         raise TypeError("Expected list or tuple")
 
-    shape = []
-    curr = lst
+    cdef list shape = []
+    cdef object curr = lst
+
     while isinstance(curr, (list, tuple)):
         shape.append(len(curr))
         if len(curr) == 0:
             break
         curr = curr[0]
 
-    flat = []
-    def _flatten(item, depth=0):
-        if isinstance(item, (list, tuple)):
-            if depth < len(shape) and len(item) != shape[depth]:
-                raise ValueError(
-                    f"Inconsistent list dimension at depth {depth}: expected {shape[depth]}, got {len(item)}"
-                )
-            for sub in item:
-                _flatten(sub, depth + 1)
-        elif isinstance(item, (int, float)):
-            flat.append(float(item))
-        else:
-            raise TypeError(f"Invalid element type in list: {type(item).__name__}")
+    cdef list flat = []
 
-    _flatten(lst)
+    # Call the C-level helper function
+    _flatten_helper(lst, shape, flat, 0)
+
     return tuple(shape), flat
 
 cdef class Tensor:

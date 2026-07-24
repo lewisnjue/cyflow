@@ -17,7 +17,7 @@ void storage_free_cpu(Storage *storage);
 TensorImpl *tensor_create_cpu(const int64_t *shape, size_t ndim);
 void tensor_free_cpu(TensorImpl *tensor);
 
-void cyflow_manual_seed(unsigned int seed);
+void cyflow_manual_seed_cpu(unsigned long long seed);
 void tensor_fill_uniform_cpu(TensorImpl *tensor);
 void tensor_set_data_cpu(TensorImpl *tensor, const float *data);
 
