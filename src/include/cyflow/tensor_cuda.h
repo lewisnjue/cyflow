@@ -16,6 +16,7 @@ void tensor_free_cuda(TensorImpl *tensor);
 void tensor_fill_uniform_cuda(TensorImpl *tensor);
 void cyflow_manual_seed_cuda(unsigned long long seed);
 void tensor_set_data_cuda(TensorImpl *tensor, const float *data);
+TensorImpl *tensor_clone_cuda(const TensorImpl *src);
 
 #ifdef __cplusplus
 }

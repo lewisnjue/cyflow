@@ -3,6 +3,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -270,4 +271,56 @@ void tensor_set_data_cpu(TensorImpl *tensor, const float *data) {
   // This assumes the incoming data buffer exactly matches the memory layout.
   memcpy(tensor->storage->data + tensor->storage_offset, data,
          tensor->numel * sizeof(float));
+}
+
+TensorImpl *tensor_clone_cpu_contiguous(const TensorImpl *src){
+  TensorImpl *result = tensor_create_cpu(src->shape, src->ndim);
+  if (!result) {
+    return NULL;
+  }
+  memcpy(result->storage->data, src->storage->data + src->storage_offset,
+         src->numel * sizeof(float));
+  return result;
+
+}
+
+
+
+TensorImpl *tensor_clone_cpu_strided(const TensorImpl *src) {
+  TensorImpl *result = tensor_create_cpu(src->shape, src->ndim);
+  if (!result) {
+    return NULL;
+  }
+  
+  if (src->numel == 0) {
+      return result;
+  }
+
+  // Iterate over the logical elements (0 to numel - 1)
+  for (size_t i = 0; i < src->numel; i++) {
+      size_t temp = i;
+      size_t src_offset = src->storage_offset;
+      
+      // Compute the physical offset for the strided source tensor
+      for (ptrdiff_t d = src->ndim - 1; d >= 0; d--) {
+          int64_t coord = temp % src->shape[d];
+          temp /= src->shape[d];
+          src_offset += coord * src->strides[d];
+      }
+      
+      // The new result tensor is contiguous, so its physical offset is simply (result->storage_offset + i)
+      result->storage->data[result->storage_offset + i] = src->storage->data[src_offset];
+  }
+  
+  return result;
+}
+TensorImpl *tensor_clone_cpu(const TensorImpl *src) {
+  if (!src || !src->storage || !src->storage->data)
+    return NULL;
+
+  if (tensor_is_contiguous(src)) {
+    return tensor_clone_cpu_contiguous(src);
+  } else {
+    return tensor_clone_cpu_strided(src);
+  }
 }

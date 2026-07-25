@@ -8,3 +8,19 @@ cdef class AddBackward(AutogradNode):
     cdef public Tensor self_tensor
     cdef public object other
     cpdef tuple apply(self, Tensor grad_output)
+
+
+cdef class SubBackward(AutogradNode):
+    cdef public Tensor self_tensor
+    cdef public object other
+    cpdef tuple apply(self, Tensor grad_output)
+
+cdef class MulBackward(AutogradNode):
+    cdef public Tensor self_tensor
+    cdef public object other
+    cpdef tuple apply(self, Tensor grad_output)
+
+cdef class DivBackward(AutogradNode):
+    cdef public Tensor self_tensor
+    cdef public object other
+    cpdef tuple apply(self, Tensor grad_output)

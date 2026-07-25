@@ -4,8 +4,7 @@ from libc.stddef cimport size_t
 from libc.stdint cimport int64_t
 from libc.string cimport memcpy
 
-from cyflow.autograd cimport AddBackward
-
+from cyflow.autograd cimport SubBackward, MulBackward, DivBackward,AddBackward
 
 cdef extern from "cyflow/tensor.h":
     ctypedef enum DeviceType:
@@ -39,6 +38,7 @@ cdef extern from "cyflow/tensor.h":
     void cyflow_manual_seed_cpu(unsigned long long seed)
     void tensor_fill_uniform_cpu(TensorImpl *tensor)
     void tensor_set_data_cpu(TensorImpl *tensor, const float *data)
+    TensorImpl *tensor_clone_cpu(const TensorImpl *src)
 
 cdef extern from "cyflow/inline_op_cpu.h":
     void tensor_add_scalar_cpu(TensorImpl *dst, float val)
@@ -107,6 +107,7 @@ cdef extern from "cyflow/tensor_cuda.h":
     void tensor_fill_uniform_cuda(TensorImpl *tensor)
     void cyflow_manual_seed_cuda(unsigned long long seed)
     void tensor_set_data_cuda(TensorImpl *tensor, const float *data)
+    TensorImpl *tensor_clone_cuda(const TensorImpl *src)
 
 cdef extern from "cyflow/inline_op_cuda.h":
     void tensor_add_scalar_cuda(TensorImpl *dst, float val)
@@ -259,7 +260,17 @@ cdef class Tensor:
         self.requires_grad = requires_grad
         self.grad = None
         self.grad_fn = None
-
+    
+    def detach(self):
+        _device = CPU
+        if self.device == 'cuda':
+            _device = CUDA
+        result = Tensor(shape=None,device=_device,requires_grad=False)
+        if _device == CPU:
+            result._tensor = tensor_clone_cpu(self._tensor)
+        elif _device == CUDA:
+            result._tensor = tensor_clone_cuda(self._tensor)
+        return result
 
     def __add__(self, other):
         cdef Tensor result
@@ -269,7 +280,6 @@ cdef class Tensor:
         cdef int status
         cdef tuple final_shape
         cdef int _device
-
         if not isinstance(other, (Tensor, float, int)):
             raise TypeError("Unsupported operand type for addition")
         
@@ -349,12 +359,291 @@ cdef class Tensor:
         if self_req or other_req:
             result.requires_grad = True
             
-            # Import AddBackward at the top of tensor.pyx or inline to avoid circular imports
             result.grad_fn = AddBackward(self, other)
                 
     
             
         return result
+
+
+    def __sub__(self, other):
+        cdef Tensor result
+        cdef Tensor other_t
+        cdef int64_t* out_c_shape
+        cdef size_t out_ndim, max_ndim
+        cdef int status
+        cdef tuple final_shape
+        cdef int _device
+
+        if not isinstance(other, (Tensor, float, int)):
+            raise TypeError("Unsupported operand type for subtraction")
+        
+        if self.device == 'cuda':
+            _device = CUDA 
+        else:
+            _device = CPU 
+            
+        # ==========================================
+        # SCALAR SUBTRACTION
+        # ==========================================
+        if isinstance(other, (int, float)):
+    
+            result = Tensor(self.shape, device=_device)
+    
+            if _device == CPU: 
+                if tensor_is_contiguous(self._tensor):
+                    tensor_sub_out_scalar_contiguous_cpu(result._tensor, self._tensor, <float>other)
+                else:
+                    tensor_sub_out_scalar_strided_cpu(result._tensor, self._tensor, <float>other)
+            else: 
+                if tensor_is_contiguous(self._tensor):
+                    tensor_sub_out_scalar_contiguous_cuda(result._tensor, self._tensor, <float>other)
+                else:
+                    tensor_sub_out_scalar_strided_cuda(result._tensor, self._tensor, <float>other)
+                
+        # ==========================================
+        # TENSOR SUBTRACTION
+        # ==========================================
+        elif isinstance(other, Tensor):
+            second_device = CUDA if other.device == 'cuda' else CPU
+            assert _device == second_device, f"Device mismatch: {self.device} vs {other.device}"
+            other_t = <Tensor>other
+            max_ndim = max(self._tensor.ndim, other_t._tensor.ndim)
+            
+            # 1. Compute broadcast shape
+            out_c_shape = <int64_t*>malloc(max_ndim * sizeof(int64_t))
+            if not out_c_shape:
+                raise MemoryError("Failed to allocate memory for broadcast shape")
+
+            status = compute_broadcast_shape(
+                self._tensor.shape, self._tensor.ndim,
+                other_t._tensor.shape, other_t._tensor.ndim,
+                out_c_shape, &out_ndim
+            )
+            
+            if status == -1:
+                free(out_c_shape)
+                raise ValueError(f"Operands could not be broadcast together with shapes {self.shape} and {other_t.shape}")
+                
+            final_shape = tuple([out_c_shape[i] for i in range(out_ndim)])
+            free(out_c_shape)
+            
+            # 2. Allocate destination tensor on the appropriate device
+            result = Tensor(final_shape, device=_device)
+            
+            # 3. Route to the correct C / CUDA kernel
+            if _device == CPU: 
+                if (self.shape == other_t.shape and 
+                    tensor_is_contiguous(self._tensor) and 
+                    tensor_is_contiguous(other_t._tensor)):
+                    
+                    tensor_sub_out_tensor_contiguous_cpu(result._tensor, self._tensor, other_t._tensor)
+                else:
+                    tensor_sub_out_tensor_strided_cpu(result._tensor, self._tensor, other_t._tensor)
+            else: 
+                if (self.shape == other_t.shape and 
+                    tensor_is_contiguous(self._tensor) and 
+                    tensor_is_contiguous(other_t._tensor)):
+                    
+                    tensor_sub_out_tensor_contiguous_cuda(result._tensor, self._tensor, other_t._tensor)
+                else:
+                    tensor_sub_out_tensor_strided_cuda(result._tensor, self._tensor, other_t._tensor)
+
+        cdef bint self_req = self.requires_grad
+        cdef bint other_req = False if isinstance(other, (int, float)) else (<Tensor>other).requires_grad
+        
+        if self_req or other_req:
+            result.requires_grad = True
+            result.grad_fn = SubBackward(self, other)
+                
+        return result
+
+
+    def __mul__(self, other):
+        cdef Tensor result
+        cdef Tensor other_t
+        cdef int64_t* out_c_shape
+        cdef size_t out_ndim, max_ndim
+        cdef int status
+        cdef tuple final_shape
+        cdef int _device
+
+        if not isinstance(other, (Tensor, float, int)):
+            raise TypeError("Unsupported operand type for multiplication")
+        
+        if self.device == 'cuda':
+            _device = CUDA 
+        else:
+            _device = CPU 
+            
+        # ==========================================
+        # SCALAR MULTIPLICATION
+        # ==========================================
+        if isinstance(other, (int, float)):
+    
+            result = Tensor(self.shape, device=_device)
+    
+            if _device == CPU: 
+                if tensor_is_contiguous(self._tensor):
+                    tensor_mul_out_scalar_contiguous_cpu(result._tensor, self._tensor, <float>other)
+                else:
+                    tensor_mul_out_scalar_strided_cpu(result._tensor, self._tensor, <float>other)
+            else: 
+                if tensor_is_contiguous(self._tensor):
+                    tensor_mul_out_scalar_contiguous_cuda(result._tensor, self._tensor, <float>other)
+                else:
+                    tensor_mul_out_scalar_strided_cuda(result._tensor, self._tensor, <float>other)
+                
+        # ==========================================
+        # TENSOR MULTIPLICATION
+        # ==========================================
+        elif isinstance(other, Tensor):
+            second_device = CUDA if other.device == 'cuda' else CPU
+            assert _device == second_device, f"Device mismatch: {self.device} vs {other.device}"
+            other_t = <Tensor>other
+            max_ndim = max(self._tensor.ndim, other_t._tensor.ndim)
+            
+            # 1. Compute broadcast shape
+            out_c_shape = <int64_t*>malloc(max_ndim * sizeof(int64_t))
+            if not out_c_shape:
+                raise MemoryError("Failed to allocate memory for broadcast shape")
+
+            status = compute_broadcast_shape(
+                self._tensor.shape, self._tensor.ndim,
+                other_t._tensor.shape, other_t._tensor.ndim,
+                out_c_shape, &out_ndim
+            )
+            
+            if status == -1:
+                free(out_c_shape)
+                raise ValueError(f"Operands could not be broadcast together with shapes {self.shape} and {other_t.shape}")
+                
+            final_shape = tuple([out_c_shape[i] for i in range(out_ndim)])
+            free(out_c_shape)
+            
+            # 2. Allocate destination tensor on the appropriate device
+            result = Tensor(final_shape, device=_device)
+            
+            # 3. Route to the correct C / CUDA kernel
+            if _device == CPU: 
+                if (self.shape == other_t.shape and 
+                    tensor_is_contiguous(self._tensor) and 
+                    tensor_is_contiguous(other_t._tensor)):
+                    
+                    tensor_mul_out_tensor_contiguous_cpu(result._tensor, self._tensor, other_t._tensor)
+                else:
+                    tensor_mul_out_tensor_strided_cpu(result._tensor, self._tensor, other_t._tensor)
+            else: 
+                if (self.shape == other_t.shape and 
+                    tensor_is_contiguous(self._tensor) and 
+                    tensor_is_contiguous(other_t._tensor)):
+                    
+                    tensor_mul_out_tensor_contiguous_cuda(result._tensor, self._tensor, other_t._tensor)
+                else:
+                    tensor_mul_out_tensor_strided_cuda(result._tensor, self._tensor, other_t._tensor)
+
+        cdef bint self_req = self.requires_grad
+        cdef bint other_req = False if isinstance(other, (int, float)) else (<Tensor>other).requires_grad
+        
+        if self_req or other_req:
+            result.requires_grad = True
+            result.grad_fn = MulBackward(self, other)
+                
+        return result
+
+
+    def __truediv__(self, other):
+        cdef Tensor result
+        cdef Tensor other_t
+        cdef int64_t* out_c_shape
+        cdef size_t out_ndim, max_ndim
+        cdef int status
+        cdef tuple final_shape
+        cdef int _device
+
+        if not isinstance(other, (Tensor, float, int)):
+            raise TypeError("Unsupported operand type for division")
+        
+        if self.device == 'cuda':
+            _device = CUDA 
+        else:
+            _device = CPU 
+            
+        # ==========================================
+        # SCALAR DIVISION
+        # ==========================================
+        if isinstance(other, (int, float)):
+    
+            result = Tensor(self.shape, device=_device)
+    
+            if _device == CPU: 
+                if tensor_is_contiguous(self._tensor):
+                    tensor_div_out_scalar_contiguous_cpu(result._tensor, self._tensor, <float>other)
+                else:
+                    tensor_div_out_scalar_strided_cpu(result._tensor, self._tensor, <float>other)
+            else: 
+                if tensor_is_contiguous(self._tensor):
+                    tensor_div_out_scalar_contiguous_cuda(result._tensor, self._tensor, <float>other)
+                else:
+                    tensor_div_out_scalar_strided_cuda(result._tensor, self._tensor, <float>other)
+                
+        # ==========================================
+        # TENSOR DIVISION
+        # ==========================================
+        elif isinstance(other, Tensor):
+            second_device = CUDA if other.device == 'cuda' else CPU
+            assert _device == second_device, f"Device mismatch: {self.device} vs {other.device}"
+            other_t = <Tensor>other
+            max_ndim = max(self._tensor.ndim, other_t._tensor.ndim)
+            
+            # 1. Compute broadcast shape
+            out_c_shape = <int64_t*>malloc(max_ndim * sizeof(int64_t))
+            if not out_c_shape:
+                raise MemoryError("Failed to allocate memory for broadcast shape")
+
+            status = compute_broadcast_shape(
+                self._tensor.shape, self._tensor.ndim,
+                other_t._tensor.shape, other_t._tensor.ndim,
+                out_c_shape, &out_ndim
+            )
+            
+            if status == -1:
+                free(out_c_shape)
+                raise ValueError(f"Operands could not be broadcast together with shapes {self.shape} and {other_t.shape}")
+                
+            final_shape = tuple([out_c_shape[i] for i in range(out_ndim)])
+            free(out_c_shape)
+            
+            # 2. Allocate destination tensor on the appropriate device
+            result = Tensor(final_shape, device=_device)
+            
+            # 3. Route to the correct C / CUDA kernel
+            if _device == CPU: 
+                if (self.shape == other_t.shape and 
+                    tensor_is_contiguous(self._tensor) and 
+                    tensor_is_contiguous(other_t._tensor)):
+                    
+                    tensor_div_out_tensor_contiguous_cpu(result._tensor, self._tensor, other_t._tensor)
+                else:
+                    tensor_div_out_tensor_strided_cpu(result._tensor, self._tensor, other_t._tensor)
+            else: 
+                if (self.shape == other_t.shape and 
+                    tensor_is_contiguous(self._tensor) and 
+                    tensor_is_contiguous(other_t._tensor)):
+                    
+                    tensor_div_out_tensor_contiguous_cuda(result._tensor, self._tensor, other_t._tensor)
+                else:
+                    tensor_div_out_tensor_strided_cuda(result._tensor, self._tensor, other_t._tensor)
+
+        cdef bint self_req = self.requires_grad
+        cdef bint other_req = False if isinstance(other, (int, float)) else (<Tensor>other).requires_grad
+        
+        if self_req or other_req:
+            result.requires_grad = True
+            result.grad_fn = DivBackward(self, other)
+                
+        return result
+
 
     def __dealloc__(self):
         if self._tensor is not NULL:

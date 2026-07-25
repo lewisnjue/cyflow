@@ -119,3 +119,79 @@ void tensor_set_data_cuda(TensorImpl *tensor, const float *data) {
   CUDA_CHECK(cudaMemcpy(tensor->storage->data, data,
                         tensor->numel * sizeof(float), cudaMemcpyHostToDevice));
 }
+
+
+TensorImpl *tensor_clone_cuda_contiguous(const TensorImpl *src) {
+  if (!src || !src->storage || !src->storage->data)
+    return NULL;
+
+  TensorImpl *clone = tensor_create_cuda(src->shape, src->ndim);
+  if (!clone)
+    return NULL;
+
+  CUDA_CHECK(cudaMemcpy(clone->storage->data, src->storage->data + src->storage_offset,
+                        src->numel * sizeof(float), cudaMemcpyDeviceToDevice));
+  clone->storage_offset = src->storage_offset;
+  return clone;
+}
+
+
+__global__ void kernel_clone_cuda_strided(float *dst_data, const float *src_data, 
+                                          size_t numel, TensorMeta src_meta, size_t dst_offset) {
+    size_t idx = blockIdx.x * blockDim.x + threadIdx.x;
+    size_t stride = blockDim.x * gridDim.x;
+    
+    for (size_t i = idx; i < numel; i += stride) {
+        // Calculate where to read from the strided source
+        size_t src_physical_offset = get_physical_offset(i, src_meta);
+        
+        // The destination is contiguous, so we map logical index 'i' directly
+        dst_data[dst_offset + i] = src_data[src_physical_offset];
+    }
+}
+
+extern "C" TensorImpl *tensor_clone_cuda_strided(const TensorImpl *src) {
+  if (!src || !src->storage || !src->storage->data)
+    return NULL;
+
+  TensorImpl *clone = tensor_create_cuda(src->shape, src->ndim);
+  if (!clone)
+    return NULL;
+
+  if (src->numel == 0) {
+      return clone;
+  }
+
+  // Set up execution configuration
+  int threads = 256;
+  int blocks = (src->numel + threads - 1) / threads;
+  
+  // Package the strided metadata for the GPU
+  TensorMeta src_meta = create_tensor_meta(src);
+
+  // Launch the kernel
+  kernel_clone_cuda_strided<<<blocks, threads>>>(
+      clone->storage->data, 
+      src->storage->data, 
+      src->numel, 
+      src_meta, 
+      clone->storage_offset
+  );
+  
+  // Wait for the copy to complete
+  cudaDeviceSynchronize();
+
+  return clone;
+}
+
+TensorImpl *tensor_clone_cuda(const TensorImpl *src){
+  if (!src || !src->storage || !src->storage->data)
+    return NULL;
+
+  bool contiguous = tensor_is_contiguous(src);
+  if (contiguous) {
+    return tensor_clone_cuda_contiguous(src);
+  } else {
+    return tensor_clone_cuda_strided(src);
+  }
+}

@@ -48,6 +48,21 @@ void tensor_set_data_cuda(TensorImpl *tensor, const float *data) {
   cuda_not_available_error("tensor_set_data_cuda");
 }
 
+TensorImpl *tensor_clone_cuda_contiguous(const TensorImpl *src) {
+  cuda_not_available_error("tensor_clone_cuda_contiguous");
+  return NULL;
+}
+
+TensorImpl *tensor_clone_cuda_strided(const TensorImpl *src) {
+  cuda_not_available_error("tensor_clone_cuda_strided");
+  return NULL;
+}
+
+TensorImpl *tensor_clone_cuda(const TensorImpl *src) {
+  cuda_not_available_error("tensor_clone_cuda");
+  return NULL;
+}
+
 /* ============================================================================
  * Inplace Scalar Math Stubs
  * ============================================================================

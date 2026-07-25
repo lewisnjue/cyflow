@@ -3,161 +3,154 @@ import numpy as np
 import torch
 import cyflow
 
-def benchmark():
-    # 2048 x 2048 = 4,194,304 elements (~16.7 MB of float32 data)
-    shape = (2048, 2048)
-    numel = np.prod(shape)
-    iterations = 20  # Number of loops to average out timing fluctuations
 
-    results = []
-
-    print(f"Starting Benchmarks with Tensor Shape: {shape} ({numel:,} elements)")
-    print(f"Averaging over {iterations} iterations per test...\n")
-
-    # ==========================================
-    # 1. NUMPY (CPU)
-    # ==========================================
-    print("Running NumPy (CPU)...")
-    
-    # Create & Fill Uniform
+def _time_ms(fn, iterations):
     start = time.perf_counter()
     for _ in range(iterations):
-        np_arr = np.random.uniform(0, 1, shape).astype(np.float32)
-    np_create_time = (time.perf_counter() - start) / iterations * 1000
-
-    # Inplace Scalar Add
-    start = time.perf_counter()
-    for _ in range(iterations):
-        np_arr += 1.0
-    np_scalar_add = (time.perf_counter() - start) / iterations * 1000
-
-    # Inplace Tensor Add
-    np_arr2 = np.ones(shape, dtype=np.float32)
-    start = time.perf_counter()
-    for _ in range(iterations):
-        np_arr += np_arr2
-    np_tensor_add = (time.perf_counter() - start) / iterations * 1000
-
-    results.append(("NumPy", "CPU", np_create_time, np_scalar_add, np_tensor_add))
+        fn()
+    return (time.perf_counter() - start) / iterations * 1000.0
 
 
-    # ==========================================
-    # 2. PYTORCH (CPU)
-    # ==========================================
-    print("Running PyTorch (CPU)...")
-    
-    start = time.perf_counter()
-    for _ in range(iterations):
-        pt_cpu = torch.rand(shape, dtype=torch.float32, device="cpu")
-    pt_cpu_create = (time.perf_counter() - start) / iterations * 1000
-
-    start = time.perf_counter()
-    for _ in range(iterations):
-        pt_cpu.add_(1.0)
-    pt_cpu_scalar = (time.perf_counter() - start) / iterations * 1000
-
-    pt_cpu2 = torch.ones(shape, dtype=torch.float32, device="cpu")
-    start = time.perf_counter()
-    for _ in range(iterations):
-        pt_cpu.add_(pt_cpu2)
-    pt_cpu_tensor = (time.perf_counter() - start) / iterations * 1000
-
-    results.append(("PyTorch", "CPU", pt_cpu_create, pt_cpu_scalar, pt_cpu_tensor))
+def _format_shape(shape):
+    return f"{shape[0]}x{shape[1]}"
 
 
-    # ==========================================
-    # 3. PYTORCH (CUDA)
-    # ==========================================
-    print("Running PyTorch (CUDA)...")
-    torch.cuda.synchronize()
-    
-    start = time.perf_counter()
-    for _ in range(iterations):
-        pt_gpu = torch.rand(shape, dtype=torch.float32, device="cuda")
-        torch.cuda.synchronize()
-    pt_gpu_create = (time.perf_counter() - start) / iterations * 1000
+def benchmark_numpy(shape, iterations=5):
+    np.random.seed(0)
+    base = np.random.uniform(0.0, 1.0, size=shape).astype(np.float32)
+    other = np.random.uniform(0.0, 1.0, size=shape).astype(np.float32)
+    rows = []
 
-    torch.cuda.synchronize()
-    start = time.perf_counter()
-    for _ in range(iterations):
-        pt_gpu.add_(1.0)
-        torch.cuda.synchronize()
-    pt_gpu_scalar = (time.perf_counter() - start) / iterations * 1000
+    operations = [
+        ("add_scalar_magic", lambda: base + 1.0),
+        ("sub_scalar_magic", lambda: base - 1.0),
+        ("mul_scalar_magic", lambda: base * 1.5),
+        ("div_scalar_magic", lambda: base / 2.0),
+        ("add_tensor_magic", lambda: base + other),
+        ("sub_tensor_magic", lambda: base - other),
+        ("mul_tensor_magic", lambda: base * other),
+        ("div_tensor_magic", lambda: base / other),
+    ]
 
-    pt_gpu2 = torch.ones(shape, dtype=torch.float32, device="cuda")
-    torch.cuda.synchronize()
-    start = time.perf_counter()
-    for _ in range(iterations):
-        pt_gpu.add_(pt_gpu2)
-        torch.cuda.synchronize()
-    pt_gpu_tensor = (time.perf_counter() - start) / iterations * 1000
+    for name, fn in operations:
+        rows.append(("NumPy", "cpu", _format_shape(shape), "magic", name, _time_ms(fn, iterations)))
 
-    results.append(("PyTorch", "CUDA", pt_gpu_create, pt_gpu_scalar, pt_gpu_tensor))
+    inplace_ops = [
+        ("add_scalar_inplace", lambda: (lambda a: (a.__iadd__(1.0), a)[1])(base.copy())),
+        ("sub_scalar_inplace", lambda: (lambda a: (a.__isub__(1.0), a)[1])(base.copy())),
+        ("mul_scalar_inplace", lambda: (lambda a: (a.__imul__(1.5), a)[1])(base.copy())),
+        ("div_scalar_inplace", lambda: (lambda a: (a.__itruediv__(2.0), a)[1])(base.copy())),
+        ("add_tensor_inplace", lambda: (lambda a: (a.__iadd__(other), a)[1])(base.copy())),
+        ("sub_tensor_inplace", lambda: (lambda a: (a.__isub__(other), a)[1])(base.copy())),
+        ("mul_tensor_inplace", lambda: (lambda a: (a.__imul__(other), a)[1])(base.copy())),
+        ("div_tensor_inplace", lambda: (lambda a: (a.__itruediv__(other), a)[1])(base.copy())),
+    ]
 
+    for name, fn in inplace_ops:
+        rows.append(("NumPy", "cpu", _format_shape(shape), "inplace", name, _time_ms(fn, iterations)))
 
-    # ==========================================
-    # 4. CYFLOW (CPU)
-    # ==========================================
-    print("Running Cyflow (CPU)...")
-    cyflow.manual_seed(42, device=cyflow.CPU)
-    
-    start = time.perf_counter()
-    for _ in range(iterations):
-        cf_cpu = cyflow.tensor(shape=shape, device=cyflow.CPU)
-        cf_cpu.fill_uniform()
-    cf_cpu_create = (time.perf_counter() - start) / iterations * 1000
-
-    start = time.perf_counter()
-    for _ in range(iterations):
-        cf_cpu += 1.0
-    cf_cpu_scalar = (time.perf_counter() - start) / iterations * 1000
-
-    cf_cpu2 = cyflow.tensor(shape=shape, device=cyflow.CPU)
-    cf_cpu2[:] = 1.0
-    start = time.perf_counter()
-    for _ in range(iterations):
-        cf_cpu += cf_cpu2
-    cf_cpu_tensor = (time.perf_counter() - start) / iterations * 1000
-
-    results.append(("Cyflow", "CPU", cf_cpu_create, cf_cpu_scalar, cf_cpu_tensor))
+    return rows
 
 
-    # ==========================================
-    # 5. CYFLOW (CUDA)
-    # ==========================================
-    print("Running Cyflow (CUDA)...")
+def benchmark_torch(shape, iterations=5):
+    if not torch.cuda.is_available():
+        raise RuntimeError("CUDA is required for the PyTorch benchmark")
+
+    torch.manual_seed(0)
+    base = torch.rand(shape, dtype=torch.float32, device="cuda")
+    other = torch.rand(shape, dtype=torch.float32, device="cuda")
+    rows = []
+
+    operations = [
+        ("add_scalar_magic", lambda: base + 1.0),
+        ("sub_scalar_magic", lambda: base - 1.0),
+        ("mul_scalar_magic", lambda: base * 1.5),
+        ("div_scalar_magic", lambda: base / 2.0),
+        ("add_tensor_magic", lambda: base + other),
+        ("sub_tensor_magic", lambda: base - other),
+        ("mul_tensor_magic", lambda: base * other),
+        ("div_tensor_magic", lambda: base / other),
+    ]
+
+    for name, fn in operations:
+        rows.append(("PyTorch", "cuda", _format_shape(shape), "magic", name, _time_ms(fn, iterations)))
+
+    inplace_ops = [
+        ("add_scalar_inplace", lambda: (lambda a: (a.__iadd__(1.0), a)[1])(base.clone())),
+        ("sub_scalar_inplace", lambda: (lambda a: (a.__isub__(1.0), a)[1])(base.clone())),
+        ("mul_scalar_inplace", lambda: (lambda a: (a.__imul__(1.5), a)[1])(base.clone())),
+        ("div_scalar_inplace", lambda: (lambda a: (a.__itruediv__(2.0), a)[1])(base.clone())),
+        ("add_tensor_inplace", lambda: (lambda a: (a.__iadd__(other), a)[1])(base.clone())),
+        ("sub_tensor_inplace", lambda: (lambda a: (a.__isub__(other), a)[1])(base.clone())),
+        ("mul_tensor_inplace", lambda: (lambda a: (a.__imul__(other), a)[1])(base.clone())),
+        ("div_tensor_inplace", lambda: (lambda a: (a.__itruediv__(other), a)[1])(base.clone())),
+    ]
+
+    for name, fn in inplace_ops:
+        rows.append(("PyTorch", "cuda", _format_shape(shape), "inplace", name, _time_ms(fn, iterations)))
+
+    return rows
+
+
+def benchmark_cyflow(shape, iterations=5):
     cyflow.manual_seed(42, device=cyflow.CUDA)
-    
-    start = time.perf_counter()
-    for _ in range(iterations):
-        cf_gpu = cyflow.tensor(shape=shape, device=cyflow.CUDA)
-        cf_gpu.fill_uniform()
-    cf_gpu_create = (time.perf_counter() - start) / iterations * 1000
+    base = cyflow.tensor(shape=shape, device=cyflow.CUDA)
+    other = cyflow.tensor(shape=shape, device=cyflow.CUDA)
+    rows = []
 
-    start = time.perf_counter()
-    for _ in range(iterations):
-        cf_gpu += 1.0
-    cf_gpu_scalar = (time.perf_counter() - start) / iterations * 1000
+    operations = [
+        ("add_scalar_magic", lambda: base + 1.0),
+        ("sub_scalar_magic", lambda: base - 1.0),
+        ("mul_scalar_magic", lambda: base * 1.5),
+        ("div_scalar_magic", lambda: base / 2.0),
+        ("add_tensor_magic", lambda: base + other),
+        ("sub_tensor_magic", lambda: base - other),
+        ("mul_tensor_magic", lambda: base * other),
+        ("div_tensor_magic", lambda: base / other),
+    ]
 
-    cf_gpu2 = cyflow.tensor(shape=shape, device=cyflow.CUDA)
-    cf_gpu2[:] = 1.0
-    start = time.perf_counter()
-    for _ in range(iterations):
-        cf_gpu += cf_gpu2
-    cf_gpu_tensor = (time.perf_counter() - start) / iterations * 1000
+    for name, fn in operations:
+        rows.append(("Cyflow", "cuda", _format_shape(shape), "magic", name, _time_ms(fn, iterations)))
 
-    results.append(("Cyflow", "CUDA", cf_gpu_create, cf_gpu_scalar, cf_gpu_tensor))
+    inplace_ops = [
+        ("add_scalar_inplace", lambda: (lambda a: (a.__iadd__(1.0), a)[1])(base.detach())),
+        ("sub_scalar_inplace", lambda: (lambda a: (a.__isub__(1.0), a)[1])(base.detach())),
+        ("mul_scalar_inplace", lambda: (lambda a: (a.__imul__(1.5), a)[1])(base.detach())),
+        ("div_scalar_inplace", lambda: (lambda a: (a.__itruediv__(2.0), a)[1])(base.detach())),
+        ("add_tensor_inplace", lambda: (lambda a: (a.__iadd__(other), a)[1])(base.detach())),
+        ("sub_tensor_inplace", lambda: (lambda a: (a.__isub__(other), a)[1])(base.detach())),
+        ("mul_tensor_inplace", lambda: (lambda a: (a.__imul__(other), a)[1])(base.detach())),
+        ("div_tensor_inplace", lambda: (lambda a: (a.__itruediv__(other), a)[1])(base.detach())),
+    ]
+
+    for name, fn in inplace_ops:
+        rows.append(("Cyflow", "cuda", _format_shape(shape), "inplace", name, _time_ms(fn, iterations)))
+
+    return rows
 
 
-    # ==========================================
-    # FORMATTED RESULTS TABLE
-    # ==========================================
-    print("\n" + "=" * 90)
-    print(f"{'Framework':<10} | {'Device':<6} | {'Create + Fill (ms)':<20} | {'Scalar Add (ms)':<18} | {'Tensor Add (ms)':<18}")
-    print("-" * 90)
-    for row in results:
-        print(f"{row[0]:<10} | {row[1]:<6} | {row[2]:<20.4f} | {row[3]:<18.4f} | {row[4]:<18.4f}")
-    print("=" * 90)
+def benchmark():
+    shapes = [(512, 512), (1024, 1024)]
+    iterations = 5
+
+    print("Starting comprehensive tensor benchmarks")
+    print(f"Benchmark shapes: {', '.join(_format_shape(shape) for shape in shapes)}")
+    print(f"Iterations per test: {iterations}\n")
+
+    all_rows = []
+    for shape in shapes:
+        print(f"Benchmarking shape { _format_shape(shape) }...")
+        all_rows.extend(benchmark_numpy(shape, iterations=iterations))
+        all_rows.extend(benchmark_torch(shape, iterations=iterations))
+        all_rows.extend(benchmark_cyflow(shape, iterations=iterations))
+
+    print("\n" + "=" * 140)
+    print(f"{'Library':<10} | {'Device':<6} | {'Shape':<10} | {'Mode':<8} | {'Operation':<24} | {'Time (ms)':>12}")
+    print("-" * 140)
+    for row in all_rows:
+        print(f"{row[0]:<10} | {row[1]:<6} | {row[2]:<10} | {row[3]:<8} | {row[4]:<24} | {row[5]:>12.3f}")
+    print("=" * 140)
+
 
 if __name__ == "__main__":
     benchmark()
