@@ -9,7 +9,7 @@ cdef extern from "cyflow/tensor.h":
         size_t numel
         size_t storage_offset
 
-   
+
 
     ctypedef struct Storage:
             float *data
@@ -36,6 +36,9 @@ cdef class Tensor:
     cdef _fill_from_flat_list(self, list flat_vals)
     cdef _copy_from_tensor(self, Tensor src)
     cpdef _apply_inplace(self, object other, str op)
+    cpdef bint is_contiguous(self)
 
 
 cpdef Tensor unbroadcast(Tensor grad, tuple target_shape)
+cpdef Tensor accumulate_view_grad(Tensor parent, Tensor view, Tensor grad_output)
+

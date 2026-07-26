@@ -19,6 +19,19 @@ TensorImpl* tensor_unbroadcast_cpu(const TensorImpl* grad, const int64_t* target
 // Add the CUDA unbroadcast declaration
 TensorImpl* tensor_unbroadcast_cuda(const TensorImpl* grad, const int64_t* target_shape, size_t target_ndim);
 
+// Scatter a view-shaped gradient back into the parent tensor shape
+TensorImpl* tensor_accumulate_view_grad_cpu(
+    const TensorImpl* parent,
+    const TensorImpl* view,
+    const TensorImpl* grad
+);
+
+TensorImpl* tensor_accumulate_view_grad_cuda(
+    const TensorImpl* parent,
+    const TensorImpl* view,
+    const TensorImpl* grad
+);
+
 #ifdef __cplusplus
 }
 #endif

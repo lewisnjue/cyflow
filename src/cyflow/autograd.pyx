@@ -1,5 +1,9 @@
 from cyflow.tensor cimport Tensor
-from cyflow.tensor cimport unbroadcast
+from cyflow.tensor cimport unbroadcast, accumulate_view_grad
+from libc.stdlib cimport malloc, free, calloc
+from libc.stddef cimport size_t
+from libc.stdint cimport int64_t
+from libc.string cimport memcpy
 
 cdef class AutogradNode:
     def __init__(self):
@@ -14,12 +18,12 @@ cdef class AddBackward(AutogradNode):
         super().__init__()
         self.self_tensor = self_tensor
         self.other = other
-        
+
         # Build graph edges. If a tensor is a leaf (created by user), its grad_fn is None.
         # We append None so the engine knows it reached a leaf and should accumulate the gradient.
         if self.self_tensor.requires_grad:
             self.next_functions.append(self.self_tensor.grad_fn)
-            
+
         if not isinstance(self.other, (int, float)):
             if (<Tensor>self.other).requires_grad:
                 self.next_functions.append((<Tensor>self.other).grad_fn)
@@ -28,7 +32,7 @@ cdef class AddBackward(AutogradNode):
         cdef Tensor grad_self = None
         cdef Tensor grad_other = None
         cdef Tensor other_t
-        
+
         # 1. Gradient for `self_tensor`
         if self.self_tensor.requires_grad:
             if self.self_tensor.shape != grad_output.shape:
@@ -56,10 +60,10 @@ cdef class SubBackward(AutogradNode):
         super().__init__()
         self.self_tensor = self_tensor
         self.other = other
-        
+
         if self.self_tensor.requires_grad:
             self.next_functions.append(self.self_tensor.grad_fn)
-            
+
         if not isinstance(self.other, (int, float)):
             if (<Tensor>self.other).requires_grad:
                 self.next_functions.append((<Tensor>self.other).grad_fn)
@@ -69,7 +73,7 @@ cdef class SubBackward(AutogradNode):
         cdef Tensor grad_other = None
         cdef Tensor other_t
         cdef Tensor neg_grad
-        
+
         # 1. Gradient for `self_tensor`
         if self.self_tensor.requires_grad:
             if self.self_tensor.shape != grad_output.shape:
@@ -96,10 +100,10 @@ cdef class MulBackward(AutogradNode):
         super().__init__()
         self.self_tensor = self_tensor
         self.other = other
-        
+
         if self.self_tensor.requires_grad:
             self.next_functions.append(self.self_tensor.grad_fn)
-            
+
         if not isinstance(self.other, (int, float)):
             if (<Tensor>self.other).requires_grad:
                 self.next_functions.append((<Tensor>self.other).grad_fn)
@@ -109,7 +113,7 @@ cdef class MulBackward(AutogradNode):
         cdef Tensor grad_other = None
         cdef Tensor other_t, detached_grad_out, detached_other, detached_self
         cdef Tensor temp_self, temp_other
-        
+
         detached_grad_out = grad_output.detach()
 
         # 1. Gradient for `self_tensor` (grad_output * other)
@@ -121,7 +125,7 @@ cdef class MulBackward(AutogradNode):
                 detached_other = other_t.detach()
                 temp_self = detached_grad_out * detached_other
                 del detached_other
-                
+
             if self.self_tensor.shape != temp_self.shape:
                 grad_self = unbroadcast(temp_self, self.self_tensor.shape)
                 del temp_self
@@ -135,7 +139,7 @@ cdef class MulBackward(AutogradNode):
                 detached_self = self.self_tensor.detach()
                 temp_other = detached_grad_out * detached_self
                 del detached_self
-                
+
                 if other_t.shape != temp_other.shape:
                     grad_other = unbroadcast(temp_other, other_t.shape)
                     del temp_other
@@ -151,10 +155,10 @@ cdef class DivBackward(AutogradNode):
         super().__init__()
         self.self_tensor = self_tensor
         self.other = other
-        
+
         if self.self_tensor.requires_grad:
             self.next_functions.append(self.self_tensor.grad_fn)
-            
+
         if not isinstance(self.other, (int, float)):
             if (<Tensor>self.other).requires_grad:
                 self.next_functions.append((<Tensor>self.other).grad_fn)
@@ -164,7 +168,7 @@ cdef class DivBackward(AutogradNode):
         cdef Tensor grad_other = None
         cdef Tensor other_t, detached_grad_out, detached_other, detached_self
         cdef Tensor temp_self, temp_other, temp1, temp2, temp3
-        
+
         detached_grad_out = grad_output.detach()
 
         # 1. Gradient for `self_tensor` (grad_output / other)
@@ -176,7 +180,7 @@ cdef class DivBackward(AutogradNode):
                 detached_other = other_t.detach()
                 temp_self = detached_grad_out / detached_other
                 del detached_other
-                
+
             if self.self_tensor.shape != temp_self.shape:
                 grad_self = unbroadcast(temp_self, self.self_tensor.shape)
                 del temp_self
@@ -189,19 +193,19 @@ cdef class DivBackward(AutogradNode):
             if other_t.requires_grad:
                 detached_self = self.self_tensor.detach()
                 detached_other = other_t.detach()
-                
+
                 temp1 = detached_grad_out * -1.0
                 temp2 = temp1 * detached_self
                 temp3 = detached_other * detached_other
                 temp_other = temp2 / temp3
-                
+
                 # Clean up intermediate steps
                 del detached_self
                 del detached_other
                 del temp1
                 del temp2
                 del temp3
-                
+
                 if other_t.shape != temp_other.shape:
                     grad_other = unbroadcast(temp_other, other_t.shape)
                     del temp_other
@@ -210,3 +214,48 @@ cdef class DivBackward(AutogradNode):
 
         del detached_grad_out
         return grad_self, grad_other
+
+
+cdef class ViewBackward(AutogradNode):
+    def __init__(self, Tensor input_tensor):
+        super().__init__()
+        self.self_tensor = input_tensor
+
+        if self.self_tensor.requires_grad:
+            self.next_functions.append(self.self_tensor.grad_fn)
+
+    cpdef tuple apply(self, Tensor grad_output):
+        cdef Tensor grad_input = None
+        cdef Tensor contig_grad = grad_output
+
+        if self.self_tensor.requires_grad:
+            # Force contiguous layout if strided
+            if not grad_output.is_contiguous():
+                # detach() uses tensor_clone_cpu/cuda which packs data into a contiguous buffer
+                contig_grad = grad_output.detach()
+
+            grad_input = contig_grad.view(self.self_tensor.shape)
+
+        return grad_input, None
+
+
+cdef class GetItemBackward(AutogradNode):
+    def __init__(self, Tensor input_tensor, Tensor output_view):
+        super().__init__()
+        self.self_tensor = input_tensor
+        self.output_view = output_view
+
+        if self.self_tensor.requires_grad:
+            self.next_functions.append(self.self_tensor.grad_fn)
+
+    cpdef tuple apply(self, Tensor grad_output):
+        cdef Tensor grad_input = None
+
+        if self.self_tensor.requires_grad:
+            grad_input = accumulate_view_grad(
+                self.self_tensor,
+                self.output_view,
+                grad_output,
+            )
+
+        return grad_input, None
