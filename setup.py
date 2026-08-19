@@ -113,6 +113,7 @@ tensor_sources = [
     str(CSRC_DIR / "core" / "utils.c"),
     str(CSRC_DIR / "cpu" / "inline_op_cpu.c"),
     str(CSRC_DIR / "cpu" / "out_op_cpu.c"),
+    str(CSRC_DIR / "cpu" / "matmul_cpu.c"),          # <-- added
     str(CSRC_DIR / "core" / "utils_cuda.cu")
 ]
 
@@ -125,6 +126,7 @@ if USE_CUDA:
             str(CSRC_DIR / "cuda" / "tensor_cuda.cu"),
             # <-- Added CUDA out-of-place ops
             str(CSRC_DIR / "cuda" / "out_op_cuda.cu"),
+            str(CSRC_DIR / "cuda" / "matmul_cuda.cu"),  # <-- added
         ]
     )
     tensor_libraries.extend(["cudart", "cublas", "curand"])

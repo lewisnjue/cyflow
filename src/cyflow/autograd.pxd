@@ -32,3 +32,8 @@ cdef class GetItemBackward(AutogradNode):
     cdef public Tensor self_tensor
     cdef public Tensor output_view
     cpdef tuple apply(self, Tensor grad_output)
+
+cdef class MatmulBackward(AutogradNode):
+    cdef public Tensor self_tensor
+    cdef public Tensor other
+    cpdef tuple apply(self, Tensor grad_output)

@@ -16,7 +16,7 @@
         "include_dirs": [
             "/home/njue/.dev/cyflow/src/include",
             "/home/njue/.dev/cyflow/.venv/lib/python3.12/site-packages/numpy/_core/include",
-            "/usr/local/cuda/include"
+            "/opt/cuda/include"
         ],
         "language": "c++",
         "name": "cyflow.autograd",
@@ -1566,6 +1566,7 @@ struct __pyx_obj_6cyflow_8autograd_MulBackward;
 struct __pyx_obj_6cyflow_8autograd_DivBackward;
 struct __pyx_obj_6cyflow_8autograd_ViewBackward;
 struct __pyx_obj_6cyflow_8autograd_GetItemBackward;
+struct __pyx_obj_6cyflow_8autograd_MatmulBackward;
 
 /* "cyflow/tensor.pxd":25
  *             DEVICE_CUDA
@@ -1681,6 +1682,20 @@ struct __pyx_obj_6cyflow_8autograd_GetItemBackward {
 };
 
 
+/* "cyflow/autograd.pxd":36
+ *     cpdef tuple apply(self, Tensor grad_output)
+ * 
+ * cdef class MatmulBackward(AutogradNode):             # <<<<<<<<<<<<<<
+ *     cdef public Tensor self_tensor
+ *     cdef public Tensor other
+*/
+struct __pyx_obj_6cyflow_8autograd_MatmulBackward {
+  struct __pyx_obj_6cyflow_8autograd_AutogradNode __pyx_base;
+  struct __pyx_obj_6cyflow_6tensor_Tensor *self_tensor;
+  struct __pyx_obj_6cyflow_6tensor_Tensor *other;
+};
+
+
 
 /* "cyflow/tensor.pxd":25
  *             DEVICE_CUDA
@@ -1698,6 +1713,7 @@ struct __pyx_vtabstruct_6cyflow_6tensor_Tensor {
   PyObject *(*_copy_from_tensor)(struct __pyx_obj_6cyflow_6tensor_Tensor *, struct __pyx_obj_6cyflow_6tensor_Tensor *);
   PyObject *(*_apply_inplace)(struct __pyx_obj_6cyflow_6tensor_Tensor *, PyObject *, PyObject *, int __pyx_skip_dispatch);
   int (*is_contiguous)(struct __pyx_obj_6cyflow_6tensor_Tensor *, int __pyx_skip_dispatch);
+  struct __pyx_obj_6cyflow_6tensor_Tensor *(*_transpose_last_two)(struct __pyx_obj_6cyflow_6tensor_Tensor *, int __pyx_skip_dispatch);
 };
 static struct __pyx_vtabstruct_6cyflow_6tensor_Tensor *__pyx_vtabptr_6cyflow_6tensor_Tensor;
 
@@ -1798,6 +1814,20 @@ struct __pyx_vtabstruct_6cyflow_8autograd_GetItemBackward {
   struct __pyx_vtabstruct_6cyflow_8autograd_AutogradNode __pyx_base;
 };
 static struct __pyx_vtabstruct_6cyflow_8autograd_GetItemBackward *__pyx_vtabptr_6cyflow_8autograd_GetItemBackward;
+
+
+/* "cyflow/autograd.pyx":264
+ * 
+ * 
+ * cdef class MatmulBackward(AutogradNode):             # <<<<<<<<<<<<<<
+ *     def __init__(self, Tensor self_tensor, Tensor other):
+ *         super().__init__()
+*/
+
+struct __pyx_vtabstruct_6cyflow_8autograd_MatmulBackward {
+  struct __pyx_vtabstruct_6cyflow_8autograd_AutogradNode __pyx_base;
+};
+static struct __pyx_vtabstruct_6cyflow_8autograd_MatmulBackward *__pyx_vtabptr_6cyflow_8autograd_MatmulBackward;
 /* #### Code section: utility_code_proto ### */
 
 /* --- Runtime support code (head) --- */
@@ -2232,6 +2262,10 @@ static CYTHON_INLINE int __Pyx_PyList_Append(PyObject* list, PyObject* x) {
 /* ExtTypeTest.proto */
 static CYTHON_INLINE int __Pyx_TypeTest(PyObject *obj, PyTypeObject *type);
 
+/* MatrixMultiply.proto */
+#define __Pyx_PyNumber_MatrixMultiply(x,y)         PyNumber_MatrixMultiply(x,y)
+#define __Pyx_PyNumber_InPlaceMatrixMultiply(x,y)  PyNumber_InPlaceMatrixMultiply(x,y)
+
 /* GetItemInt.proto */
 #define __Pyx_GetItemInt(o, i, type, is_signed, to_py_func, is_list, wraparound, boundscheck, has_gil, unsafe_shared)\
     (__Pyx_fits_Py_ssize_t(i, type, is_signed) ?\
@@ -2646,6 +2680,7 @@ static PyObject *__pyx_f_6cyflow_8autograd_11MulBackward_apply(struct __pyx_obj_
 static PyObject *__pyx_f_6cyflow_8autograd_11DivBackward_apply(struct __pyx_obj_6cyflow_8autograd_DivBackward *__pyx_v_self, struct __pyx_obj_6cyflow_6tensor_Tensor *__pyx_v_grad_output, int __pyx_skip_dispatch); /* proto*/
 static PyObject *__pyx_f_6cyflow_8autograd_12ViewBackward_apply(struct __pyx_obj_6cyflow_8autograd_ViewBackward *__pyx_v_self, struct __pyx_obj_6cyflow_6tensor_Tensor *__pyx_v_grad_output, int __pyx_skip_dispatch); /* proto*/
 static PyObject *__pyx_f_6cyflow_8autograd_15GetItemBackward_apply(struct __pyx_obj_6cyflow_8autograd_GetItemBackward *__pyx_v_self, struct __pyx_obj_6cyflow_6tensor_Tensor *__pyx_v_grad_output, int __pyx_skip_dispatch); /* proto*/
+static PyObject *__pyx_f_6cyflow_8autograd_14MatmulBackward_apply(struct __pyx_obj_6cyflow_8autograd_MatmulBackward *__pyx_v_self, struct __pyx_obj_6cyflow_6tensor_Tensor *__pyx_v_grad_output, int __pyx_skip_dispatch); /* proto*/
 
 /* Module declarations from "libc.stdint" */
 
@@ -2667,6 +2702,7 @@ static PyObject *__pyx_f_6cyflow_8autograd___pyx_unpickle_MulBackward__set_state
 static PyObject *__pyx_f_6cyflow_8autograd___pyx_unpickle_DivBackward__set_state(struct __pyx_obj_6cyflow_8autograd_DivBackward *, PyObject *); /*proto*/
 static PyObject *__pyx_f_6cyflow_8autograd___pyx_unpickle_ViewBackward__set_state(struct __pyx_obj_6cyflow_8autograd_ViewBackward *, PyObject *); /*proto*/
 static PyObject *__pyx_f_6cyflow_8autograd___pyx_unpickle_GetItemBackward__set_state(struct __pyx_obj_6cyflow_8autograd_GetItemBackward *, PyObject *); /*proto*/
+static PyObject *__pyx_f_6cyflow_8autograd___pyx_unpickle_MatmulBackward__set_state(struct __pyx_obj_6cyflow_8autograd_MatmulBackward *, PyObject *); /*proto*/
 /* #### Code section: typeinfo ### */
 /* #### Code section: before_global_var ### */
 #define __Pyx_MODULE_NAME "cyflow.autograd"
@@ -2746,6 +2782,16 @@ static int __pyx_pf_6cyflow_8autograd_15GetItemBackward_11output_view_2__set__(s
 static int __pyx_pf_6cyflow_8autograd_15GetItemBackward_11output_view_4__del__(struct __pyx_obj_6cyflow_8autograd_GetItemBackward *__pyx_v_self); /* proto */
 static PyObject *__pyx_pf_6cyflow_8autograd_15GetItemBackward_4__reduce_cython__(struct __pyx_obj_6cyflow_8autograd_GetItemBackward *__pyx_v_self); /* proto */
 static PyObject *__pyx_pf_6cyflow_8autograd_15GetItemBackward_6__setstate_cython__(struct __pyx_obj_6cyflow_8autograd_GetItemBackward *__pyx_v_self, PyObject *__pyx_v___pyx_state); /* proto */
+static int __pyx_pf_6cyflow_8autograd_14MatmulBackward___init__(struct __pyx_obj_6cyflow_8autograd_MatmulBackward *__pyx_v_self, struct __pyx_obj_6cyflow_6tensor_Tensor *__pyx_v_self_tensor, struct __pyx_obj_6cyflow_6tensor_Tensor *__pyx_v_other); /* proto */
+static PyObject *__pyx_pf_6cyflow_8autograd_14MatmulBackward_2apply(struct __pyx_obj_6cyflow_8autograd_MatmulBackward *__pyx_v_self, struct __pyx_obj_6cyflow_6tensor_Tensor *__pyx_v_grad_output); /* proto */
+static PyObject *__pyx_pf_6cyflow_8autograd_14MatmulBackward_11self_tensor___get__(struct __pyx_obj_6cyflow_8autograd_MatmulBackward *__pyx_v_self); /* proto */
+static int __pyx_pf_6cyflow_8autograd_14MatmulBackward_11self_tensor_2__set__(struct __pyx_obj_6cyflow_8autograd_MatmulBackward *__pyx_v_self, PyObject *__pyx_v_value); /* proto */
+static int __pyx_pf_6cyflow_8autograd_14MatmulBackward_11self_tensor_4__del__(struct __pyx_obj_6cyflow_8autograd_MatmulBackward *__pyx_v_self); /* proto */
+static PyObject *__pyx_pf_6cyflow_8autograd_14MatmulBackward_5other___get__(struct __pyx_obj_6cyflow_8autograd_MatmulBackward *__pyx_v_self); /* proto */
+static int __pyx_pf_6cyflow_8autograd_14MatmulBackward_5other_2__set__(struct __pyx_obj_6cyflow_8autograd_MatmulBackward *__pyx_v_self, PyObject *__pyx_v_value); /* proto */
+static int __pyx_pf_6cyflow_8autograd_14MatmulBackward_5other_4__del__(struct __pyx_obj_6cyflow_8autograd_MatmulBackward *__pyx_v_self); /* proto */
+static PyObject *__pyx_pf_6cyflow_8autograd_14MatmulBackward_4__reduce_cython__(struct __pyx_obj_6cyflow_8autograd_MatmulBackward *__pyx_v_self); /* proto */
+static PyObject *__pyx_pf_6cyflow_8autograd_14MatmulBackward_6__setstate_cython__(struct __pyx_obj_6cyflow_8autograd_MatmulBackward *__pyx_v_self, PyObject *__pyx_v___pyx_state); /* proto */
 static PyObject *__pyx_pf_6cyflow_8autograd___pyx_unpickle_AutogradNode(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v___pyx_type, long __pyx_v___pyx_checksum, PyObject *__pyx_v___pyx_state); /* proto */
 static PyObject *__pyx_pf_6cyflow_8autograd_2__pyx_unpickle_AddBackward(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v___pyx_type, long __pyx_v___pyx_checksum, PyObject *__pyx_v___pyx_state); /* proto */
 static PyObject *__pyx_pf_6cyflow_8autograd_4__pyx_unpickle_SubBackward(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v___pyx_type, long __pyx_v___pyx_checksum, PyObject *__pyx_v___pyx_state); /* proto */
@@ -2753,6 +2799,7 @@ static PyObject *__pyx_pf_6cyflow_8autograd_6__pyx_unpickle_MulBackward(CYTHON_U
 static PyObject *__pyx_pf_6cyflow_8autograd_8__pyx_unpickle_DivBackward(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v___pyx_type, long __pyx_v___pyx_checksum, PyObject *__pyx_v___pyx_state); /* proto */
 static PyObject *__pyx_pf_6cyflow_8autograd_10__pyx_unpickle_ViewBackward(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v___pyx_type, long __pyx_v___pyx_checksum, PyObject *__pyx_v___pyx_state); /* proto */
 static PyObject *__pyx_pf_6cyflow_8autograd_12__pyx_unpickle_GetItemBackward(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v___pyx_type, long __pyx_v___pyx_checksum, PyObject *__pyx_v___pyx_state); /* proto */
+static PyObject *__pyx_pf_6cyflow_8autograd_14__pyx_unpickle_MatmulBackward(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v___pyx_type, long __pyx_v___pyx_checksum, PyObject *__pyx_v___pyx_state); /* proto */
 static PyObject *__pyx_tp_new_6cyflow_8autograd_AutogradNode(PyTypeObject *t, PyObject *a, PyObject *k); /*proto*/
 static PyObject *__pyx_tp_new_6cyflow_8autograd_AddBackward(PyTypeObject *t, PyObject *a, PyObject *k); /*proto*/
 static PyObject *__pyx_tp_new_6cyflow_8autograd_SubBackward(PyTypeObject *t, PyObject *a, PyObject *k); /*proto*/
@@ -2760,6 +2807,7 @@ static PyObject *__pyx_tp_new_6cyflow_8autograd_MulBackward(PyTypeObject *t, PyO
 static PyObject *__pyx_tp_new_6cyflow_8autograd_DivBackward(PyTypeObject *t, PyObject *a, PyObject *k); /*proto*/
 static PyObject *__pyx_tp_new_6cyflow_8autograd_ViewBackward(PyTypeObject *t, PyObject *a, PyObject *k); /*proto*/
 static PyObject *__pyx_tp_new_6cyflow_8autograd_GetItemBackward(PyTypeObject *t, PyObject *a, PyObject *k); /*proto*/
+static PyObject *__pyx_tp_new_6cyflow_8autograd_MatmulBackward(PyTypeObject *t, PyObject *a, PyObject *k); /*proto*/
 /* #### Code section: late_includes ### */
 /* #### Code section: module_state ### */
 /* SmallCodeConfig */
@@ -2788,6 +2836,7 @@ typedef struct {
   PyObject *__pyx_type_6cyflow_8autograd_DivBackward;
   PyObject *__pyx_type_6cyflow_8autograd_ViewBackward;
   PyObject *__pyx_type_6cyflow_8autograd_GetItemBackward;
+  PyObject *__pyx_type_6cyflow_8autograd_MatmulBackward;
   PyTypeObject *__pyx_ptype_6cyflow_8autograd_AutogradNode;
   PyTypeObject *__pyx_ptype_6cyflow_8autograd_AddBackward;
   PyTypeObject *__pyx_ptype_6cyflow_8autograd_SubBackward;
@@ -2795,11 +2844,12 @@ typedef struct {
   PyTypeObject *__pyx_ptype_6cyflow_8autograd_DivBackward;
   PyTypeObject *__pyx_ptype_6cyflow_8autograd_ViewBackward;
   PyTypeObject *__pyx_ptype_6cyflow_8autograd_GetItemBackward;
+  PyTypeObject *__pyx_ptype_6cyflow_8autograd_MatmulBackward;
   __Pyx_CachedCFunction __pyx_umethod_PyDict_Type_items;
   __Pyx_CachedCFunction __pyx_umethod_PyDict_Type_pop;
   __Pyx_CachedCFunction __pyx_umethod_PyDict_Type_values;
-  PyObject *__pyx_codeobj_tab[28];
-  PyObject *__pyx_string_tab[109];
+  PyObject *__pyx_codeobj_tab[32];
+  PyObject *__pyx_string_tab[118];
   PyObject *__pyx_number_tab[5];
 /* #### Code section: module_state_contents ### */
 /* CommonTypesMetaclass.module_state_decls */
@@ -2867,89 +2917,98 @@ static __pyx_mstatetype * const __pyx_mstate_global = &__pyx_mstate_global_stati
 #define __pyx_n_u_GetItemBackward___reduce_cython __pyx_string_tab[23]
 #define __pyx_n_u_GetItemBackward___setstate_cytho __pyx_string_tab[24]
 #define __pyx_n_u_GetItemBackward_apply __pyx_string_tab[25]
-#define __pyx_n_u_MulBackward __pyx_string_tab[26]
-#define __pyx_n_u_MulBackward___reduce_cython __pyx_string_tab[27]
-#define __pyx_n_u_MulBackward___setstate_cython __pyx_string_tab[28]
-#define __pyx_n_u_MulBackward_apply __pyx_string_tab[29]
-#define __pyx_n_u_Pyx_PyDict_NextRef __pyx_string_tab[30]
-#define __pyx_n_u_SubBackward __pyx_string_tab[31]
-#define __pyx_n_u_SubBackward___reduce_cython __pyx_string_tab[32]
-#define __pyx_n_u_SubBackward___setstate_cython __pyx_string_tab[33]
-#define __pyx_n_u_SubBackward_apply __pyx_string_tab[34]
-#define __pyx_n_u_ViewBackward __pyx_string_tab[35]
-#define __pyx_n_u_ViewBackward___reduce_cython __pyx_string_tab[36]
-#define __pyx_n_u_ViewBackward___setstate_cython __pyx_string_tab[37]
-#define __pyx_n_u_ViewBackward_apply __pyx_string_tab[38]
-#define __pyx_n_u_annotate __pyx_string_tab[39]
-#define __pyx_n_u_apply __pyx_string_tab[40]
-#define __pyx_n_u_asyncio_coroutines __pyx_string_tab[41]
-#define __pyx_n_u_cline_in_traceback __pyx_string_tab[42]
-#define __pyx_n_u_cyflow_autograd __pyx_string_tab[43]
-#define __pyx_n_u_detach __pyx_string_tab[44]
-#define __pyx_n_u_dict __pyx_string_tab[45]
-#define __pyx_n_u_dict_2 __pyx_string_tab[46]
-#define __pyx_n_u_func __pyx_string_tab[47]
-#define __pyx_n_u_getstate __pyx_string_tab[48]
-#define __pyx_n_u_grad_output __pyx_string_tab[49]
-#define __pyx_n_u_init __pyx_string_tab[50]
-#define __pyx_n_u_input_tensor __pyx_string_tab[51]
-#define __pyx_n_u_is_coroutine __pyx_string_tab[52]
-#define __pyx_n_u_items __pyx_string_tab[53]
-#define __pyx_n_u_main __pyx_string_tab[54]
-#define __pyx_n_u_module __pyx_string_tab[55]
-#define __pyx_n_u_name __pyx_string_tab[56]
-#define __pyx_n_u_new __pyx_string_tab[57]
-#define __pyx_n_u_other __pyx_string_tab[58]
-#define __pyx_n_u_output_view __pyx_string_tab[59]
-#define __pyx_n_u_pop __pyx_string_tab[60]
-#define __pyx_n_u_pyx_checksum __pyx_string_tab[61]
-#define __pyx_n_u_pyx_result __pyx_string_tab[62]
-#define __pyx_n_u_pyx_state __pyx_string_tab[63]
-#define __pyx_n_u_pyx_type __pyx_string_tab[64]
-#define __pyx_n_u_pyx_unpickle_AddBackward __pyx_string_tab[65]
-#define __pyx_n_u_pyx_unpickle_AutogradNode __pyx_string_tab[66]
-#define __pyx_n_u_pyx_unpickle_DivBackward __pyx_string_tab[67]
-#define __pyx_n_u_pyx_unpickle_GetItemBackward __pyx_string_tab[68]
-#define __pyx_n_u_pyx_unpickle_MulBackward __pyx_string_tab[69]
-#define __pyx_n_u_pyx_unpickle_SubBackward __pyx_string_tab[70]
-#define __pyx_n_u_pyx_unpickle_ViewBackward __pyx_string_tab[71]
-#define __pyx_n_u_pyx_vtable __pyx_string_tab[72]
-#define __pyx_n_u_qualname __pyx_string_tab[73]
-#define __pyx_n_u_reduce __pyx_string_tab[74]
-#define __pyx_n_u_reduce_cython __pyx_string_tab[75]
-#define __pyx_n_u_reduce_ex __pyx_string_tab[76]
-#define __pyx_n_u_self __pyx_string_tab[77]
-#define __pyx_n_u_self_tensor __pyx_string_tab[78]
-#define __pyx_n_u_set_name __pyx_string_tab[79]
-#define __pyx_n_u_setdefault __pyx_string_tab[80]
-#define __pyx_n_u_setstate __pyx_string_tab[81]
-#define __pyx_n_u_setstate_cython __pyx_string_tab[82]
-#define __pyx_n_u_shape __pyx_string_tab[83]
-#define __pyx_n_u_state __pyx_string_tab[84]
-#define __pyx_n_u_super __pyx_string_tab[85]
-#define __pyx_n_u_test __pyx_string_tab[86]
-#define __pyx_n_u_update __pyx_string_tab[87]
-#define __pyx_n_u_use_setstate __pyx_string_tab[88]
-#define __pyx_n_u_values __pyx_string_tab[89]
-#define __pyx_n_u_view __pyx_string_tab[90]
-#define __pyx_kp_b_iso88591_6 __pyx_string_tab[91]
-#define __pyx_kp_b_iso88591_A __pyx_string_tab[92]
-#define __pyx_kp_b_iso88591_A_4_1_Q_A_A_1 __pyx_string_tab[93]
-#define __pyx_kp_b_iso88591_A_4_1_t_nA_k_E_l_1 __pyx_string_tab[94]
-#define __pyx_kp_b_iso88591_A_4_1_t_wc_A_Kq_T_Q_A_4z_iuA_hd __pyx_string_tab[95]
-#define __pyx_kp_b_iso88591_A_4_1_t_wc_A_Kq_T_Q_A_4z_iuA_hd_2 __pyx_string_tab[96]
-#define __pyx_kp_b_iso88591_A_Kwa_4_1_z_iuA_b_A_a_q_b_A_t_wc __pyx_string_tab[97]
-#define __pyx_kp_b_iso88591_A_Kwa_4_1_z_iuA_b_A_a_q_b_A_t_wc_2 __pyx_string_tab[98]
-#define __pyx_kp_b_iso88591_QfA __pyx_string_tab[99]
-#define __pyx_kp_b_iso88591_T_G1F_a_vWE_Q_q_t_7_q_T_G1_T_A __pyx_string_tab[100]
-#define __pyx_kp_b_iso88591_T_a_G1F_a_vWE_Q_q_t_7_s_m7RS_q __pyx_string_tab[101]
-#define __pyx_kp_b_iso88591_T_hd_G1F_a_vWE_Q_q_t_7_s_gWEQTT __pyx_string_tab[102]
-#define __pyx_kp_b_iso88591_T_nD_G1F_a_vWE_Q_q_t_7_s_m7RWWZ __pyx_string_tab[103]
-#define __pyx_kp_b_iso88591__2 __pyx_string_tab[104]
-#define __pyx_kp_b_iso88591_q_0_kQR_1_7_1_2DNRS_1 __pyx_string_tab[105]
-#define __pyx_kp_b_iso88591_q_0_kQR_haq_7_QnN_1 __pyx_string_tab[106]
-#define __pyx_kp_b_iso88591_q_0_kQR_xq_7_a_nA_1 __pyx_string_tab[107]
-#define __pyx_kp_b_struct___pyx_obj_6cyflow_6tensor __pyx_string_tab[108]
+#define __pyx_n_u_MatmulBackward __pyx_string_tab[26]
+#define __pyx_n_u_MatmulBackward___reduce_cython __pyx_string_tab[27]
+#define __pyx_n_u_MatmulBackward___setstate_cython __pyx_string_tab[28]
+#define __pyx_n_u_MatmulBackward_apply __pyx_string_tab[29]
+#define __pyx_n_u_MulBackward __pyx_string_tab[30]
+#define __pyx_n_u_MulBackward___reduce_cython __pyx_string_tab[31]
+#define __pyx_n_u_MulBackward___setstate_cython __pyx_string_tab[32]
+#define __pyx_n_u_MulBackward_apply __pyx_string_tab[33]
+#define __pyx_n_u_Pyx_PyDict_NextRef __pyx_string_tab[34]
+#define __pyx_n_u_SubBackward __pyx_string_tab[35]
+#define __pyx_n_u_SubBackward___reduce_cython __pyx_string_tab[36]
+#define __pyx_n_u_SubBackward___setstate_cython __pyx_string_tab[37]
+#define __pyx_n_u_SubBackward_apply __pyx_string_tab[38]
+#define __pyx_n_u_ViewBackward __pyx_string_tab[39]
+#define __pyx_n_u_ViewBackward___reduce_cython __pyx_string_tab[40]
+#define __pyx_n_u_ViewBackward___setstate_cython __pyx_string_tab[41]
+#define __pyx_n_u_ViewBackward_apply __pyx_string_tab[42]
+#define __pyx_n_u_annotate __pyx_string_tab[43]
+#define __pyx_n_u_apply __pyx_string_tab[44]
+#define __pyx_n_u_asyncio_coroutines __pyx_string_tab[45]
+#define __pyx_n_u_cline_in_traceback __pyx_string_tab[46]
+#define __pyx_n_u_cyflow_autograd __pyx_string_tab[47]
+#define __pyx_n_u_detach __pyx_string_tab[48]
+#define __pyx_n_u_dict __pyx_string_tab[49]
+#define __pyx_n_u_dict_2 __pyx_string_tab[50]
+#define __pyx_n_u_func __pyx_string_tab[51]
+#define __pyx_n_u_getstate __pyx_string_tab[52]
+#define __pyx_n_u_grad_output __pyx_string_tab[53]
+#define __pyx_n_u_init __pyx_string_tab[54]
+#define __pyx_n_u_input_tensor __pyx_string_tab[55]
+#define __pyx_n_u_is_coroutine __pyx_string_tab[56]
+#define __pyx_n_u_items __pyx_string_tab[57]
+#define __pyx_n_u_main __pyx_string_tab[58]
+#define __pyx_n_u_module __pyx_string_tab[59]
+#define __pyx_n_u_name __pyx_string_tab[60]
+#define __pyx_n_u_new __pyx_string_tab[61]
+#define __pyx_n_u_other __pyx_string_tab[62]
+#define __pyx_n_u_output_view __pyx_string_tab[63]
+#define __pyx_n_u_pop __pyx_string_tab[64]
+#define __pyx_n_u_pyx_checksum __pyx_string_tab[65]
+#define __pyx_n_u_pyx_result __pyx_string_tab[66]
+#define __pyx_n_u_pyx_state __pyx_string_tab[67]
+#define __pyx_n_u_pyx_type __pyx_string_tab[68]
+#define __pyx_n_u_pyx_unpickle_AddBackward __pyx_string_tab[69]
+#define __pyx_n_u_pyx_unpickle_AutogradNode __pyx_string_tab[70]
+#define __pyx_n_u_pyx_unpickle_DivBackward __pyx_string_tab[71]
+#define __pyx_n_u_pyx_unpickle_GetItemBackward __pyx_string_tab[72]
+#define __pyx_n_u_pyx_unpickle_MatmulBackward __pyx_string_tab[73]
+#define __pyx_n_u_pyx_unpickle_MulBackward __pyx_string_tab[74]
+#define __pyx_n_u_pyx_unpickle_SubBackward __pyx_string_tab[75]
+#define __pyx_n_u_pyx_unpickle_ViewBackward __pyx_string_tab[76]
+#define __pyx_n_u_pyx_vtable __pyx_string_tab[77]
+#define __pyx_n_u_qualname __pyx_string_tab[78]
+#define __pyx_n_u_reduce __pyx_string_tab[79]
+#define __pyx_n_u_reduce_cython __pyx_string_tab[80]
+#define __pyx_n_u_reduce_ex __pyx_string_tab[81]
+#define __pyx_n_u_self __pyx_string_tab[82]
+#define __pyx_n_u_self_tensor __pyx_string_tab[83]
+#define __pyx_n_u_set_name __pyx_string_tab[84]
+#define __pyx_n_u_setdefault __pyx_string_tab[85]
+#define __pyx_n_u_setstate __pyx_string_tab[86]
+#define __pyx_n_u_setstate_cython __pyx_string_tab[87]
+#define __pyx_n_u_shape __pyx_string_tab[88]
+#define __pyx_n_u_state __pyx_string_tab[89]
+#define __pyx_n_u_super __pyx_string_tab[90]
+#define __pyx_n_u_test __pyx_string_tab[91]
+#define __pyx_n_u_update __pyx_string_tab[92]
+#define __pyx_n_u_use_setstate __pyx_string_tab[93]
+#define __pyx_n_u_values __pyx_string_tab[94]
+#define __pyx_n_u_view __pyx_string_tab[95]
+#define __pyx_kp_b_iso88591_6 __pyx_string_tab[96]
+#define __pyx_kp_b_iso88591_A __pyx_string_tab[97]
+#define __pyx_kp_b_iso88591_AV1 __pyx_string_tab[98]
+#define __pyx_kp_b_iso88591_A_4_1_Q_A_A_1 __pyx_string_tab[99]
+#define __pyx_kp_b_iso88591_A_4_1_t_nA_k_E_l_1 __pyx_string_tab[100]
+#define __pyx_kp_b_iso88591_A_4_1_t_wc_A_Kq_T_Q_A_4z_iuA_hd __pyx_string_tab[101]
+#define __pyx_kp_b_iso88591_A_4_1_t_wc_A_Kq_T_Q_A_4z_iuA_hd_2 __pyx_string_tab[102]
+#define __pyx_kp_b_iso88591_A_Kwa_4_1_T_wa_4A_A_t_wc_Kq_4_1 __pyx_string_tab[103]
+#define __pyx_kp_b_iso88591_A_Kwa_4_1_z_iuA_b_A_a_q_b_A_t_wc __pyx_string_tab[104]
+#define __pyx_kp_b_iso88591_A_Kwa_4_1_z_iuA_b_A_a_q_b_A_t_wc_2 __pyx_string_tab[105]
+#define __pyx_kp_b_iso88591_QfA __pyx_string_tab[106]
+#define __pyx_kp_b_iso88591_T_G1F_a_vWE_Q_q_t_7_q_T_G1_T_A __pyx_string_tab[107]
+#define __pyx_kp_b_iso88591_T_a_G1F_a_vWE_Q_q_t_7_s_m7RS_q __pyx_string_tab[108]
+#define __pyx_kp_b_iso88591_T_hd_G1F_a_vWE_Q_q_t_7_s_gWEQTT __pyx_string_tab[109]
+#define __pyx_kp_b_iso88591_T_hd_G1F_a_vWE_Q_q_t_7_s_gWEQTT_2 __pyx_string_tab[110]
+#define __pyx_kp_b_iso88591_T_nD_G1F_a_vWE_Q_q_t_7_s_m7RWWZ __pyx_string_tab[111]
+#define __pyx_kp_b_iso88591__2 __pyx_string_tab[112]
+#define __pyx_kp_b_iso88591_q_0_kQR_1_7_1_2DNRS_1 __pyx_string_tab[113]
+#define __pyx_kp_b_iso88591_q_0_kQR_7_0_1B_PQ_1 __pyx_string_tab[114]
+#define __pyx_kp_b_iso88591_q_0_kQR_haq_7_QnN_1 __pyx_string_tab[115]
+#define __pyx_kp_b_iso88591_q_0_kQR_xq_7_a_nA_1 __pyx_string_tab[116]
+#define __pyx_kp_b_struct___pyx_obj_6cyflow_6tensor __pyx_string_tab[117]
 #define __pyx_float_neg_1_0 __pyx_number_tab[0]
 #define __pyx_int_34883800 __pyx_number_tab[1]
 #define __pyx_int_56086332 __pyx_number_tab[2]
@@ -2984,8 +3043,10 @@ static CYTHON_SMALL_CODE int __pyx_m_clear(PyObject *m) {
   Py_CLEAR(clear_module_state->__pyx_type_6cyflow_8autograd_ViewBackward);
   Py_CLEAR(clear_module_state->__pyx_ptype_6cyflow_8autograd_GetItemBackward);
   Py_CLEAR(clear_module_state->__pyx_type_6cyflow_8autograd_GetItemBackward);
-  for (int i=0; i<28; ++i) { Py_CLEAR(clear_module_state->__pyx_codeobj_tab[i]); }
-  for (int i=0; i<109; ++i) { Py_CLEAR(clear_module_state->__pyx_string_tab[i]); }
+  Py_CLEAR(clear_module_state->__pyx_ptype_6cyflow_8autograd_MatmulBackward);
+  Py_CLEAR(clear_module_state->__pyx_type_6cyflow_8autograd_MatmulBackward);
+  for (int i=0; i<32; ++i) { Py_CLEAR(clear_module_state->__pyx_codeobj_tab[i]); }
+  for (int i=0; i<118; ++i) { Py_CLEAR(clear_module_state->__pyx_string_tab[i]); }
   for (int i=0; i<5; ++i) { Py_CLEAR(clear_module_state->__pyx_number_tab[i]); }
 /* #### Code section: module_state_clear_contents ### */
 /* CommonTypesMetaclass.module_state_clear */
@@ -3024,8 +3085,10 @@ static CYTHON_SMALL_CODE int __pyx_m_traverse(PyObject *m, visitproc visit, void
   Py_VISIT(traverse_module_state->__pyx_type_6cyflow_8autograd_ViewBackward);
   Py_VISIT(traverse_module_state->__pyx_ptype_6cyflow_8autograd_GetItemBackward);
   Py_VISIT(traverse_module_state->__pyx_type_6cyflow_8autograd_GetItemBackward);
-  for (int i=0; i<28; ++i) { __Pyx_VISIT_CONST(traverse_module_state->__pyx_codeobj_tab[i]); }
-  for (int i=0; i<109; ++i) { __Pyx_VISIT_CONST(traverse_module_state->__pyx_string_tab[i]); }
+  Py_VISIT(traverse_module_state->__pyx_ptype_6cyflow_8autograd_MatmulBackward);
+  Py_VISIT(traverse_module_state->__pyx_type_6cyflow_8autograd_MatmulBackward);
+  for (int i=0; i<32; ++i) { __Pyx_VISIT_CONST(traverse_module_state->__pyx_codeobj_tab[i]); }
+  for (int i=0; i<118; ++i) { __Pyx_VISIT_CONST(traverse_module_state->__pyx_string_tab[i]); }
   for (int i=0; i<5; ++i) { __Pyx_VISIT_CONST(traverse_module_state->__pyx_number_tab[i]); }
 /* #### Code section: module_state_traverse_contents ### */
 /* CommonTypesMetaclass.module_state_traverse */
@@ -11522,6 +11585,8 @@ static PyObject *__pyx_f_6cyflow_8autograd_15GetItemBackward_apply(struct __pyx_
  *             )
  * 
  *         return grad_input, None             # <<<<<<<<<<<<<<
+ * 
+ * 
 */
   __Pyx_XDECREF(__pyx_r);
   __pyx_t_4 = PyTuple_New(2); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 261, __pyx_L1_error)
@@ -11799,6 +11864,7 @@ static int __pyx_pf_6cyflow_8autograd_15GetItemBackward_11self_tensor_4__del__(s
  *     cdef public Tensor self_tensor
  *     cdef public Tensor output_view             # <<<<<<<<<<<<<<
  *     cpdef tuple apply(self, Tensor grad_output)
+ * 
 */
 
 /* Python wrapper */
@@ -12329,6 +12395,1531 @@ static PyObject *__pyx_pf_6cyflow_8autograd_15GetItemBackward_6__setstate_cython
   __Pyx_XDECREF(__pyx_t_1);
   __Pyx_XDECREF(__pyx_t_2);
   __Pyx_AddTraceback("cyflow.autograd.GetItemBackward.__setstate_cython__", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __pyx_r = NULL;
+  __pyx_L0:;
+  __Pyx_XGIVEREF(__pyx_r);
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* "cyflow/autograd.pyx":265
+ * 
+ * cdef class MatmulBackward(AutogradNode):
+ *     def __init__(self, Tensor self_tensor, Tensor other):             # <<<<<<<<<<<<<<
+ *         super().__init__()
+ *         self.self_tensor = self_tensor
+*/
+
+/* Python wrapper */
+static int __pyx_pw_6cyflow_8autograd_14MatmulBackward_1__init__(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static int __pyx_pw_6cyflow_8autograd_14MatmulBackward_1__init__(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+  struct __pyx_obj_6cyflow_6tensor_Tensor *__pyx_v_self_tensor = 0;
+  struct __pyx_obj_6cyflow_6tensor_Tensor *__pyx_v_other = 0;
+  CYTHON_UNUSED Py_ssize_t __pyx_nargs;
+  CYTHON_UNUSED PyObject *const *__pyx_kwvalues;
+  PyObject* values[2] = {0,0};
+  int __pyx_lineno = 0;
+  const char *__pyx_filename = NULL;
+  int __pyx_clineno = 0;
+  int __pyx_r;
+  __Pyx_RefNannyDeclarations
+  __Pyx_RefNannySetupContext("__init__ (wrapper)", 0);
+  #if CYTHON_ASSUME_SAFE_SIZE
+  __pyx_nargs = PyTuple_GET_SIZE(__pyx_args);
+  #else
+  __pyx_nargs = PyTuple_Size(__pyx_args); if (unlikely(__pyx_nargs < 0)) return -1;
+  #endif
+  __pyx_kwvalues = __Pyx_KwValues_VARARGS(__pyx_args, __pyx_nargs);
+  {
+    PyObject ** const __pyx_pyargnames[] = {&__pyx_mstate_global->__pyx_n_u_self_tensor,&__pyx_mstate_global->__pyx_n_u_other,0};
+    const Py_ssize_t __pyx_kwds_len = (__pyx_kwds) ? __Pyx_NumKwargs_VARARGS(__pyx_kwds) : 0;
+    if (unlikely(__pyx_kwds_len < 0)) __PYX_ERR(0, 265, __pyx_L3_error)
+    if (__pyx_kwds_len > 0) {
+      switch (__pyx_nargs) {
+        case  2:
+        values[1] = __Pyx_ArgRef_VARARGS(__pyx_args, 1);
+        if (!CYTHON_ASSUME_SAFE_MACROS && unlikely(!values[1])) __PYX_ERR(0, 265, __pyx_L3_error)
+        CYTHON_FALLTHROUGH;
+        case  1:
+        values[0] = __Pyx_ArgRef_VARARGS(__pyx_args, 0);
+        if (!CYTHON_ASSUME_SAFE_MACROS && unlikely(!values[0])) __PYX_ERR(0, 265, __pyx_L3_error)
+        CYTHON_FALLTHROUGH;
+        case  0: break;
+        default: goto __pyx_L5_argtuple_error;
+      }
+      const Py_ssize_t kwd_pos_args = __pyx_nargs;
+      if (__Pyx_ParseKeywords(__pyx_kwds, __pyx_kwvalues, __pyx_pyargnames, 0, values, kwd_pos_args, __pyx_kwds_len, "__init__", 0) < (0)) __PYX_ERR(0, 265, __pyx_L3_error)
+      for (Py_ssize_t i = __pyx_nargs; i < 2; i++) {
+        if (unlikely(!values[i])) { __Pyx_RaiseArgtupleInvalid("__init__", 1, 2, 2, i); __PYX_ERR(0, 265, __pyx_L3_error) }
+      }
+    } else if (unlikely(__pyx_nargs != 2)) {
+      goto __pyx_L5_argtuple_error;
+    } else {
+      values[0] = __Pyx_ArgRef_VARARGS(__pyx_args, 0);
+      if (!CYTHON_ASSUME_SAFE_MACROS && unlikely(!values[0])) __PYX_ERR(0, 265, __pyx_L3_error)
+      values[1] = __Pyx_ArgRef_VARARGS(__pyx_args, 1);
+      if (!CYTHON_ASSUME_SAFE_MACROS && unlikely(!values[1])) __PYX_ERR(0, 265, __pyx_L3_error)
+    }
+    __pyx_v_self_tensor = ((struct __pyx_obj_6cyflow_6tensor_Tensor *)values[0]);
+    __pyx_v_other = ((struct __pyx_obj_6cyflow_6tensor_Tensor *)values[1]);
+  }
+  goto __pyx_L6_skip;
+  __pyx_L5_argtuple_error:;
+  __Pyx_RaiseArgtupleInvalid("__init__", 1, 2, 2, __pyx_nargs); __PYX_ERR(0, 265, __pyx_L3_error)
+  __pyx_L6_skip:;
+  goto __pyx_L4_argument_unpacking_done;
+  __pyx_L3_error:;
+  for (Py_ssize_t __pyx_temp=0; __pyx_temp < (Py_ssize_t)(sizeof(values)/sizeof(values[0])); ++__pyx_temp) {
+    Py_XDECREF(values[__pyx_temp]);
+  }
+  __Pyx_AddTraceback("cyflow.autograd.MatmulBackward.__init__", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_RefNannyFinishContext();
+  return -1;
+  __pyx_L4_argument_unpacking_done:;
+  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_self_tensor), __pyx_mstate_global->__pyx_ptype_6cyflow_6tensor_Tensor, 1, "self_tensor", 0))) __PYX_ERR(0, 265, __pyx_L1_error)
+  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_other), __pyx_mstate_global->__pyx_ptype_6cyflow_6tensor_Tensor, 1, "other", 0))) __PYX_ERR(0, 265, __pyx_L1_error)
+  __pyx_r = __pyx_pf_6cyflow_8autograd_14MatmulBackward___init__(((struct __pyx_obj_6cyflow_8autograd_MatmulBackward *)__pyx_v_self), __pyx_v_self_tensor, __pyx_v_other);
+
+  /* function exit code */
+  goto __pyx_L0;
+  __pyx_L1_error:;
+  __pyx_r = -1;
+  for (Py_ssize_t __pyx_temp=0; __pyx_temp < (Py_ssize_t)(sizeof(values)/sizeof(values[0])); ++__pyx_temp) {
+    Py_XDECREF(values[__pyx_temp]);
+  }
+  goto __pyx_L7_cleaned_up;
+  __pyx_L0:;
+  for (Py_ssize_t __pyx_temp=0; __pyx_temp < (Py_ssize_t)(sizeof(values)/sizeof(values[0])); ++__pyx_temp) {
+    Py_XDECREF(values[__pyx_temp]);
+  }
+  __pyx_L7_cleaned_up:;
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+static int __pyx_pf_6cyflow_8autograd_14MatmulBackward___init__(struct __pyx_obj_6cyflow_8autograd_MatmulBackward *__pyx_v_self, struct __pyx_obj_6cyflow_6tensor_Tensor *__pyx_v_self_tensor, struct __pyx_obj_6cyflow_6tensor_Tensor *__pyx_v_other) {
+  int __pyx_r;
+  __Pyx_RefNannyDeclarations
+  PyObject *__pyx_t_1 = NULL;
+  PyObject *__pyx_t_2 = NULL;
+  PyObject *__pyx_t_3 = NULL;
+  PyObject *__pyx_t_4 = NULL;
+  size_t __pyx_t_5;
+  int __pyx_t_6;
+  int __pyx_lineno = 0;
+  const char *__pyx_filename = NULL;
+  int __pyx_clineno = 0;
+  __Pyx_RefNannySetupContext("__init__", 0);
+
+  /* "cyflow/autograd.pyx":266
+ * cdef class MatmulBackward(AutogradNode):
+ *     def __init__(self, Tensor self_tensor, Tensor other):
+ *         super().__init__()             # <<<<<<<<<<<<<<
+ *         self.self_tensor = self_tensor
+ *         self.other = other
+*/
+  __pyx_t_4 = NULL;
+  __pyx_t_5 = 1;
+  {
+    PyObject *__pyx_callargs[3] = {__pyx_t_4, ((PyObject *)__pyx_mstate_global->__pyx_ptype_6cyflow_8autograd_MatmulBackward), ((PyObject *)__pyx_v_self)};
+    __pyx_t_3 = __Pyx_PyObject_FastCall((PyObject*)__pyx_builtin_super, __pyx_callargs+__pyx_t_5, (3-__pyx_t_5) | (__pyx_t_5*__Pyx_PY_VECTORCALL_ARGUMENTS_OFFSET));
+    __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
+    if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 266, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_3);
+  }
+  __pyx_t_2 = __pyx_t_3;
+  __Pyx_INCREF(__pyx_t_2);
+  __pyx_t_5 = 0;
+  {
+    PyObject *__pyx_callargs[2] = {__pyx_t_2, NULL};
+    __pyx_t_1 = __Pyx_PyObject_FastCallMethod((PyObject*)__pyx_mstate_global->__pyx_n_u_init, __pyx_callargs+__pyx_t_5, (1-__pyx_t_5) | (1*__Pyx_PY_VECTORCALL_ARGUMENTS_OFFSET));
+    __Pyx_XDECREF(__pyx_t_2); __pyx_t_2 = 0;
+    __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+    if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 266, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_1);
+  }
+  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+
+  /* "cyflow/autograd.pyx":267
+ *     def __init__(self, Tensor self_tensor, Tensor other):
+ *         super().__init__()
+ *         self.self_tensor = self_tensor             # <<<<<<<<<<<<<<
+ *         self.other = other
+ * 
+*/
+  __Pyx_INCREF((PyObject *)__pyx_v_self_tensor);
+  __Pyx_GIVEREF((PyObject *)__pyx_v_self_tensor);
+  __Pyx_GOTREF((PyObject *)__pyx_v_self->self_tensor);
+  __Pyx_DECREF((PyObject *)__pyx_v_self->self_tensor);
+  __pyx_v_self->self_tensor = __pyx_v_self_tensor;
+
+  /* "cyflow/autograd.pyx":268
+ *         super().__init__()
+ *         self.self_tensor = self_tensor
+ *         self.other = other             # <<<<<<<<<<<<<<
+ * 
+ *         if self.self_tensor.requires_grad:
+*/
+  __Pyx_INCREF((PyObject *)__pyx_v_other);
+  __Pyx_GIVEREF((PyObject *)__pyx_v_other);
+  __Pyx_GOTREF((PyObject *)__pyx_v_self->other);
+  __Pyx_DECREF((PyObject *)__pyx_v_self->other);
+  __pyx_v_self->other = __pyx_v_other;
+
+  /* "cyflow/autograd.pyx":270
+ *         self.other = other
+ * 
+ *         if self.self_tensor.requires_grad:             # <<<<<<<<<<<<<<
+ *             self.next_functions.append(self.self_tensor.grad_fn)
+ * 
+*/
+  if (__pyx_v_self->self_tensor->requires_grad) {
+
+    /* "cyflow/autograd.pyx":271
+ * 
+ *         if self.self_tensor.requires_grad:
+ *             self.next_functions.append(self.self_tensor.grad_fn)             # <<<<<<<<<<<<<<
+ * 
+ *         if self.other.requires_grad:
+*/
+    if (unlikely(__pyx_v_self->__pyx_base.next_functions == Py_None)) {
+      PyErr_Format(PyExc_AttributeError, "'NoneType' object has no attribute '%.30s'", "append");
+      __PYX_ERR(0, 271, __pyx_L1_error)
+    }
+    __pyx_t_1 = __pyx_v_self->self_tensor->grad_fn;
+    __Pyx_INCREF(__pyx_t_1);
+    __pyx_t_6 = __Pyx_PyList_Append(__pyx_v_self->__pyx_base.next_functions, __pyx_t_1); if (unlikely(__pyx_t_6 == ((int)-1))) __PYX_ERR(0, 271, __pyx_L1_error)
+    __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+
+    /* "cyflow/autograd.pyx":270
+ *         self.other = other
+ * 
+ *         if self.self_tensor.requires_grad:             # <<<<<<<<<<<<<<
+ *             self.next_functions.append(self.self_tensor.grad_fn)
+ * 
+*/
+  }
+
+  /* "cyflow/autograd.pyx":273
+ *             self.next_functions.append(self.self_tensor.grad_fn)
+ * 
+ *         if self.other.requires_grad:             # <<<<<<<<<<<<<<
+ *             self.next_functions.append(self.other.grad_fn)
+ * 
+*/
+  if (__pyx_v_self->other->requires_grad) {
+
+    /* "cyflow/autograd.pyx":274
+ * 
+ *         if self.other.requires_grad:
+ *             self.next_functions.append(self.other.grad_fn)             # <<<<<<<<<<<<<<
+ * 
+ *     cpdef tuple apply(self, Tensor grad_output):
+*/
+    if (unlikely(__pyx_v_self->__pyx_base.next_functions == Py_None)) {
+      PyErr_Format(PyExc_AttributeError, "'NoneType' object has no attribute '%.30s'", "append");
+      __PYX_ERR(0, 274, __pyx_L1_error)
+    }
+    __pyx_t_1 = __pyx_v_self->other->grad_fn;
+    __Pyx_INCREF(__pyx_t_1);
+    __pyx_t_6 = __Pyx_PyList_Append(__pyx_v_self->__pyx_base.next_functions, __pyx_t_1); if (unlikely(__pyx_t_6 == ((int)-1))) __PYX_ERR(0, 274, __pyx_L1_error)
+    __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+
+    /* "cyflow/autograd.pyx":273
+ *             self.next_functions.append(self.self_tensor.grad_fn)
+ * 
+ *         if self.other.requires_grad:             # <<<<<<<<<<<<<<
+ *             self.next_functions.append(self.other.grad_fn)
+ * 
+*/
+  }
+
+  /* "cyflow/autograd.pyx":265
+ * 
+ * cdef class MatmulBackward(AutogradNode):
+ *     def __init__(self, Tensor self_tensor, Tensor other):             # <<<<<<<<<<<<<<
+ *         super().__init__()
+ *         self.self_tensor = self_tensor
+*/
+
+  /* function exit code */
+  __pyx_r = 0;
+  goto __pyx_L0;
+  __pyx_L1_error:;
+  __Pyx_XDECREF(__pyx_t_1);
+  __Pyx_XDECREF(__pyx_t_2);
+  __Pyx_XDECREF(__pyx_t_3);
+  __Pyx_XDECREF(__pyx_t_4);
+  __Pyx_AddTraceback("cyflow.autograd.MatmulBackward.__init__", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __pyx_r = -1;
+  __pyx_L0:;
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* "cyflow/autograd.pyx":276
+ *             self.next_functions.append(self.other.grad_fn)
+ * 
+ *     cpdef tuple apply(self, Tensor grad_output):             # <<<<<<<<<<<<<<
+ *         # C = A @ B  =>  dA = dC @ B^T,  dB = A^T @ dC
+ *         cdef Tensor grad_self = None
+*/
+
+static PyObject *__pyx_pw_6cyflow_8autograd_14MatmulBackward_3apply(PyObject *__pyx_v_self, 
+#if CYTHON_METH_FASTCALL
+PyObject *const *__pyx_args, Py_ssize_t __pyx_nargs, PyObject *__pyx_kwds
+#else
+PyObject *__pyx_args, PyObject *__pyx_kwds
+#endif
+); /*proto*/
+static PyObject *__pyx_f_6cyflow_8autograd_14MatmulBackward_apply(struct __pyx_obj_6cyflow_8autograd_MatmulBackward *__pyx_v_self, struct __pyx_obj_6cyflow_6tensor_Tensor *__pyx_v_grad_output, int __pyx_skip_dispatch) {
+  struct __pyx_obj_6cyflow_6tensor_Tensor *__pyx_v_grad_self = 0;
+  struct __pyx_obj_6cyflow_6tensor_Tensor *__pyx_v_grad_other = 0;
+  struct __pyx_obj_6cyflow_6tensor_Tensor *__pyx_v_detached_grad_out = 0;
+  struct __pyx_obj_6cyflow_6tensor_Tensor *__pyx_v_detached_self = 0;
+  struct __pyx_obj_6cyflow_6tensor_Tensor *__pyx_v_detached_other = 0;
+  struct __pyx_obj_6cyflow_6tensor_Tensor *__pyx_v_a_t = 0;
+  struct __pyx_obj_6cyflow_6tensor_Tensor *__pyx_v_b_t = 0;
+  struct __pyx_obj_6cyflow_6tensor_Tensor *__pyx_v_temp_self = 0;
+  struct __pyx_obj_6cyflow_6tensor_Tensor *__pyx_v_temp_other = 0;
+  PyObject *__pyx_r = NULL;
+  __Pyx_RefNannyDeclarations
+  PyObject *__pyx_t_1 = NULL;
+  PyObject *__pyx_t_2 = NULL;
+  PyObject *__pyx_t_3 = NULL;
+  PyObject *__pyx_t_4 = NULL;
+  size_t __pyx_t_5;
+  int __pyx_t_6;
+  int __pyx_lineno = 0;
+  const char *__pyx_filename = NULL;
+  int __pyx_clineno = 0;
+  __Pyx_RefNannySetupContext("apply", 0);
+  /* Check if called by wrapper */
+  if (unlikely(__pyx_skip_dispatch)) ;
+  /* Check if overridden in Python */
+  else if (
+  #if !CYTHON_USE_TYPE_SLOTS
+  unlikely(Py_TYPE(((PyObject *)__pyx_v_self)) != __pyx_mstate_global->__pyx_ptype_6cyflow_8autograd_MatmulBackward &&
+  __Pyx_PyType_HasFeature(Py_TYPE(((PyObject *)__pyx_v_self)), Py_TPFLAGS_HAVE_GC))
+  #else
+  unlikely(Py_TYPE(((PyObject *)__pyx_v_self))->tp_dictoffset != 0 || __Pyx_PyType_HasFeature(Py_TYPE(((PyObject *)__pyx_v_self)), (Py_TPFLAGS_IS_ABSTRACT | Py_TPFLAGS_HEAPTYPE)))
+  #endif
+  ) {
+    #if CYTHON_USE_DICT_VERSIONS && CYTHON_USE_PYTYPE_LOOKUP && CYTHON_USE_TYPE_SLOTS
+    static PY_UINT64_T __pyx_tp_dict_version = __PYX_DICT_VERSION_INIT, __pyx_obj_dict_version = __PYX_DICT_VERSION_INIT;
+    if (unlikely(!__Pyx_object_dict_version_matches(((PyObject *)__pyx_v_self), __pyx_tp_dict_version, __pyx_obj_dict_version))) {
+      PY_UINT64_T __pyx_typedict_guard = __Pyx_get_tp_dict_version(((PyObject *)__pyx_v_self));
+      #endif
+      __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_mstate_global->__pyx_n_u_apply); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 276, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_1);
+      if (!__Pyx_IsSameCFunction(__pyx_t_1, (void(*)(void)) __pyx_pw_6cyflow_8autograd_14MatmulBackward_3apply)) {
+        __Pyx_XDECREF(__pyx_r);
+        __pyx_t_3 = NULL;
+        __Pyx_INCREF(__pyx_t_1);
+        __pyx_t_4 = __pyx_t_1; 
+        __pyx_t_5 = 1;
+        #if CYTHON_UNPACK_METHODS
+        if (unlikely(PyMethod_Check(__pyx_t_4))) {
+          __pyx_t_3 = PyMethod_GET_SELF(__pyx_t_4);
+          assert(__pyx_t_3);
+          PyObject* __pyx__function = PyMethod_GET_FUNCTION(__pyx_t_4);
+          __Pyx_INCREF(__pyx_t_3);
+          __Pyx_INCREF(__pyx__function);
+          __Pyx_DECREF_SET(__pyx_t_4, __pyx__function);
+          __pyx_t_5 = 0;
+        }
+        #endif
+        {
+          PyObject *__pyx_callargs[2] = {__pyx_t_3, ((PyObject *)__pyx_v_grad_output)};
+          __pyx_t_2 = __Pyx_PyObject_FastCall((PyObject*)__pyx_t_4, __pyx_callargs+__pyx_t_5, (2-__pyx_t_5) | (__pyx_t_5*__Pyx_PY_VECTORCALL_ARGUMENTS_OFFSET));
+          __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
+          __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+          if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 276, __pyx_L1_error)
+          __Pyx_GOTREF(__pyx_t_2);
+        }
+        if (!(likely(PyTuple_CheckExact(__pyx_t_2))||((__pyx_t_2) == Py_None) || __Pyx_RaiseUnexpectedTypeError("tuple", __pyx_t_2))) __PYX_ERR(0, 276, __pyx_L1_error)
+        __pyx_r = ((PyObject*)__pyx_t_2);
+        __pyx_t_2 = 0;
+        __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+        goto __pyx_L0;
+      }
+      #if CYTHON_USE_DICT_VERSIONS && CYTHON_USE_PYTYPE_LOOKUP && CYTHON_USE_TYPE_SLOTS
+      __pyx_tp_dict_version = __Pyx_get_tp_dict_version(((PyObject *)__pyx_v_self));
+      __pyx_obj_dict_version = __Pyx_get_object_dict_version(((PyObject *)__pyx_v_self));
+      if (unlikely(__pyx_typedict_guard != __pyx_tp_dict_version)) {
+        __pyx_tp_dict_version = __pyx_obj_dict_version = __PYX_DICT_VERSION_INIT;
+      }
+      #endif
+      __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+      #if CYTHON_USE_DICT_VERSIONS && CYTHON_USE_PYTYPE_LOOKUP && CYTHON_USE_TYPE_SLOTS
+    }
+    #endif
+  }
+
+  /* "cyflow/autograd.pyx":278
+ *     cpdef tuple apply(self, Tensor grad_output):
+ *         # C = A @ B  =>  dA = dC @ B^T,  dB = A^T @ dC
+ *         cdef Tensor grad_self = None             # <<<<<<<<<<<<<<
+ *         cdef Tensor grad_other = None
+ *         cdef Tensor detached_grad_out, detached_self, detached_other
+*/
+  __Pyx_INCREF(Py_None);
+  __pyx_v_grad_self = ((struct __pyx_obj_6cyflow_6tensor_Tensor *)Py_None);
+
+  /* "cyflow/autograd.pyx":279
+ *         # C = A @ B  =>  dA = dC @ B^T,  dB = A^T @ dC
+ *         cdef Tensor grad_self = None
+ *         cdef Tensor grad_other = None             # <<<<<<<<<<<<<<
+ *         cdef Tensor detached_grad_out, detached_self, detached_other
+ *         cdef Tensor a_t, b_t
+*/
+  __Pyx_INCREF(Py_None);
+  __pyx_v_grad_other = ((struct __pyx_obj_6cyflow_6tensor_Tensor *)Py_None);
+
+  /* "cyflow/autograd.pyx":284
+ *         cdef Tensor temp_self, temp_other
+ * 
+ *         detached_grad_out = grad_output.detach()             # <<<<<<<<<<<<<<
+ * 
+ *         if self.self_tensor.requires_grad:
+*/
+  __pyx_t_2 = ((PyObject *)__pyx_v_grad_output);
+  __Pyx_INCREF(__pyx_t_2);
+  __pyx_t_5 = 0;
+  {
+    PyObject *__pyx_callargs[2] = {__pyx_t_2, NULL};
+    __pyx_t_1 = __Pyx_PyObject_FastCallMethod((PyObject*)__pyx_mstate_global->__pyx_n_u_detach, __pyx_callargs+__pyx_t_5, (1-__pyx_t_5) | (1*__Pyx_PY_VECTORCALL_ARGUMENTS_OFFSET));
+    __Pyx_XDECREF(__pyx_t_2); __pyx_t_2 = 0;
+    if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 284, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_1);
+  }
+  if (!(likely(((__pyx_t_1) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_1, __pyx_mstate_global->__pyx_ptype_6cyflow_6tensor_Tensor))))) __PYX_ERR(0, 284, __pyx_L1_error)
+  __pyx_v_detached_grad_out = ((struct __pyx_obj_6cyflow_6tensor_Tensor *)__pyx_t_1);
+  __pyx_t_1 = 0;
+
+  /* "cyflow/autograd.pyx":286
+ *         detached_grad_out = grad_output.detach()
+ * 
+ *         if self.self_tensor.requires_grad:             # <<<<<<<<<<<<<<
+ *             detached_other = self.other.detach()
+ *             b_t = detached_other._transpose_last_two()
+*/
+  if (__pyx_v_self->self_tensor->requires_grad) {
+
+    /* "cyflow/autograd.pyx":287
+ * 
+ *         if self.self_tensor.requires_grad:
+ *             detached_other = self.other.detach()             # <<<<<<<<<<<<<<
+ *             b_t = detached_other._transpose_last_two()
+ *             temp_self = detached_grad_out @ b_t
+*/
+    __pyx_t_2 = ((PyObject *)__pyx_v_self->other);
+    __Pyx_INCREF(__pyx_t_2);
+    __pyx_t_5 = 0;
+    {
+      PyObject *__pyx_callargs[2] = {__pyx_t_2, NULL};
+      __pyx_t_1 = __Pyx_PyObject_FastCallMethod((PyObject*)__pyx_mstate_global->__pyx_n_u_detach, __pyx_callargs+__pyx_t_5, (1-__pyx_t_5) | (1*__Pyx_PY_VECTORCALL_ARGUMENTS_OFFSET));
+      __Pyx_XDECREF(__pyx_t_2); __pyx_t_2 = 0;
+      if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 287, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_1);
+    }
+    if (!(likely(((__pyx_t_1) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_1, __pyx_mstate_global->__pyx_ptype_6cyflow_6tensor_Tensor))))) __PYX_ERR(0, 287, __pyx_L1_error)
+    __pyx_v_detached_other = ((struct __pyx_obj_6cyflow_6tensor_Tensor *)__pyx_t_1);
+    __pyx_t_1 = 0;
+
+    /* "cyflow/autograd.pyx":288
+ *         if self.self_tensor.requires_grad:
+ *             detached_other = self.other.detach()
+ *             b_t = detached_other._transpose_last_two()             # <<<<<<<<<<<<<<
+ *             temp_self = detached_grad_out @ b_t
+ *             del detached_other
+*/
+    __pyx_t_1 = ((PyObject *)((struct __pyx_vtabstruct_6cyflow_6tensor_Tensor *)__pyx_v_detached_other->__pyx_vtab)->_transpose_last_two(__pyx_v_detached_other, 0)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 288, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_1);
+    __pyx_v_b_t = ((struct __pyx_obj_6cyflow_6tensor_Tensor *)__pyx_t_1);
+    __pyx_t_1 = 0;
+
+    /* "cyflow/autograd.pyx":289
+ *             detached_other = self.other.detach()
+ *             b_t = detached_other._transpose_last_two()
+ *             temp_self = detached_grad_out @ b_t             # <<<<<<<<<<<<<<
+ *             del detached_other
+ *             del b_t
+*/
+    __pyx_t_1 = __Pyx_PyNumber_MatrixMultiply(((PyObject *)__pyx_v_detached_grad_out), ((PyObject *)__pyx_v_b_t)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 289, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_1);
+    if (!(likely(((__pyx_t_1) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_1, __pyx_mstate_global->__pyx_ptype_6cyflow_6tensor_Tensor))))) __PYX_ERR(0, 289, __pyx_L1_error)
+    __pyx_v_temp_self = ((struct __pyx_obj_6cyflow_6tensor_Tensor *)__pyx_t_1);
+    __pyx_t_1 = 0;
+
+    /* "cyflow/autograd.pyx":290
+ *             b_t = detached_other._transpose_last_two()
+ *             temp_self = detached_grad_out @ b_t
+ *             del detached_other             # <<<<<<<<<<<<<<
+ *             del b_t
+ * 
+*/
+    __Pyx_DECREF((PyObject *)__pyx_v_detached_other); __pyx_v_detached_other = 0;
+
+    /* "cyflow/autograd.pyx":291
+ *             temp_self = detached_grad_out @ b_t
+ *             del detached_other
+ *             del b_t             # <<<<<<<<<<<<<<
+ * 
+ *             if self.self_tensor.shape != temp_self.shape:
+*/
+    __Pyx_DECREF((PyObject *)__pyx_v_b_t); __pyx_v_b_t = 0;
+
+    /* "cyflow/autograd.pyx":293
+ *             del b_t
+ * 
+ *             if self.self_tensor.shape != temp_self.shape:             # <<<<<<<<<<<<<<
+ *                 grad_self = unbroadcast(temp_self, self.self_tensor.shape)
+ *                 del temp_self
+*/
+    __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self->self_tensor), __pyx_mstate_global->__pyx_n_u_shape); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 293, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_1);
+    __pyx_t_2 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_temp_self), __pyx_mstate_global->__pyx_n_u_shape); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 293, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_2);
+    __pyx_t_4 = PyObject_RichCompare(__pyx_t_1, __pyx_t_2, Py_NE); __Pyx_XGOTREF(__pyx_t_4); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 293, __pyx_L1_error)
+    __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+    __pyx_t_6 = __Pyx_PyObject_IsTrue(__pyx_t_4); if (unlikely((__pyx_t_6 < 0))) __PYX_ERR(0, 293, __pyx_L1_error)
+    __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+    if (__pyx_t_6) {
+
+      /* "cyflow/autograd.pyx":294
+ * 
+ *             if self.self_tensor.shape != temp_self.shape:
+ *                 grad_self = unbroadcast(temp_self, self.self_tensor.shape)             # <<<<<<<<<<<<<<
+ *                 del temp_self
+ *             else:
+*/
+      __pyx_t_4 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self->self_tensor), __pyx_mstate_global->__pyx_n_u_shape); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 294, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_4);
+      if (!(likely(PyTuple_CheckExact(__pyx_t_4))||((__pyx_t_4) == Py_None) || __Pyx_RaiseUnexpectedTypeError("tuple", __pyx_t_4))) __PYX_ERR(0, 294, __pyx_L1_error)
+      __pyx_t_2 = ((PyObject *)__pyx_f_6cyflow_6tensor_unbroadcast(__pyx_v_temp_self, ((PyObject*)__pyx_t_4), 0)); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 294, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_2);
+      __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+      __Pyx_DECREF_SET(__pyx_v_grad_self, ((struct __pyx_obj_6cyflow_6tensor_Tensor *)__pyx_t_2));
+      __pyx_t_2 = 0;
+
+      /* "cyflow/autograd.pyx":295
+ *             if self.self_tensor.shape != temp_self.shape:
+ *                 grad_self = unbroadcast(temp_self, self.self_tensor.shape)
+ *                 del temp_self             # <<<<<<<<<<<<<<
+ *             else:
+ *                 grad_self = temp_self
+*/
+      __Pyx_DECREF((PyObject *)__pyx_v_temp_self); __pyx_v_temp_self = 0;
+
+      /* "cyflow/autograd.pyx":293
+ *             del b_t
+ * 
+ *             if self.self_tensor.shape != temp_self.shape:             # <<<<<<<<<<<<<<
+ *                 grad_self = unbroadcast(temp_self, self.self_tensor.shape)
+ *                 del temp_self
+*/
+      goto __pyx_L4;
+    }
+
+    /* "cyflow/autograd.pyx":297
+ *                 del temp_self
+ *             else:
+ *                 grad_self = temp_self             # <<<<<<<<<<<<<<
+ * 
+ *         if self.other.requires_grad:
+*/
+    /*else*/ {
+      __Pyx_INCREF((PyObject *)__pyx_v_temp_self);
+      __Pyx_DECREF_SET(__pyx_v_grad_self, __pyx_v_temp_self);
+    }
+    __pyx_L4:;
+
+    /* "cyflow/autograd.pyx":286
+ *         detached_grad_out = grad_output.detach()
+ * 
+ *         if self.self_tensor.requires_grad:             # <<<<<<<<<<<<<<
+ *             detached_other = self.other.detach()
+ *             b_t = detached_other._transpose_last_two()
+*/
+  }
+
+  /* "cyflow/autograd.pyx":299
+ *                 grad_self = temp_self
+ * 
+ *         if self.other.requires_grad:             # <<<<<<<<<<<<<<
+ *             detached_self = self.self_tensor.detach()
+ *             a_t = detached_self._transpose_last_two()
+*/
+  if (__pyx_v_self->other->requires_grad) {
+
+    /* "cyflow/autograd.pyx":300
+ * 
+ *         if self.other.requires_grad:
+ *             detached_self = self.self_tensor.detach()             # <<<<<<<<<<<<<<
+ *             a_t = detached_self._transpose_last_two()
+ *             temp_other = a_t @ detached_grad_out
+*/
+    __pyx_t_4 = ((PyObject *)__pyx_v_self->self_tensor);
+    __Pyx_INCREF(__pyx_t_4);
+    __pyx_t_5 = 0;
+    {
+      PyObject *__pyx_callargs[2] = {__pyx_t_4, NULL};
+      __pyx_t_2 = __Pyx_PyObject_FastCallMethod((PyObject*)__pyx_mstate_global->__pyx_n_u_detach, __pyx_callargs+__pyx_t_5, (1-__pyx_t_5) | (1*__Pyx_PY_VECTORCALL_ARGUMENTS_OFFSET));
+      __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
+      if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 300, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_2);
+    }
+    if (!(likely(((__pyx_t_2) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_2, __pyx_mstate_global->__pyx_ptype_6cyflow_6tensor_Tensor))))) __PYX_ERR(0, 300, __pyx_L1_error)
+    __pyx_v_detached_self = ((struct __pyx_obj_6cyflow_6tensor_Tensor *)__pyx_t_2);
+    __pyx_t_2 = 0;
+
+    /* "cyflow/autograd.pyx":301
+ *         if self.other.requires_grad:
+ *             detached_self = self.self_tensor.detach()
+ *             a_t = detached_self._transpose_last_two()             # <<<<<<<<<<<<<<
+ *             temp_other = a_t @ detached_grad_out
+ *             del detached_self
+*/
+    __pyx_t_2 = ((PyObject *)((struct __pyx_vtabstruct_6cyflow_6tensor_Tensor *)__pyx_v_detached_self->__pyx_vtab)->_transpose_last_two(__pyx_v_detached_self, 0)); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 301, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_2);
+    __pyx_v_a_t = ((struct __pyx_obj_6cyflow_6tensor_Tensor *)__pyx_t_2);
+    __pyx_t_2 = 0;
+
+    /* "cyflow/autograd.pyx":302
+ *             detached_self = self.self_tensor.detach()
+ *             a_t = detached_self._transpose_last_two()
+ *             temp_other = a_t @ detached_grad_out             # <<<<<<<<<<<<<<
+ *             del detached_self
+ *             del a_t
+*/
+    __pyx_t_2 = __Pyx_PyNumber_MatrixMultiply(((PyObject *)__pyx_v_a_t), ((PyObject *)__pyx_v_detached_grad_out)); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 302, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_2);
+    if (!(likely(((__pyx_t_2) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_2, __pyx_mstate_global->__pyx_ptype_6cyflow_6tensor_Tensor))))) __PYX_ERR(0, 302, __pyx_L1_error)
+    __pyx_v_temp_other = ((struct __pyx_obj_6cyflow_6tensor_Tensor *)__pyx_t_2);
+    __pyx_t_2 = 0;
+
+    /* "cyflow/autograd.pyx":303
+ *             a_t = detached_self._transpose_last_two()
+ *             temp_other = a_t @ detached_grad_out
+ *             del detached_self             # <<<<<<<<<<<<<<
+ *             del a_t
+ * 
+*/
+    __Pyx_DECREF((PyObject *)__pyx_v_detached_self); __pyx_v_detached_self = 0;
+
+    /* "cyflow/autograd.pyx":304
+ *             temp_other = a_t @ detached_grad_out
+ *             del detached_self
+ *             del a_t             # <<<<<<<<<<<<<<
+ * 
+ *             if self.other.shape != temp_other.shape:
+*/
+    __Pyx_DECREF((PyObject *)__pyx_v_a_t); __pyx_v_a_t = 0;
+
+    /* "cyflow/autograd.pyx":306
+ *             del a_t
+ * 
+ *             if self.other.shape != temp_other.shape:             # <<<<<<<<<<<<<<
+ *                 grad_other = unbroadcast(temp_other, self.other.shape)
+ *                 del temp_other
+*/
+    __pyx_t_2 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self->other), __pyx_mstate_global->__pyx_n_u_shape); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 306, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_2);
+    __pyx_t_4 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_temp_other), __pyx_mstate_global->__pyx_n_u_shape); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 306, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_4);
+    __pyx_t_1 = PyObject_RichCompare(__pyx_t_2, __pyx_t_4, Py_NE); __Pyx_XGOTREF(__pyx_t_1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 306, __pyx_L1_error)
+    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+    __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+    __pyx_t_6 = __Pyx_PyObject_IsTrue(__pyx_t_1); if (unlikely((__pyx_t_6 < 0))) __PYX_ERR(0, 306, __pyx_L1_error)
+    __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+    if (__pyx_t_6) {
+
+      /* "cyflow/autograd.pyx":307
+ * 
+ *             if self.other.shape != temp_other.shape:
+ *                 grad_other = unbroadcast(temp_other, self.other.shape)             # <<<<<<<<<<<<<<
+ *                 del temp_other
+ *             else:
+*/
+      __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self->other), __pyx_mstate_global->__pyx_n_u_shape); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 307, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_1);
+      if (!(likely(PyTuple_CheckExact(__pyx_t_1))||((__pyx_t_1) == Py_None) || __Pyx_RaiseUnexpectedTypeError("tuple", __pyx_t_1))) __PYX_ERR(0, 307, __pyx_L1_error)
+      __pyx_t_4 = ((PyObject *)__pyx_f_6cyflow_6tensor_unbroadcast(__pyx_v_temp_other, ((PyObject*)__pyx_t_1), 0)); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 307, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_4);
+      __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+      __Pyx_DECREF_SET(__pyx_v_grad_other, ((struct __pyx_obj_6cyflow_6tensor_Tensor *)__pyx_t_4));
+      __pyx_t_4 = 0;
+
+      /* "cyflow/autograd.pyx":308
+ *             if self.other.shape != temp_other.shape:
+ *                 grad_other = unbroadcast(temp_other, self.other.shape)
+ *                 del temp_other             # <<<<<<<<<<<<<<
+ *             else:
+ *                 grad_other = temp_other
+*/
+      __Pyx_DECREF((PyObject *)__pyx_v_temp_other); __pyx_v_temp_other = 0;
+
+      /* "cyflow/autograd.pyx":306
+ *             del a_t
+ * 
+ *             if self.other.shape != temp_other.shape:             # <<<<<<<<<<<<<<
+ *                 grad_other = unbroadcast(temp_other, self.other.shape)
+ *                 del temp_other
+*/
+      goto __pyx_L6;
+    }
+
+    /* "cyflow/autograd.pyx":310
+ *                 del temp_other
+ *             else:
+ *                 grad_other = temp_other             # <<<<<<<<<<<<<<
+ * 
+ *         del detached_grad_out
+*/
+    /*else*/ {
+      __Pyx_INCREF((PyObject *)__pyx_v_temp_other);
+      __Pyx_DECREF_SET(__pyx_v_grad_other, __pyx_v_temp_other);
+    }
+    __pyx_L6:;
+
+    /* "cyflow/autograd.pyx":299
+ *                 grad_self = temp_self
+ * 
+ *         if self.other.requires_grad:             # <<<<<<<<<<<<<<
+ *             detached_self = self.self_tensor.detach()
+ *             a_t = detached_self._transpose_last_two()
+*/
+  }
+
+  /* "cyflow/autograd.pyx":312
+ *                 grad_other = temp_other
+ * 
+ *         del detached_grad_out             # <<<<<<<<<<<<<<
+ *         return grad_self, grad_other
+*/
+  __Pyx_DECREF((PyObject *)__pyx_v_detached_grad_out); __pyx_v_detached_grad_out = 0;
+
+  /* "cyflow/autograd.pyx":313
+ * 
+ *         del detached_grad_out
+ *         return grad_self, grad_other             # <<<<<<<<<<<<<<
+*/
+  __Pyx_XDECREF(__pyx_r);
+  __pyx_t_4 = PyTuple_New(2); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 313, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_4);
+  __Pyx_INCREF((PyObject *)__pyx_v_grad_self);
+  __Pyx_GIVEREF((PyObject *)__pyx_v_grad_self);
+  if (__Pyx_PyTuple_SET_ITEM(__pyx_t_4, 0, ((PyObject *)__pyx_v_grad_self)) != (0)) __PYX_ERR(0, 313, __pyx_L1_error);
+  __Pyx_INCREF((PyObject *)__pyx_v_grad_other);
+  __Pyx_GIVEREF((PyObject *)__pyx_v_grad_other);
+  if (__Pyx_PyTuple_SET_ITEM(__pyx_t_4, 1, ((PyObject *)__pyx_v_grad_other)) != (0)) __PYX_ERR(0, 313, __pyx_L1_error);
+  __pyx_r = ((PyObject*)__pyx_t_4);
+  __pyx_t_4 = 0;
+  goto __pyx_L0;
+
+  /* "cyflow/autograd.pyx":276
+ *             self.next_functions.append(self.other.grad_fn)
+ * 
+ *     cpdef tuple apply(self, Tensor grad_output):             # <<<<<<<<<<<<<<
+ *         # C = A @ B  =>  dA = dC @ B^T,  dB = A^T @ dC
+ *         cdef Tensor grad_self = None
+*/
+
+  /* function exit code */
+  __pyx_L1_error:;
+  __Pyx_XDECREF(__pyx_t_1);
+  __Pyx_XDECREF(__pyx_t_2);
+  __Pyx_XDECREF(__pyx_t_3);
+  __Pyx_XDECREF(__pyx_t_4);
+  __Pyx_AddTraceback("cyflow.autograd.MatmulBackward.apply", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __pyx_r = 0;
+  __pyx_L0:;
+  __Pyx_XDECREF((PyObject *)__pyx_v_grad_self);
+  __Pyx_XDECREF((PyObject *)__pyx_v_grad_other);
+  __Pyx_XDECREF((PyObject *)__pyx_v_detached_grad_out);
+  __Pyx_XDECREF((PyObject *)__pyx_v_detached_self);
+  __Pyx_XDECREF((PyObject *)__pyx_v_detached_other);
+  __Pyx_XDECREF((PyObject *)__pyx_v_a_t);
+  __Pyx_XDECREF((PyObject *)__pyx_v_b_t);
+  __Pyx_XDECREF((PyObject *)__pyx_v_temp_self);
+  __Pyx_XDECREF((PyObject *)__pyx_v_temp_other);
+  __Pyx_XGIVEREF(__pyx_r);
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* Python wrapper */
+static PyObject *__pyx_pw_6cyflow_8autograd_14MatmulBackward_3apply(PyObject *__pyx_v_self, 
+#if CYTHON_METH_FASTCALL
+PyObject *const *__pyx_args, Py_ssize_t __pyx_nargs, PyObject *__pyx_kwds
+#else
+PyObject *__pyx_args, PyObject *__pyx_kwds
+#endif
+); /*proto*/
+static PyMethodDef __pyx_mdef_6cyflow_8autograd_14MatmulBackward_3apply = {"apply", (PyCFunction)(void(*)(void))(__Pyx_PyCFunction_FastCallWithKeywords)__pyx_pw_6cyflow_8autograd_14MatmulBackward_3apply, __Pyx_METH_FASTCALL|METH_KEYWORDS, 0};
+static PyObject *__pyx_pw_6cyflow_8autograd_14MatmulBackward_3apply(PyObject *__pyx_v_self, 
+#if CYTHON_METH_FASTCALL
+PyObject *const *__pyx_args, Py_ssize_t __pyx_nargs, PyObject *__pyx_kwds
+#else
+PyObject *__pyx_args, PyObject *__pyx_kwds
+#endif
+) {
+  struct __pyx_obj_6cyflow_6tensor_Tensor *__pyx_v_grad_output = 0;
+  #if !CYTHON_METH_FASTCALL
+  CYTHON_UNUSED Py_ssize_t __pyx_nargs;
+  #endif
+  CYTHON_UNUSED PyObject *const *__pyx_kwvalues;
+  PyObject* values[1] = {0};
+  int __pyx_lineno = 0;
+  const char *__pyx_filename = NULL;
+  int __pyx_clineno = 0;
+  PyObject *__pyx_r = 0;
+  __Pyx_RefNannyDeclarations
+  __Pyx_RefNannySetupContext("apply (wrapper)", 0);
+  #if !CYTHON_METH_FASTCALL
+  #if CYTHON_ASSUME_SAFE_SIZE
+  __pyx_nargs = PyTuple_GET_SIZE(__pyx_args);
+  #else
+  __pyx_nargs = PyTuple_Size(__pyx_args); if (unlikely(__pyx_nargs < 0)) return NULL;
+  #endif
+  #endif
+  __pyx_kwvalues = __Pyx_KwValues_FASTCALL(__pyx_args, __pyx_nargs);
+  {
+    PyObject ** const __pyx_pyargnames[] = {&__pyx_mstate_global->__pyx_n_u_grad_output,0};
+    const Py_ssize_t __pyx_kwds_len = (__pyx_kwds) ? __Pyx_NumKwargs_FASTCALL(__pyx_kwds) : 0;
+    if (unlikely(__pyx_kwds_len < 0)) __PYX_ERR(0, 276, __pyx_L3_error)
+    if (__pyx_kwds_len > 0) {
+      switch (__pyx_nargs) {
+        case  1:
+        values[0] = __Pyx_ArgRef_FASTCALL(__pyx_args, 0);
+        if (!CYTHON_ASSUME_SAFE_MACROS && unlikely(!values[0])) __PYX_ERR(0, 276, __pyx_L3_error)
+        CYTHON_FALLTHROUGH;
+        case  0: break;
+        default: goto __pyx_L5_argtuple_error;
+      }
+      const Py_ssize_t kwd_pos_args = __pyx_nargs;
+      if (__Pyx_ParseKeywords(__pyx_kwds, __pyx_kwvalues, __pyx_pyargnames, 0, values, kwd_pos_args, __pyx_kwds_len, "apply", 0) < (0)) __PYX_ERR(0, 276, __pyx_L3_error)
+      for (Py_ssize_t i = __pyx_nargs; i < 1; i++) {
+        if (unlikely(!values[i])) { __Pyx_RaiseArgtupleInvalid("apply", 1, 1, 1, i); __PYX_ERR(0, 276, __pyx_L3_error) }
+      }
+    } else if (unlikely(__pyx_nargs != 1)) {
+      goto __pyx_L5_argtuple_error;
+    } else {
+      values[0] = __Pyx_ArgRef_FASTCALL(__pyx_args, 0);
+      if (!CYTHON_ASSUME_SAFE_MACROS && unlikely(!values[0])) __PYX_ERR(0, 276, __pyx_L3_error)
+    }
+    __pyx_v_grad_output = ((struct __pyx_obj_6cyflow_6tensor_Tensor *)values[0]);
+  }
+  goto __pyx_L6_skip;
+  __pyx_L5_argtuple_error:;
+  __Pyx_RaiseArgtupleInvalid("apply", 1, 1, 1, __pyx_nargs); __PYX_ERR(0, 276, __pyx_L3_error)
+  __pyx_L6_skip:;
+  goto __pyx_L4_argument_unpacking_done;
+  __pyx_L3_error:;
+  for (Py_ssize_t __pyx_temp=0; __pyx_temp < (Py_ssize_t)(sizeof(values)/sizeof(values[0])); ++__pyx_temp) {
+    Py_XDECREF(values[__pyx_temp]);
+  }
+  __Pyx_AddTraceback("cyflow.autograd.MatmulBackward.apply", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_RefNannyFinishContext();
+  return NULL;
+  __pyx_L4_argument_unpacking_done:;
+  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_grad_output), __pyx_mstate_global->__pyx_ptype_6cyflow_6tensor_Tensor, 1, "grad_output", 0))) __PYX_ERR(0, 276, __pyx_L1_error)
+  __pyx_r = __pyx_pf_6cyflow_8autograd_14MatmulBackward_2apply(((struct __pyx_obj_6cyflow_8autograd_MatmulBackward *)__pyx_v_self), __pyx_v_grad_output);
+
+  /* function exit code */
+  goto __pyx_L0;
+  __pyx_L1_error:;
+  __pyx_r = NULL;
+  for (Py_ssize_t __pyx_temp=0; __pyx_temp < (Py_ssize_t)(sizeof(values)/sizeof(values[0])); ++__pyx_temp) {
+    Py_XDECREF(values[__pyx_temp]);
+  }
+  goto __pyx_L7_cleaned_up;
+  __pyx_L0:;
+  for (Py_ssize_t __pyx_temp=0; __pyx_temp < (Py_ssize_t)(sizeof(values)/sizeof(values[0])); ++__pyx_temp) {
+    Py_XDECREF(values[__pyx_temp]);
+  }
+  __pyx_L7_cleaned_up:;
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+static PyObject *__pyx_pf_6cyflow_8autograd_14MatmulBackward_2apply(struct __pyx_obj_6cyflow_8autograd_MatmulBackward *__pyx_v_self, struct __pyx_obj_6cyflow_6tensor_Tensor *__pyx_v_grad_output) {
+  PyObject *__pyx_r = NULL;
+  __Pyx_RefNannyDeclarations
+  PyObject *__pyx_t_1 = NULL;
+  int __pyx_lineno = 0;
+  const char *__pyx_filename = NULL;
+  int __pyx_clineno = 0;
+  __Pyx_RefNannySetupContext("apply", 0);
+  __Pyx_XDECREF(__pyx_r);
+  __pyx_t_1 = __pyx_f_6cyflow_8autograd_14MatmulBackward_apply(__pyx_v_self, __pyx_v_grad_output, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 276, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __pyx_r = __pyx_t_1;
+  __pyx_t_1 = 0;
+  goto __pyx_L0;
+
+  /* function exit code */
+  __pyx_L1_error:;
+  __Pyx_XDECREF(__pyx_t_1);
+  __Pyx_AddTraceback("cyflow.autograd.MatmulBackward.apply", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __pyx_r = NULL;
+  __pyx_L0:;
+  __Pyx_XGIVEREF(__pyx_r);
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* "cyflow/autograd.pxd":37
+ * 
+ * cdef class MatmulBackward(AutogradNode):
+ *     cdef public Tensor self_tensor             # <<<<<<<<<<<<<<
+ *     cdef public Tensor other
+ *     cpdef tuple apply(self, Tensor grad_output)
+*/
+
+/* Python wrapper */
+static PyObject *__pyx_pw_6cyflow_8autograd_14MatmulBackward_11self_tensor_1__get__(PyObject *__pyx_v_self); /*proto*/
+static PyObject *__pyx_pw_6cyflow_8autograd_14MatmulBackward_11self_tensor_1__get__(PyObject *__pyx_v_self) {
+  CYTHON_UNUSED PyObject *const *__pyx_kwvalues;
+  PyObject *__pyx_r = 0;
+  __Pyx_RefNannyDeclarations
+  __Pyx_RefNannySetupContext("__get__ (wrapper)", 0);
+  __pyx_kwvalues = __Pyx_KwValues_VARARGS(__pyx_args, __pyx_nargs);
+  __pyx_r = __pyx_pf_6cyflow_8autograd_14MatmulBackward_11self_tensor___get__(((struct __pyx_obj_6cyflow_8autograd_MatmulBackward *)__pyx_v_self));
+
+  /* function exit code */
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+static PyObject *__pyx_pf_6cyflow_8autograd_14MatmulBackward_11self_tensor___get__(struct __pyx_obj_6cyflow_8autograd_MatmulBackward *__pyx_v_self) {
+  PyObject *__pyx_r = NULL;
+  __Pyx_RefNannyDeclarations
+  __Pyx_RefNannySetupContext("__get__", 0);
+  __Pyx_XDECREF(__pyx_r);
+  __Pyx_INCREF((PyObject *)__pyx_v_self->self_tensor);
+  __pyx_r = ((PyObject *)__pyx_v_self->self_tensor);
+  goto __pyx_L0;
+
+  /* function exit code */
+  __pyx_L0:;
+  __Pyx_XGIVEREF(__pyx_r);
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* Python wrapper */
+static int __pyx_pw_6cyflow_8autograd_14MatmulBackward_11self_tensor_3__set__(PyObject *__pyx_v_self, PyObject *__pyx_v_value); /*proto*/
+static int __pyx_pw_6cyflow_8autograd_14MatmulBackward_11self_tensor_3__set__(PyObject *__pyx_v_self, PyObject *__pyx_v_value) {
+  CYTHON_UNUSED PyObject *const *__pyx_kwvalues;
+  int __pyx_r;
+  __Pyx_RefNannyDeclarations
+  __Pyx_RefNannySetupContext("__set__ (wrapper)", 0);
+  __pyx_kwvalues = __Pyx_KwValues_VARARGS(__pyx_args, __pyx_nargs);
+  __pyx_r = __pyx_pf_6cyflow_8autograd_14MatmulBackward_11self_tensor_2__set__(((struct __pyx_obj_6cyflow_8autograd_MatmulBackward *)__pyx_v_self), ((PyObject *)__pyx_v_value));
+
+  /* function exit code */
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+static int __pyx_pf_6cyflow_8autograd_14MatmulBackward_11self_tensor_2__set__(struct __pyx_obj_6cyflow_8autograd_MatmulBackward *__pyx_v_self, PyObject *__pyx_v_value) {
+  int __pyx_r;
+  __Pyx_RefNannyDeclarations
+  PyObject *__pyx_t_1 = NULL;
+  int __pyx_lineno = 0;
+  const char *__pyx_filename = NULL;
+  int __pyx_clineno = 0;
+  __Pyx_RefNannySetupContext("__set__", 0);
+  __pyx_t_1 = __pyx_v_value;
+  __Pyx_INCREF(__pyx_t_1);
+  if (!(likely(((__pyx_t_1) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_1, __pyx_mstate_global->__pyx_ptype_6cyflow_6tensor_Tensor))))) __PYX_ERR(1, 37, __pyx_L1_error)
+  __Pyx_GIVEREF(__pyx_t_1);
+  __Pyx_GOTREF((PyObject *)__pyx_v_self->self_tensor);
+  __Pyx_DECREF((PyObject *)__pyx_v_self->self_tensor);
+  __pyx_v_self->self_tensor = ((struct __pyx_obj_6cyflow_6tensor_Tensor *)__pyx_t_1);
+  __pyx_t_1 = 0;
+
+  /* function exit code */
+  __pyx_r = 0;
+  goto __pyx_L0;
+  __pyx_L1_error:;
+  __Pyx_XDECREF(__pyx_t_1);
+  __Pyx_AddTraceback("cyflow.autograd.MatmulBackward.self_tensor.__set__", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __pyx_r = -1;
+  __pyx_L0:;
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* Python wrapper */
+static int __pyx_pw_6cyflow_8autograd_14MatmulBackward_11self_tensor_5__del__(PyObject *__pyx_v_self); /*proto*/
+static int __pyx_pw_6cyflow_8autograd_14MatmulBackward_11self_tensor_5__del__(PyObject *__pyx_v_self) {
+  CYTHON_UNUSED PyObject *const *__pyx_kwvalues;
+  int __pyx_r;
+  __Pyx_RefNannyDeclarations
+  __Pyx_RefNannySetupContext("__del__ (wrapper)", 0);
+  __pyx_kwvalues = __Pyx_KwValues_VARARGS(__pyx_args, __pyx_nargs);
+  __pyx_r = __pyx_pf_6cyflow_8autograd_14MatmulBackward_11self_tensor_4__del__(((struct __pyx_obj_6cyflow_8autograd_MatmulBackward *)__pyx_v_self));
+
+  /* function exit code */
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+static int __pyx_pf_6cyflow_8autograd_14MatmulBackward_11self_tensor_4__del__(struct __pyx_obj_6cyflow_8autograd_MatmulBackward *__pyx_v_self) {
+  int __pyx_r;
+  __Pyx_RefNannyDeclarations
+  __Pyx_RefNannySetupContext("__del__", 0);
+  __Pyx_INCREF(Py_None);
+  __Pyx_GIVEREF(Py_None);
+  __Pyx_GOTREF((PyObject *)__pyx_v_self->self_tensor);
+  __Pyx_DECREF((PyObject *)__pyx_v_self->self_tensor);
+  __pyx_v_self->self_tensor = ((struct __pyx_obj_6cyflow_6tensor_Tensor *)Py_None);
+
+  /* function exit code */
+  __pyx_r = 0;
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* "cyflow/autograd.pxd":38
+ * cdef class MatmulBackward(AutogradNode):
+ *     cdef public Tensor self_tensor
+ *     cdef public Tensor other             # <<<<<<<<<<<<<<
+ *     cpdef tuple apply(self, Tensor grad_output)
+*/
+
+/* Python wrapper */
+static PyObject *__pyx_pw_6cyflow_8autograd_14MatmulBackward_5other_1__get__(PyObject *__pyx_v_self); /*proto*/
+static PyObject *__pyx_pw_6cyflow_8autograd_14MatmulBackward_5other_1__get__(PyObject *__pyx_v_self) {
+  CYTHON_UNUSED PyObject *const *__pyx_kwvalues;
+  PyObject *__pyx_r = 0;
+  __Pyx_RefNannyDeclarations
+  __Pyx_RefNannySetupContext("__get__ (wrapper)", 0);
+  __pyx_kwvalues = __Pyx_KwValues_VARARGS(__pyx_args, __pyx_nargs);
+  __pyx_r = __pyx_pf_6cyflow_8autograd_14MatmulBackward_5other___get__(((struct __pyx_obj_6cyflow_8autograd_MatmulBackward *)__pyx_v_self));
+
+  /* function exit code */
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+static PyObject *__pyx_pf_6cyflow_8autograd_14MatmulBackward_5other___get__(struct __pyx_obj_6cyflow_8autograd_MatmulBackward *__pyx_v_self) {
+  PyObject *__pyx_r = NULL;
+  __Pyx_RefNannyDeclarations
+  __Pyx_RefNannySetupContext("__get__", 0);
+  __Pyx_XDECREF(__pyx_r);
+  __Pyx_INCREF((PyObject *)__pyx_v_self->other);
+  __pyx_r = ((PyObject *)__pyx_v_self->other);
+  goto __pyx_L0;
+
+  /* function exit code */
+  __pyx_L0:;
+  __Pyx_XGIVEREF(__pyx_r);
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* Python wrapper */
+static int __pyx_pw_6cyflow_8autograd_14MatmulBackward_5other_3__set__(PyObject *__pyx_v_self, PyObject *__pyx_v_value); /*proto*/
+static int __pyx_pw_6cyflow_8autograd_14MatmulBackward_5other_3__set__(PyObject *__pyx_v_self, PyObject *__pyx_v_value) {
+  CYTHON_UNUSED PyObject *const *__pyx_kwvalues;
+  int __pyx_r;
+  __Pyx_RefNannyDeclarations
+  __Pyx_RefNannySetupContext("__set__ (wrapper)", 0);
+  __pyx_kwvalues = __Pyx_KwValues_VARARGS(__pyx_args, __pyx_nargs);
+  __pyx_r = __pyx_pf_6cyflow_8autograd_14MatmulBackward_5other_2__set__(((struct __pyx_obj_6cyflow_8autograd_MatmulBackward *)__pyx_v_self), ((PyObject *)__pyx_v_value));
+
+  /* function exit code */
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+static int __pyx_pf_6cyflow_8autograd_14MatmulBackward_5other_2__set__(struct __pyx_obj_6cyflow_8autograd_MatmulBackward *__pyx_v_self, PyObject *__pyx_v_value) {
+  int __pyx_r;
+  __Pyx_RefNannyDeclarations
+  PyObject *__pyx_t_1 = NULL;
+  int __pyx_lineno = 0;
+  const char *__pyx_filename = NULL;
+  int __pyx_clineno = 0;
+  __Pyx_RefNannySetupContext("__set__", 0);
+  __pyx_t_1 = __pyx_v_value;
+  __Pyx_INCREF(__pyx_t_1);
+  if (!(likely(((__pyx_t_1) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_1, __pyx_mstate_global->__pyx_ptype_6cyflow_6tensor_Tensor))))) __PYX_ERR(1, 38, __pyx_L1_error)
+  __Pyx_GIVEREF(__pyx_t_1);
+  __Pyx_GOTREF((PyObject *)__pyx_v_self->other);
+  __Pyx_DECREF((PyObject *)__pyx_v_self->other);
+  __pyx_v_self->other = ((struct __pyx_obj_6cyflow_6tensor_Tensor *)__pyx_t_1);
+  __pyx_t_1 = 0;
+
+  /* function exit code */
+  __pyx_r = 0;
+  goto __pyx_L0;
+  __pyx_L1_error:;
+  __Pyx_XDECREF(__pyx_t_1);
+  __Pyx_AddTraceback("cyflow.autograd.MatmulBackward.other.__set__", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __pyx_r = -1;
+  __pyx_L0:;
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* Python wrapper */
+static int __pyx_pw_6cyflow_8autograd_14MatmulBackward_5other_5__del__(PyObject *__pyx_v_self); /*proto*/
+static int __pyx_pw_6cyflow_8autograd_14MatmulBackward_5other_5__del__(PyObject *__pyx_v_self) {
+  CYTHON_UNUSED PyObject *const *__pyx_kwvalues;
+  int __pyx_r;
+  __Pyx_RefNannyDeclarations
+  __Pyx_RefNannySetupContext("__del__ (wrapper)", 0);
+  __pyx_kwvalues = __Pyx_KwValues_VARARGS(__pyx_args, __pyx_nargs);
+  __pyx_r = __pyx_pf_6cyflow_8autograd_14MatmulBackward_5other_4__del__(((struct __pyx_obj_6cyflow_8autograd_MatmulBackward *)__pyx_v_self));
+
+  /* function exit code */
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+static int __pyx_pf_6cyflow_8autograd_14MatmulBackward_5other_4__del__(struct __pyx_obj_6cyflow_8autograd_MatmulBackward *__pyx_v_self) {
+  int __pyx_r;
+  __Pyx_RefNannyDeclarations
+  __Pyx_RefNannySetupContext("__del__", 0);
+  __Pyx_INCREF(Py_None);
+  __Pyx_GIVEREF(Py_None);
+  __Pyx_GOTREF((PyObject *)__pyx_v_self->other);
+  __Pyx_DECREF((PyObject *)__pyx_v_self->other);
+  __pyx_v_self->other = ((struct __pyx_obj_6cyflow_6tensor_Tensor *)Py_None);
+
+  /* function exit code */
+  __pyx_r = 0;
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* "(tree fragment)":1
+ * def __reduce_cython__(self):             # <<<<<<<<<<<<<<
+ *     cdef tuple state
+ *     cdef object _dict
+*/
+
+/* Python wrapper */
+static PyObject *__pyx_pw_6cyflow_8autograd_14MatmulBackward_5__reduce_cython__(PyObject *__pyx_v_self, 
+#if CYTHON_METH_FASTCALL
+PyObject *const *__pyx_args, Py_ssize_t __pyx_nargs, PyObject *__pyx_kwds
+#else
+PyObject *__pyx_args, PyObject *__pyx_kwds
+#endif
+); /*proto*/
+static PyMethodDef __pyx_mdef_6cyflow_8autograd_14MatmulBackward_5__reduce_cython__ = {"__reduce_cython__", (PyCFunction)(void(*)(void))(__Pyx_PyCFunction_FastCallWithKeywords)__pyx_pw_6cyflow_8autograd_14MatmulBackward_5__reduce_cython__, __Pyx_METH_FASTCALL|METH_KEYWORDS, 0};
+static PyObject *__pyx_pw_6cyflow_8autograd_14MatmulBackward_5__reduce_cython__(PyObject *__pyx_v_self, 
+#if CYTHON_METH_FASTCALL
+PyObject *const *__pyx_args, Py_ssize_t __pyx_nargs, PyObject *__pyx_kwds
+#else
+PyObject *__pyx_args, PyObject *__pyx_kwds
+#endif
+) {
+  #if !CYTHON_METH_FASTCALL
+  CYTHON_UNUSED Py_ssize_t __pyx_nargs;
+  #endif
+  CYTHON_UNUSED PyObject *const *__pyx_kwvalues;
+  PyObject *__pyx_r = 0;
+  __Pyx_RefNannyDeclarations
+  __Pyx_RefNannySetupContext("__reduce_cython__ (wrapper)", 0);
+  #if !CYTHON_METH_FASTCALL
+  #if CYTHON_ASSUME_SAFE_SIZE
+  __pyx_nargs = PyTuple_GET_SIZE(__pyx_args);
+  #else
+  __pyx_nargs = PyTuple_Size(__pyx_args); if (unlikely(__pyx_nargs < 0)) return NULL;
+  #endif
+  #endif
+  __pyx_kwvalues = __Pyx_KwValues_FASTCALL(__pyx_args, __pyx_nargs);
+  if (unlikely(__pyx_nargs > 0)) { __Pyx_RaiseArgtupleInvalid("__reduce_cython__", 1, 0, 0, __pyx_nargs); return NULL; }
+  const Py_ssize_t __pyx_kwds_len = unlikely(__pyx_kwds) ? __Pyx_NumKwargs_FASTCALL(__pyx_kwds) : 0;
+  if (unlikely(__pyx_kwds_len < 0)) return NULL;
+  if (unlikely(__pyx_kwds_len > 0)) {__Pyx_RejectKeywords("__reduce_cython__", __pyx_kwds); return NULL;}
+  __pyx_r = __pyx_pf_6cyflow_8autograd_14MatmulBackward_4__reduce_cython__(((struct __pyx_obj_6cyflow_8autograd_MatmulBackward *)__pyx_v_self));
+
+  /* function exit code */
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+static PyObject *__pyx_pf_6cyflow_8autograd_14MatmulBackward_4__reduce_cython__(struct __pyx_obj_6cyflow_8autograd_MatmulBackward *__pyx_v_self) {
+  PyObject *__pyx_v_state = 0;
+  PyObject *__pyx_v__dict = 0;
+  int __pyx_v_use_setstate;
+  PyObject *__pyx_r = NULL;
+  __Pyx_RefNannyDeclarations
+  PyObject *__pyx_t_1 = NULL;
+  int __pyx_t_2;
+  int __pyx_t_3;
+  PyObject *__pyx_t_4 = NULL;
+  PyObject *__pyx_t_5 = NULL;
+  int __pyx_lineno = 0;
+  const char *__pyx_filename = NULL;
+  int __pyx_clineno = 0;
+  __Pyx_RefNannySetupContext("__reduce_cython__", 0);
+
+  /* "(tree fragment)":5
+ *     cdef object _dict
+ *     cdef bint use_setstate
+ *     state = (self.next_functions, self.other, self.self_tensor)             # <<<<<<<<<<<<<<
+ *     _dict = getattr(self, '__dict__', None)
+ *     if _dict is not None and _dict:
+*/
+  __pyx_t_1 = PyTuple_New(3); if (unlikely(!__pyx_t_1)) __PYX_ERR(2, 5, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __Pyx_INCREF(__pyx_v_self->__pyx_base.next_functions);
+  __Pyx_GIVEREF(__pyx_v_self->__pyx_base.next_functions);
+  if (__Pyx_PyTuple_SET_ITEM(__pyx_t_1, 0, __pyx_v_self->__pyx_base.next_functions) != (0)) __PYX_ERR(2, 5, __pyx_L1_error);
+  __Pyx_INCREF((PyObject *)__pyx_v_self->other);
+  __Pyx_GIVEREF((PyObject *)__pyx_v_self->other);
+  if (__Pyx_PyTuple_SET_ITEM(__pyx_t_1, 1, ((PyObject *)__pyx_v_self->other)) != (0)) __PYX_ERR(2, 5, __pyx_L1_error);
+  __Pyx_INCREF((PyObject *)__pyx_v_self->self_tensor);
+  __Pyx_GIVEREF((PyObject *)__pyx_v_self->self_tensor);
+  if (__Pyx_PyTuple_SET_ITEM(__pyx_t_1, 2, ((PyObject *)__pyx_v_self->self_tensor)) != (0)) __PYX_ERR(2, 5, __pyx_L1_error);
+  __pyx_v_state = ((PyObject*)__pyx_t_1);
+  __pyx_t_1 = 0;
+
+  /* "(tree fragment)":6
+ *     cdef bint use_setstate
+ *     state = (self.next_functions, self.other, self.self_tensor)
+ *     _dict = getattr(self, '__dict__', None)             # <<<<<<<<<<<<<<
+ *     if _dict is not None and _dict:
+ *         state += (_dict,)
+*/
+  __pyx_t_1 = __Pyx_GetAttr3(((PyObject *)__pyx_v_self), __pyx_mstate_global->__pyx_n_u_dict, Py_None); if (unlikely(!__pyx_t_1)) __PYX_ERR(2, 6, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __pyx_v__dict = __pyx_t_1;
+  __pyx_t_1 = 0;
+
+  /* "(tree fragment)":7
+ *     state = (self.next_functions, self.other, self.self_tensor)
+ *     _dict = getattr(self, '__dict__', None)
+ *     if _dict is not None and _dict:             # <<<<<<<<<<<<<<
+ *         state += (_dict,)
+ *         use_setstate = True
+*/
+  __pyx_t_3 = (__pyx_v__dict != Py_None);
+  if (__pyx_t_3) {
+  } else {
+    __pyx_t_2 = __pyx_t_3;
+    goto __pyx_L4_bool_binop_done;
+  }
+  __pyx_t_3 = __Pyx_PyObject_IsTrue(__pyx_v__dict); if (unlikely((__pyx_t_3 < 0))) __PYX_ERR(2, 7, __pyx_L1_error)
+  __pyx_t_2 = __pyx_t_3;
+  __pyx_L4_bool_binop_done:;
+  if (__pyx_t_2) {
+
+    /* "(tree fragment)":8
+ *     _dict = getattr(self, '__dict__', None)
+ *     if _dict is not None and _dict:
+ *         state += (_dict,)             # <<<<<<<<<<<<<<
+ *         use_setstate = True
+ *     else:
+*/
+    __pyx_t_1 = PyTuple_New(1); if (unlikely(!__pyx_t_1)) __PYX_ERR(2, 8, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_1);
+    __Pyx_INCREF(__pyx_v__dict);
+    __Pyx_GIVEREF(__pyx_v__dict);
+    if (__Pyx_PyTuple_SET_ITEM(__pyx_t_1, 0, __pyx_v__dict) != (0)) __PYX_ERR(2, 8, __pyx_L1_error);
+    __pyx_t_4 = PyNumber_InPlaceAdd(__pyx_v_state, __pyx_t_1); if (unlikely(!__pyx_t_4)) __PYX_ERR(2, 8, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_4);
+    __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+    __Pyx_DECREF_SET(__pyx_v_state, ((PyObject*)__pyx_t_4));
+    __pyx_t_4 = 0;
+
+    /* "(tree fragment)":9
+ *     if _dict is not None and _dict:
+ *         state += (_dict,)
+ *         use_setstate = True             # <<<<<<<<<<<<<<
+ *     else:
+ *         use_setstate = self.next_functions is not None or self.other is not None or self.self_tensor is not None
+*/
+    __pyx_v_use_setstate = 1;
+
+    /* "(tree fragment)":7
+ *     state = (self.next_functions, self.other, self.self_tensor)
+ *     _dict = getattr(self, '__dict__', None)
+ *     if _dict is not None and _dict:             # <<<<<<<<<<<<<<
+ *         state += (_dict,)
+ *         use_setstate = True
+*/
+    goto __pyx_L3;
+  }
+
+  /* "(tree fragment)":11
+ *         use_setstate = True
+ *     else:
+ *         use_setstate = self.next_functions is not None or self.other is not None or self.self_tensor is not None             # <<<<<<<<<<<<<<
+ *     if use_setstate:
+ *         return __pyx_unpickle_MatmulBackward, (type(self), 0xf4e844f, None), state
+*/
+  /*else*/ {
+    __pyx_t_3 = (__pyx_v_self->__pyx_base.next_functions != ((PyObject*)Py_None));
+    if (!__pyx_t_3) {
+    } else {
+      __pyx_t_2 = __pyx_t_3;
+      goto __pyx_L6_bool_binop_done;
+    }
+    __pyx_t_3 = (((PyObject *)__pyx_v_self->other) != Py_None);
+    if (!__pyx_t_3) {
+    } else {
+      __pyx_t_2 = __pyx_t_3;
+      goto __pyx_L6_bool_binop_done;
+    }
+    __pyx_t_3 = (((PyObject *)__pyx_v_self->self_tensor) != Py_None);
+    __pyx_t_2 = __pyx_t_3;
+    __pyx_L6_bool_binop_done:;
+    __pyx_v_use_setstate = __pyx_t_2;
+  }
+  __pyx_L3:;
+
+  /* "(tree fragment)":12
+ *     else:
+ *         use_setstate = self.next_functions is not None or self.other is not None or self.self_tensor is not None
+ *     if use_setstate:             # <<<<<<<<<<<<<<
+ *         return __pyx_unpickle_MatmulBackward, (type(self), 0xf4e844f, None), state
+ *     else:
+*/
+  if (__pyx_v_use_setstate) {
+
+    /* "(tree fragment)":13
+ *         use_setstate = self.next_functions is not None or self.other is not None or self.self_tensor is not None
+ *     if use_setstate:
+ *         return __pyx_unpickle_MatmulBackward, (type(self), 0xf4e844f, None), state             # <<<<<<<<<<<<<<
+ *     else:
+ *         return __pyx_unpickle_MatmulBackward, (type(self), 0xf4e844f, state)
+*/
+    __Pyx_XDECREF(__pyx_r);
+    __Pyx_GetModuleGlobalName(__pyx_t_4, __pyx_mstate_global->__pyx_n_u_pyx_unpickle_MatmulBackward); if (unlikely(!__pyx_t_4)) __PYX_ERR(2, 13, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_4);
+    __pyx_t_1 = PyTuple_New(3); if (unlikely(!__pyx_t_1)) __PYX_ERR(2, 13, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_1);
+    __Pyx_INCREF(((PyObject *)Py_TYPE(((PyObject *)__pyx_v_self))));
+    __Pyx_GIVEREF(((PyObject *)Py_TYPE(((PyObject *)__pyx_v_self))));
+    if (__Pyx_PyTuple_SET_ITEM(__pyx_t_1, 0, ((PyObject *)Py_TYPE(((PyObject *)__pyx_v_self)))) != (0)) __PYX_ERR(2, 13, __pyx_L1_error);
+    __Pyx_INCREF(__pyx_mstate_global->__pyx_int_256803919);
+    __Pyx_GIVEREF(__pyx_mstate_global->__pyx_int_256803919);
+    if (__Pyx_PyTuple_SET_ITEM(__pyx_t_1, 1, __pyx_mstate_global->__pyx_int_256803919) != (0)) __PYX_ERR(2, 13, __pyx_L1_error);
+    __Pyx_INCREF(Py_None);
+    __Pyx_GIVEREF(Py_None);
+    if (__Pyx_PyTuple_SET_ITEM(__pyx_t_1, 2, Py_None) != (0)) __PYX_ERR(2, 13, __pyx_L1_error);
+    __pyx_t_5 = PyTuple_New(3); if (unlikely(!__pyx_t_5)) __PYX_ERR(2, 13, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_5);
+    __Pyx_GIVEREF(__pyx_t_4);
+    if (__Pyx_PyTuple_SET_ITEM(__pyx_t_5, 0, __pyx_t_4) != (0)) __PYX_ERR(2, 13, __pyx_L1_error);
+    __Pyx_GIVEREF(__pyx_t_1);
+    if (__Pyx_PyTuple_SET_ITEM(__pyx_t_5, 1, __pyx_t_1) != (0)) __PYX_ERR(2, 13, __pyx_L1_error);
+    __Pyx_INCREF(__pyx_v_state);
+    __Pyx_GIVEREF(__pyx_v_state);
+    if (__Pyx_PyTuple_SET_ITEM(__pyx_t_5, 2, __pyx_v_state) != (0)) __PYX_ERR(2, 13, __pyx_L1_error);
+    __pyx_t_4 = 0;
+    __pyx_t_1 = 0;
+    __pyx_r = __pyx_t_5;
+    __pyx_t_5 = 0;
+    goto __pyx_L0;
+
+    /* "(tree fragment)":12
+ *     else:
+ *         use_setstate = self.next_functions is not None or self.other is not None or self.self_tensor is not None
+ *     if use_setstate:             # <<<<<<<<<<<<<<
+ *         return __pyx_unpickle_MatmulBackward, (type(self), 0xf4e844f, None), state
+ *     else:
+*/
+  }
+
+  /* "(tree fragment)":15
+ *         return __pyx_unpickle_MatmulBackward, (type(self), 0xf4e844f, None), state
+ *     else:
+ *         return __pyx_unpickle_MatmulBackward, (type(self), 0xf4e844f, state)             # <<<<<<<<<<<<<<
+ * def __setstate_cython__(self, __pyx_state):
+ *     __pyx_unpickle_MatmulBackward__set_state(self, __pyx_state)
+*/
+  /*else*/ {
+    __Pyx_XDECREF(__pyx_r);
+    __Pyx_GetModuleGlobalName(__pyx_t_5, __pyx_mstate_global->__pyx_n_u_pyx_unpickle_MatmulBackward); if (unlikely(!__pyx_t_5)) __PYX_ERR(2, 15, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_5);
+    __pyx_t_1 = PyTuple_New(3); if (unlikely(!__pyx_t_1)) __PYX_ERR(2, 15, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_1);
+    __Pyx_INCREF(((PyObject *)Py_TYPE(((PyObject *)__pyx_v_self))));
+    __Pyx_GIVEREF(((PyObject *)Py_TYPE(((PyObject *)__pyx_v_self))));
+    if (__Pyx_PyTuple_SET_ITEM(__pyx_t_1, 0, ((PyObject *)Py_TYPE(((PyObject *)__pyx_v_self)))) != (0)) __PYX_ERR(2, 15, __pyx_L1_error);
+    __Pyx_INCREF(__pyx_mstate_global->__pyx_int_256803919);
+    __Pyx_GIVEREF(__pyx_mstate_global->__pyx_int_256803919);
+    if (__Pyx_PyTuple_SET_ITEM(__pyx_t_1, 1, __pyx_mstate_global->__pyx_int_256803919) != (0)) __PYX_ERR(2, 15, __pyx_L1_error);
+    __Pyx_INCREF(__pyx_v_state);
+    __Pyx_GIVEREF(__pyx_v_state);
+    if (__Pyx_PyTuple_SET_ITEM(__pyx_t_1, 2, __pyx_v_state) != (0)) __PYX_ERR(2, 15, __pyx_L1_error);
+    __pyx_t_4 = PyTuple_New(2); if (unlikely(!__pyx_t_4)) __PYX_ERR(2, 15, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_4);
+    __Pyx_GIVEREF(__pyx_t_5);
+    if (__Pyx_PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_5) != (0)) __PYX_ERR(2, 15, __pyx_L1_error);
+    __Pyx_GIVEREF(__pyx_t_1);
+    if (__Pyx_PyTuple_SET_ITEM(__pyx_t_4, 1, __pyx_t_1) != (0)) __PYX_ERR(2, 15, __pyx_L1_error);
+    __pyx_t_5 = 0;
+    __pyx_t_1 = 0;
+    __pyx_r = __pyx_t_4;
+    __pyx_t_4 = 0;
+    goto __pyx_L0;
+  }
+
+  /* "(tree fragment)":1
+ * def __reduce_cython__(self):             # <<<<<<<<<<<<<<
+ *     cdef tuple state
+ *     cdef object _dict
+*/
+
+  /* function exit code */
+  __pyx_L1_error:;
+  __Pyx_XDECREF(__pyx_t_1);
+  __Pyx_XDECREF(__pyx_t_4);
+  __Pyx_XDECREF(__pyx_t_5);
+  __Pyx_AddTraceback("cyflow.autograd.MatmulBackward.__reduce_cython__", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __pyx_r = NULL;
+  __pyx_L0:;
+  __Pyx_XDECREF(__pyx_v_state);
+  __Pyx_XDECREF(__pyx_v__dict);
+  __Pyx_XGIVEREF(__pyx_r);
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* "(tree fragment)":16
+ *     else:
+ *         return __pyx_unpickle_MatmulBackward, (type(self), 0xf4e844f, state)
+ * def __setstate_cython__(self, __pyx_state):             # <<<<<<<<<<<<<<
+ *     __pyx_unpickle_MatmulBackward__set_state(self, __pyx_state)
+*/
+
+/* Python wrapper */
+static PyObject *__pyx_pw_6cyflow_8autograd_14MatmulBackward_7__setstate_cython__(PyObject *__pyx_v_self, 
+#if CYTHON_METH_FASTCALL
+PyObject *const *__pyx_args, Py_ssize_t __pyx_nargs, PyObject *__pyx_kwds
+#else
+PyObject *__pyx_args, PyObject *__pyx_kwds
+#endif
+); /*proto*/
+static PyMethodDef __pyx_mdef_6cyflow_8autograd_14MatmulBackward_7__setstate_cython__ = {"__setstate_cython__", (PyCFunction)(void(*)(void))(__Pyx_PyCFunction_FastCallWithKeywords)__pyx_pw_6cyflow_8autograd_14MatmulBackward_7__setstate_cython__, __Pyx_METH_FASTCALL|METH_KEYWORDS, 0};
+static PyObject *__pyx_pw_6cyflow_8autograd_14MatmulBackward_7__setstate_cython__(PyObject *__pyx_v_self, 
+#if CYTHON_METH_FASTCALL
+PyObject *const *__pyx_args, Py_ssize_t __pyx_nargs, PyObject *__pyx_kwds
+#else
+PyObject *__pyx_args, PyObject *__pyx_kwds
+#endif
+) {
+  PyObject *__pyx_v___pyx_state = 0;
+  #if !CYTHON_METH_FASTCALL
+  CYTHON_UNUSED Py_ssize_t __pyx_nargs;
+  #endif
+  CYTHON_UNUSED PyObject *const *__pyx_kwvalues;
+  PyObject* values[1] = {0};
+  int __pyx_lineno = 0;
+  const char *__pyx_filename = NULL;
+  int __pyx_clineno = 0;
+  PyObject *__pyx_r = 0;
+  __Pyx_RefNannyDeclarations
+  __Pyx_RefNannySetupContext("__setstate_cython__ (wrapper)", 0);
+  #if !CYTHON_METH_FASTCALL
+  #if CYTHON_ASSUME_SAFE_SIZE
+  __pyx_nargs = PyTuple_GET_SIZE(__pyx_args);
+  #else
+  __pyx_nargs = PyTuple_Size(__pyx_args); if (unlikely(__pyx_nargs < 0)) return NULL;
+  #endif
+  #endif
+  __pyx_kwvalues = __Pyx_KwValues_FASTCALL(__pyx_args, __pyx_nargs);
+  {
+    PyObject ** const __pyx_pyargnames[] = {&__pyx_mstate_global->__pyx_n_u_pyx_state,0};
+    const Py_ssize_t __pyx_kwds_len = (__pyx_kwds) ? __Pyx_NumKwargs_FASTCALL(__pyx_kwds) : 0;
+    if (unlikely(__pyx_kwds_len < 0)) __PYX_ERR(2, 16, __pyx_L3_error)
+    if (__pyx_kwds_len > 0) {
+      switch (__pyx_nargs) {
+        case  1:
+        values[0] = __Pyx_ArgRef_FASTCALL(__pyx_args, 0);
+        if (!CYTHON_ASSUME_SAFE_MACROS && unlikely(!values[0])) __PYX_ERR(2, 16, __pyx_L3_error)
+        CYTHON_FALLTHROUGH;
+        case  0: break;
+        default: goto __pyx_L5_argtuple_error;
+      }
+      const Py_ssize_t kwd_pos_args = __pyx_nargs;
+      if (__Pyx_ParseKeywords(__pyx_kwds, __pyx_kwvalues, __pyx_pyargnames, 0, values, kwd_pos_args, __pyx_kwds_len, "__setstate_cython__", 0) < (0)) __PYX_ERR(2, 16, __pyx_L3_error)
+      for (Py_ssize_t i = __pyx_nargs; i < 1; i++) {
+        if (unlikely(!values[i])) { __Pyx_RaiseArgtupleInvalid("__setstate_cython__", 1, 1, 1, i); __PYX_ERR(2, 16, __pyx_L3_error) }
+      }
+    } else if (unlikely(__pyx_nargs != 1)) {
+      goto __pyx_L5_argtuple_error;
+    } else {
+      values[0] = __Pyx_ArgRef_FASTCALL(__pyx_args, 0);
+      if (!CYTHON_ASSUME_SAFE_MACROS && unlikely(!values[0])) __PYX_ERR(2, 16, __pyx_L3_error)
+    }
+    __pyx_v___pyx_state = values[0];
+  }
+  goto __pyx_L6_skip;
+  __pyx_L5_argtuple_error:;
+  __Pyx_RaiseArgtupleInvalid("__setstate_cython__", 1, 1, 1, __pyx_nargs); __PYX_ERR(2, 16, __pyx_L3_error)
+  __pyx_L6_skip:;
+  goto __pyx_L4_argument_unpacking_done;
+  __pyx_L3_error:;
+  for (Py_ssize_t __pyx_temp=0; __pyx_temp < (Py_ssize_t)(sizeof(values)/sizeof(values[0])); ++__pyx_temp) {
+    Py_XDECREF(values[__pyx_temp]);
+  }
+  __Pyx_AddTraceback("cyflow.autograd.MatmulBackward.__setstate_cython__", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_RefNannyFinishContext();
+  return NULL;
+  __pyx_L4_argument_unpacking_done:;
+  __pyx_r = __pyx_pf_6cyflow_8autograd_14MatmulBackward_6__setstate_cython__(((struct __pyx_obj_6cyflow_8autograd_MatmulBackward *)__pyx_v_self), __pyx_v___pyx_state);
+
+  /* function exit code */
+  for (Py_ssize_t __pyx_temp=0; __pyx_temp < (Py_ssize_t)(sizeof(values)/sizeof(values[0])); ++__pyx_temp) {
+    Py_XDECREF(values[__pyx_temp]);
+  }
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+static PyObject *__pyx_pf_6cyflow_8autograd_14MatmulBackward_6__setstate_cython__(struct __pyx_obj_6cyflow_8autograd_MatmulBackward *__pyx_v_self, PyObject *__pyx_v___pyx_state) {
+  PyObject *__pyx_r = NULL;
+  __Pyx_RefNannyDeclarations
+  PyObject *__pyx_t_1 = NULL;
+  PyObject *__pyx_t_2 = NULL;
+  int __pyx_lineno = 0;
+  const char *__pyx_filename = NULL;
+  int __pyx_clineno = 0;
+  __Pyx_RefNannySetupContext("__setstate_cython__", 0);
+
+  /* "(tree fragment)":17
+ *         return __pyx_unpickle_MatmulBackward, (type(self), 0xf4e844f, state)
+ * def __setstate_cython__(self, __pyx_state):
+ *     __pyx_unpickle_MatmulBackward__set_state(self, __pyx_state)             # <<<<<<<<<<<<<<
+*/
+  __pyx_t_1 = __pyx_v___pyx_state;
+  __Pyx_INCREF(__pyx_t_1);
+  if (!(likely(PyTuple_CheckExact(__pyx_t_1))||((__pyx_t_1) == Py_None) || __Pyx_RaiseUnexpectedTypeError("tuple", __pyx_t_1))) __PYX_ERR(2, 17, __pyx_L1_error)
+  if (unlikely(__pyx_t_1 == Py_None)) {
+    PyErr_SetString(PyExc_TypeError, "cannot pass None into a C function argument that is declared 'not None'");
+    __PYX_ERR(2, 17, __pyx_L1_error)
+  }
+  __pyx_t_2 = __pyx_f_6cyflow_8autograd___pyx_unpickle_MatmulBackward__set_state(__pyx_v_self, ((PyObject*)__pyx_t_1)); if (unlikely(!__pyx_t_2)) __PYX_ERR(2, 17, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+
+  /* "(tree fragment)":16
+ *     else:
+ *         return __pyx_unpickle_MatmulBackward, (type(self), 0xf4e844f, state)
+ * def __setstate_cython__(self, __pyx_state):             # <<<<<<<<<<<<<<
+ *     __pyx_unpickle_MatmulBackward__set_state(self, __pyx_state)
+*/
+
+  /* function exit code */
+  __pyx_r = Py_None; __Pyx_INCREF(Py_None);
+  goto __pyx_L0;
+  __pyx_L1_error:;
+  __Pyx_XDECREF(__pyx_t_1);
+  __Pyx_XDECREF(__pyx_t_2);
+  __Pyx_AddTraceback("cyflow.autograd.MatmulBackward.__setstate_cython__", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
   __Pyx_XGIVEREF(__pyx_r);
@@ -14449,6 +16040,312 @@ static PyObject *__pyx_f_6cyflow_8autograd___pyx_unpickle_GetItemBackward__set_s
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
+
+/* "(tree fragment)":4
+ *     int __Pyx_CheckUnpickleChecksum(long, long, long, long, const char*) except -1
+ *     int __Pyx_UpdateUnpickledDict(object, object, Py_ssize_t) except -1
+ * def __pyx_unpickle_MatmulBackward(__pyx_type, long __pyx_checksum, tuple __pyx_state):             # <<<<<<<<<<<<<<
+ *     cdef object __pyx_result
+ *     __Pyx_CheckUnpickleChecksum(__pyx_checksum, 0xf4e844f, 0xbac5051, 0xf195067, b'next_functions, other, self_tensor')
+*/
+
+/* Python wrapper */
+static PyObject *__pyx_pw_6cyflow_8autograd_15__pyx_unpickle_MatmulBackward(PyObject *__pyx_self, 
+#if CYTHON_METH_FASTCALL
+PyObject *const *__pyx_args, Py_ssize_t __pyx_nargs, PyObject *__pyx_kwds
+#else
+PyObject *__pyx_args, PyObject *__pyx_kwds
+#endif
+); /*proto*/
+static PyMethodDef __pyx_mdef_6cyflow_8autograd_15__pyx_unpickle_MatmulBackward = {"__pyx_unpickle_MatmulBackward", (PyCFunction)(void(*)(void))(__Pyx_PyCFunction_FastCallWithKeywords)__pyx_pw_6cyflow_8autograd_15__pyx_unpickle_MatmulBackward, __Pyx_METH_FASTCALL|METH_KEYWORDS, 0};
+static PyObject *__pyx_pw_6cyflow_8autograd_15__pyx_unpickle_MatmulBackward(PyObject *__pyx_self, 
+#if CYTHON_METH_FASTCALL
+PyObject *const *__pyx_args, Py_ssize_t __pyx_nargs, PyObject *__pyx_kwds
+#else
+PyObject *__pyx_args, PyObject *__pyx_kwds
+#endif
+) {
+  PyObject *__pyx_v___pyx_type = 0;
+  long __pyx_v___pyx_checksum;
+  PyObject *__pyx_v___pyx_state = 0;
+  #if !CYTHON_METH_FASTCALL
+  CYTHON_UNUSED Py_ssize_t __pyx_nargs;
+  #endif
+  CYTHON_UNUSED PyObject *const *__pyx_kwvalues;
+  PyObject* values[3] = {0,0,0};
+  int __pyx_lineno = 0;
+  const char *__pyx_filename = NULL;
+  int __pyx_clineno = 0;
+  PyObject *__pyx_r = 0;
+  __Pyx_RefNannyDeclarations
+  __Pyx_RefNannySetupContext("__pyx_unpickle_MatmulBackward (wrapper)", 0);
+  #if !CYTHON_METH_FASTCALL
+  #if CYTHON_ASSUME_SAFE_SIZE
+  __pyx_nargs = PyTuple_GET_SIZE(__pyx_args);
+  #else
+  __pyx_nargs = PyTuple_Size(__pyx_args); if (unlikely(__pyx_nargs < 0)) return NULL;
+  #endif
+  #endif
+  __pyx_kwvalues = __Pyx_KwValues_FASTCALL(__pyx_args, __pyx_nargs);
+  {
+    PyObject ** const __pyx_pyargnames[] = {&__pyx_mstate_global->__pyx_n_u_pyx_type,&__pyx_mstate_global->__pyx_n_u_pyx_checksum,&__pyx_mstate_global->__pyx_n_u_pyx_state,0};
+    const Py_ssize_t __pyx_kwds_len = (__pyx_kwds) ? __Pyx_NumKwargs_FASTCALL(__pyx_kwds) : 0;
+    if (unlikely(__pyx_kwds_len < 0)) __PYX_ERR(2, 4, __pyx_L3_error)
+    if (__pyx_kwds_len > 0) {
+      switch (__pyx_nargs) {
+        case  3:
+        values[2] = __Pyx_ArgRef_FASTCALL(__pyx_args, 2);
+        if (!CYTHON_ASSUME_SAFE_MACROS && unlikely(!values[2])) __PYX_ERR(2, 4, __pyx_L3_error)
+        CYTHON_FALLTHROUGH;
+        case  2:
+        values[1] = __Pyx_ArgRef_FASTCALL(__pyx_args, 1);
+        if (!CYTHON_ASSUME_SAFE_MACROS && unlikely(!values[1])) __PYX_ERR(2, 4, __pyx_L3_error)
+        CYTHON_FALLTHROUGH;
+        case  1:
+        values[0] = __Pyx_ArgRef_FASTCALL(__pyx_args, 0);
+        if (!CYTHON_ASSUME_SAFE_MACROS && unlikely(!values[0])) __PYX_ERR(2, 4, __pyx_L3_error)
+        CYTHON_FALLTHROUGH;
+        case  0: break;
+        default: goto __pyx_L5_argtuple_error;
+      }
+      const Py_ssize_t kwd_pos_args = __pyx_nargs;
+      if (__Pyx_ParseKeywords(__pyx_kwds, __pyx_kwvalues, __pyx_pyargnames, 0, values, kwd_pos_args, __pyx_kwds_len, "__pyx_unpickle_MatmulBackward", 0) < (0)) __PYX_ERR(2, 4, __pyx_L3_error)
+      for (Py_ssize_t i = __pyx_nargs; i < 3; i++) {
+        if (unlikely(!values[i])) { __Pyx_RaiseArgtupleInvalid("__pyx_unpickle_MatmulBackward", 1, 3, 3, i); __PYX_ERR(2, 4, __pyx_L3_error) }
+      }
+    } else if (unlikely(__pyx_nargs != 3)) {
+      goto __pyx_L5_argtuple_error;
+    } else {
+      values[0] = __Pyx_ArgRef_FASTCALL(__pyx_args, 0);
+      if (!CYTHON_ASSUME_SAFE_MACROS && unlikely(!values[0])) __PYX_ERR(2, 4, __pyx_L3_error)
+      values[1] = __Pyx_ArgRef_FASTCALL(__pyx_args, 1);
+      if (!CYTHON_ASSUME_SAFE_MACROS && unlikely(!values[1])) __PYX_ERR(2, 4, __pyx_L3_error)
+      values[2] = __Pyx_ArgRef_FASTCALL(__pyx_args, 2);
+      if (!CYTHON_ASSUME_SAFE_MACROS && unlikely(!values[2])) __PYX_ERR(2, 4, __pyx_L3_error)
+    }
+    __pyx_v___pyx_type = values[0];
+    __pyx_v___pyx_checksum = __Pyx_PyLong_As_long(values[1]); if (unlikely((__pyx_v___pyx_checksum == (long)-1) && PyErr_Occurred())) __PYX_ERR(2, 4, __pyx_L3_error)
+    __pyx_v___pyx_state = ((PyObject*)values[2]);
+  }
+  goto __pyx_L6_skip;
+  __pyx_L5_argtuple_error:;
+  __Pyx_RaiseArgtupleInvalid("__pyx_unpickle_MatmulBackward", 1, 3, 3, __pyx_nargs); __PYX_ERR(2, 4, __pyx_L3_error)
+  __pyx_L6_skip:;
+  goto __pyx_L4_argument_unpacking_done;
+  __pyx_L3_error:;
+  for (Py_ssize_t __pyx_temp=0; __pyx_temp < (Py_ssize_t)(sizeof(values)/sizeof(values[0])); ++__pyx_temp) {
+    Py_XDECREF(values[__pyx_temp]);
+  }
+  __Pyx_AddTraceback("cyflow.autograd.__pyx_unpickle_MatmulBackward", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_RefNannyFinishContext();
+  return NULL;
+  __pyx_L4_argument_unpacking_done:;
+  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v___pyx_state), (&PyTuple_Type), 1, "__pyx_state", 1))) __PYX_ERR(2, 4, __pyx_L1_error)
+  __pyx_r = __pyx_pf_6cyflow_8autograd_14__pyx_unpickle_MatmulBackward(__pyx_self, __pyx_v___pyx_type, __pyx_v___pyx_checksum, __pyx_v___pyx_state);
+
+  /* function exit code */
+  goto __pyx_L0;
+  __pyx_L1_error:;
+  __pyx_r = NULL;
+  for (Py_ssize_t __pyx_temp=0; __pyx_temp < (Py_ssize_t)(sizeof(values)/sizeof(values[0])); ++__pyx_temp) {
+    Py_XDECREF(values[__pyx_temp]);
+  }
+  goto __pyx_L7_cleaned_up;
+  __pyx_L0:;
+  for (Py_ssize_t __pyx_temp=0; __pyx_temp < (Py_ssize_t)(sizeof(values)/sizeof(values[0])); ++__pyx_temp) {
+    Py_XDECREF(values[__pyx_temp]);
+  }
+  __pyx_L7_cleaned_up:;
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+static PyObject *__pyx_pf_6cyflow_8autograd_14__pyx_unpickle_MatmulBackward(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v___pyx_type, long __pyx_v___pyx_checksum, PyObject *__pyx_v___pyx_state) {
+  PyObject *__pyx_v___pyx_result = 0;
+  PyObject *__pyx_r = NULL;
+  __Pyx_RefNannyDeclarations
+  int __pyx_t_1;
+  PyObject *__pyx_t_2 = NULL;
+  PyObject *__pyx_t_3 = NULL;
+  size_t __pyx_t_4;
+  int __pyx_t_5;
+  int __pyx_lineno = 0;
+  const char *__pyx_filename = NULL;
+  int __pyx_clineno = 0;
+  __Pyx_RefNannySetupContext("__pyx_unpickle_MatmulBackward", 0);
+
+  /* "(tree fragment)":6
+ * def __pyx_unpickle_MatmulBackward(__pyx_type, long __pyx_checksum, tuple __pyx_state):
+ *     cdef object __pyx_result
+ *     __Pyx_CheckUnpickleChecksum(__pyx_checksum, 0xf4e844f, 0xbac5051, 0xf195067, b'next_functions, other, self_tensor')             # <<<<<<<<<<<<<<
+ *     __pyx_result = MatmulBackward.__new__(__pyx_type)
+ *     if __pyx_state is not None:
+*/
+  __pyx_t_1 = __Pyx_CheckUnpickleChecksum(__pyx_v___pyx_checksum, 0xf4e844f, 0xbac5051, 0xf195067, __pyx_k_next_functions_other_self_tensor); if (unlikely(__pyx_t_1 == ((int)-1))) __PYX_ERR(2, 6, __pyx_L1_error)
+
+  /* "(tree fragment)":7
+ *     cdef object __pyx_result
+ *     __Pyx_CheckUnpickleChecksum(__pyx_checksum, 0xf4e844f, 0xbac5051, 0xf195067, b'next_functions, other, self_tensor')
+ *     __pyx_result = MatmulBackward.__new__(__pyx_type)             # <<<<<<<<<<<<<<
+ *     if __pyx_state is not None:
+ *         __pyx_unpickle_MatmulBackward__set_state(<MatmulBackward> __pyx_result, __pyx_state)
+*/
+  __pyx_t_3 = ((PyObject *)__pyx_mstate_global->__pyx_ptype_6cyflow_8autograd_MatmulBackward);
+  __Pyx_INCREF(__pyx_t_3);
+  __pyx_t_4 = 0;
+  {
+    PyObject *__pyx_callargs[2] = {__pyx_t_3, __pyx_v___pyx_type};
+    __pyx_t_2 = __Pyx_PyObject_FastCallMethod((PyObject*)__pyx_mstate_global->__pyx_n_u_new, __pyx_callargs+__pyx_t_4, (2-__pyx_t_4) | (1*__Pyx_PY_VECTORCALL_ARGUMENTS_OFFSET));
+    __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
+    if (unlikely(!__pyx_t_2)) __PYX_ERR(2, 7, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_2);
+  }
+  __pyx_v___pyx_result = __pyx_t_2;
+  __pyx_t_2 = 0;
+
+  /* "(tree fragment)":8
+ *     __Pyx_CheckUnpickleChecksum(__pyx_checksum, 0xf4e844f, 0xbac5051, 0xf195067, b'next_functions, other, self_tensor')
+ *     __pyx_result = MatmulBackward.__new__(__pyx_type)
+ *     if __pyx_state is not None:             # <<<<<<<<<<<<<<
+ *         __pyx_unpickle_MatmulBackward__set_state(<MatmulBackward> __pyx_result, __pyx_state)
+ *     return __pyx_result
+*/
+  __pyx_t_5 = (__pyx_v___pyx_state != ((PyObject*)Py_None));
+  if (__pyx_t_5) {
+
+    /* "(tree fragment)":9
+ *     __pyx_result = MatmulBackward.__new__(__pyx_type)
+ *     if __pyx_state is not None:
+ *         __pyx_unpickle_MatmulBackward__set_state(<MatmulBackward> __pyx_result, __pyx_state)             # <<<<<<<<<<<<<<
+ *     return __pyx_result
+ * cdef __pyx_unpickle_MatmulBackward__set_state(MatmulBackward __pyx_result, __pyx_state: tuple):
+*/
+    if (unlikely(__pyx_v___pyx_state == Py_None)) {
+      PyErr_SetString(PyExc_TypeError, "cannot pass None into a C function argument that is declared 'not None'");
+      __PYX_ERR(2, 9, __pyx_L1_error)
+    }
+    __pyx_t_2 = __pyx_f_6cyflow_8autograd___pyx_unpickle_MatmulBackward__set_state(((struct __pyx_obj_6cyflow_8autograd_MatmulBackward *)__pyx_v___pyx_result), __pyx_v___pyx_state); if (unlikely(!__pyx_t_2)) __PYX_ERR(2, 9, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_2);
+    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+
+    /* "(tree fragment)":8
+ *     __Pyx_CheckUnpickleChecksum(__pyx_checksum, 0xf4e844f, 0xbac5051, 0xf195067, b'next_functions, other, self_tensor')
+ *     __pyx_result = MatmulBackward.__new__(__pyx_type)
+ *     if __pyx_state is not None:             # <<<<<<<<<<<<<<
+ *         __pyx_unpickle_MatmulBackward__set_state(<MatmulBackward> __pyx_result, __pyx_state)
+ *     return __pyx_result
+*/
+  }
+
+  /* "(tree fragment)":10
+ *     if __pyx_state is not None:
+ *         __pyx_unpickle_MatmulBackward__set_state(<MatmulBackward> __pyx_result, __pyx_state)
+ *     return __pyx_result             # <<<<<<<<<<<<<<
+ * cdef __pyx_unpickle_MatmulBackward__set_state(MatmulBackward __pyx_result, __pyx_state: tuple):
+ *     __pyx_result.next_functions = __pyx_state[0]; __pyx_result.other = __pyx_state[1]; __pyx_result.self_tensor = __pyx_state[2]
+*/
+  __Pyx_XDECREF(__pyx_r);
+  __Pyx_INCREF(__pyx_v___pyx_result);
+  __pyx_r = __pyx_v___pyx_result;
+  goto __pyx_L0;
+
+  /* "(tree fragment)":4
+ *     int __Pyx_CheckUnpickleChecksum(long, long, long, long, const char*) except -1
+ *     int __Pyx_UpdateUnpickledDict(object, object, Py_ssize_t) except -1
+ * def __pyx_unpickle_MatmulBackward(__pyx_type, long __pyx_checksum, tuple __pyx_state):             # <<<<<<<<<<<<<<
+ *     cdef object __pyx_result
+ *     __Pyx_CheckUnpickleChecksum(__pyx_checksum, 0xf4e844f, 0xbac5051, 0xf195067, b'next_functions, other, self_tensor')
+*/
+
+  /* function exit code */
+  __pyx_L1_error:;
+  __Pyx_XDECREF(__pyx_t_2);
+  __Pyx_XDECREF(__pyx_t_3);
+  __Pyx_AddTraceback("cyflow.autograd.__pyx_unpickle_MatmulBackward", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __pyx_r = NULL;
+  __pyx_L0:;
+  __Pyx_XDECREF(__pyx_v___pyx_result);
+  __Pyx_XGIVEREF(__pyx_r);
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* "(tree fragment)":11
+ *         __pyx_unpickle_MatmulBackward__set_state(<MatmulBackward> __pyx_result, __pyx_state)
+ *     return __pyx_result
+ * cdef __pyx_unpickle_MatmulBackward__set_state(MatmulBackward __pyx_result, __pyx_state: tuple):             # <<<<<<<<<<<<<<
+ *     __pyx_result.next_functions = __pyx_state[0]; __pyx_result.other = __pyx_state[1]; __pyx_result.self_tensor = __pyx_state[2]
+ *     __Pyx_UpdateUnpickledDict(__pyx_result, __pyx_state, 3)
+*/
+
+static PyObject *__pyx_f_6cyflow_8autograd___pyx_unpickle_MatmulBackward__set_state(struct __pyx_obj_6cyflow_8autograd_MatmulBackward *__pyx_v___pyx_result, PyObject *__pyx_v___pyx_state) {
+  PyObject *__pyx_r = NULL;
+  __Pyx_RefNannyDeclarations
+  PyObject *__pyx_t_1 = NULL;
+  int __pyx_t_2;
+  int __pyx_lineno = 0;
+  const char *__pyx_filename = NULL;
+  int __pyx_clineno = 0;
+  __Pyx_RefNannySetupContext("__pyx_unpickle_MatmulBackward__set_state", 0);
+
+  /* "(tree fragment)":12
+ *     return __pyx_result
+ * cdef __pyx_unpickle_MatmulBackward__set_state(MatmulBackward __pyx_result, __pyx_state: tuple):
+ *     __pyx_result.next_functions = __pyx_state[0]; __pyx_result.other = __pyx_state[1]; __pyx_result.self_tensor = __pyx_state[2]             # <<<<<<<<<<<<<<
+ *     __Pyx_UpdateUnpickledDict(__pyx_result, __pyx_state, 3)
+*/
+  __pyx_t_1 = __Pyx_GetItemInt_Tuple(__pyx_v___pyx_state, 0, long, 1, __Pyx_PyLong_From_long, 0, 0, 1, 1, __Pyx_ReferenceSharing_FunctionArgument); if (unlikely(!__pyx_t_1)) __PYX_ERR(2, 12, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  if (!(likely(PyList_CheckExact(__pyx_t_1))||((__pyx_t_1) == Py_None) || __Pyx_RaiseUnexpectedTypeError("list", __pyx_t_1))) __PYX_ERR(2, 12, __pyx_L1_error)
+  __Pyx_GIVEREF(__pyx_t_1);
+  __Pyx_GOTREF(__pyx_v___pyx_result->__pyx_base.next_functions);
+  __Pyx_DECREF(__pyx_v___pyx_result->__pyx_base.next_functions);
+  __pyx_v___pyx_result->__pyx_base.next_functions = ((PyObject*)__pyx_t_1);
+  __pyx_t_1 = 0;
+  __pyx_t_1 = __Pyx_GetItemInt_Tuple(__pyx_v___pyx_state, 1, long, 1, __Pyx_PyLong_From_long, 0, 0, 1, 1, __Pyx_ReferenceSharing_FunctionArgument); if (unlikely(!__pyx_t_1)) __PYX_ERR(2, 12, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  if (!(likely(((__pyx_t_1) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_1, __pyx_mstate_global->__pyx_ptype_6cyflow_6tensor_Tensor))))) __PYX_ERR(2, 12, __pyx_L1_error)
+  __Pyx_GIVEREF(__pyx_t_1);
+  __Pyx_GOTREF((PyObject *)__pyx_v___pyx_result->other);
+  __Pyx_DECREF((PyObject *)__pyx_v___pyx_result->other);
+  __pyx_v___pyx_result->other = ((struct __pyx_obj_6cyflow_6tensor_Tensor *)__pyx_t_1);
+  __pyx_t_1 = 0;
+  __pyx_t_1 = __Pyx_GetItemInt_Tuple(__pyx_v___pyx_state, 2, long, 1, __Pyx_PyLong_From_long, 0, 0, 1, 1, __Pyx_ReferenceSharing_FunctionArgument); if (unlikely(!__pyx_t_1)) __PYX_ERR(2, 12, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  if (!(likely(((__pyx_t_1) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_1, __pyx_mstate_global->__pyx_ptype_6cyflow_6tensor_Tensor))))) __PYX_ERR(2, 12, __pyx_L1_error)
+  __Pyx_GIVEREF(__pyx_t_1);
+  __Pyx_GOTREF((PyObject *)__pyx_v___pyx_result->self_tensor);
+  __Pyx_DECREF((PyObject *)__pyx_v___pyx_result->self_tensor);
+  __pyx_v___pyx_result->self_tensor = ((struct __pyx_obj_6cyflow_6tensor_Tensor *)__pyx_t_1);
+  __pyx_t_1 = 0;
+
+  /* "(tree fragment)":13
+ * cdef __pyx_unpickle_MatmulBackward__set_state(MatmulBackward __pyx_result, __pyx_state: tuple):
+ *     __pyx_result.next_functions = __pyx_state[0]; __pyx_result.other = __pyx_state[1]; __pyx_result.self_tensor = __pyx_state[2]
+ *     __Pyx_UpdateUnpickledDict(__pyx_result, __pyx_state, 3)             # <<<<<<<<<<<<<<
+*/
+  __pyx_t_2 = __Pyx_UpdateUnpickledDict(((PyObject *)__pyx_v___pyx_result), __pyx_v___pyx_state, 3); if (unlikely(__pyx_t_2 == ((int)-1))) __PYX_ERR(2, 13, __pyx_L1_error)
+
+  /* "(tree fragment)":11
+ *         __pyx_unpickle_MatmulBackward__set_state(<MatmulBackward> __pyx_result, __pyx_state)
+ *     return __pyx_result
+ * cdef __pyx_unpickle_MatmulBackward__set_state(MatmulBackward __pyx_result, __pyx_state: tuple):             # <<<<<<<<<<<<<<
+ *     __pyx_result.next_functions = __pyx_state[0]; __pyx_result.other = __pyx_state[1]; __pyx_result.self_tensor = __pyx_state[2]
+ *     __Pyx_UpdateUnpickledDict(__pyx_result, __pyx_state, 3)
+*/
+
+  /* function exit code */
+  __pyx_r = Py_None; __Pyx_INCREF(Py_None);
+  goto __pyx_L0;
+  __pyx_L1_error:;
+  __Pyx_XDECREF(__pyx_t_1);
+  __Pyx_AddTraceback("cyflow.autograd.__pyx_unpickle_MatmulBackward__set_state", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __pyx_r = 0;
+  __pyx_L0:;
+  __Pyx_XGIVEREF(__pyx_r);
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
 /* #### Code section: module_exttypes ### */
 static struct __pyx_vtabstruct_6cyflow_8autograd_AutogradNode __pyx_vtable_6cyflow_8autograd_AutogradNode;
 
@@ -15707,6 +17604,190 @@ static PyTypeObject __pyx_type_6cyflow_8autograd_GetItemBackward = {
   #endif
 };
 #endif
+static struct __pyx_vtabstruct_6cyflow_8autograd_MatmulBackward __pyx_vtable_6cyflow_8autograd_MatmulBackward;
+
+static PyObject *__pyx_tp_new_6cyflow_8autograd_MatmulBackward(PyTypeObject *t, PyObject *a, PyObject *k) {
+  struct __pyx_obj_6cyflow_8autograd_MatmulBackward *p;
+  PyObject *o = __pyx_tp_new_6cyflow_8autograd_AutogradNode(t, a, k);
+  if (unlikely(!o)) return 0;
+  p = ((struct __pyx_obj_6cyflow_8autograd_MatmulBackward *)o);
+  p->__pyx_base.__pyx_vtab = (struct __pyx_vtabstruct_6cyflow_8autograd_AutogradNode*)__pyx_vtabptr_6cyflow_8autograd_MatmulBackward;
+  p->self_tensor = ((struct __pyx_obj_6cyflow_6tensor_Tensor *)Py_None); Py_INCREF(Py_None);
+  p->other = ((struct __pyx_obj_6cyflow_6tensor_Tensor *)Py_None); Py_INCREF(Py_None);
+  return o;
+}
+
+static void __pyx_tp_dealloc_6cyflow_8autograd_MatmulBackward(PyObject *o) {
+  struct __pyx_obj_6cyflow_8autograd_MatmulBackward *p = (struct __pyx_obj_6cyflow_8autograd_MatmulBackward *)o;
+  #if CYTHON_USE_TP_FINALIZE
+  if (unlikely(__Pyx_PyObject_GetSlot(o, tp_finalize, destructor)) && !__Pyx_PyObject_GC_IsFinalized(o)) {
+    if (__Pyx_PyObject_GetSlot(o, tp_dealloc, destructor) == __pyx_tp_dealloc_6cyflow_8autograd_MatmulBackward) {
+      if (PyObject_CallFinalizerFromDealloc(o)) return;
+    }
+  }
+  #endif
+  PyObject_GC_UnTrack(o);
+  Py_CLEAR(p->self_tensor);
+  Py_CLEAR(p->other);
+  PyObject_GC_Track(o);
+  __pyx_tp_dealloc_6cyflow_8autograd_AutogradNode(o);
+}
+
+static int __pyx_tp_traverse_6cyflow_8autograd_MatmulBackward(PyObject *o, visitproc v, void *a) {
+  int e;
+  struct __pyx_obj_6cyflow_8autograd_MatmulBackward *p = (struct __pyx_obj_6cyflow_8autograd_MatmulBackward *)o;
+  e = __pyx_tp_traverse_6cyflow_8autograd_AutogradNode(o, v, a); if (e) return e;
+  if (p->self_tensor) {
+    e = (*v)(((PyObject *)p->self_tensor), a); if (e) return e;
+  }
+  if (p->other) {
+    e = (*v)(((PyObject *)p->other), a); if (e) return e;
+  }
+  return 0;
+}
+
+static int __pyx_tp_clear_6cyflow_8autograd_MatmulBackward(PyObject *o) {
+  PyObject* tmp;
+  struct __pyx_obj_6cyflow_8autograd_MatmulBackward *p = (struct __pyx_obj_6cyflow_8autograd_MatmulBackward *)o;
+  __pyx_tp_clear_6cyflow_8autograd_AutogradNode(o);
+  tmp = ((PyObject*)p->self_tensor);
+  p->self_tensor = ((struct __pyx_obj_6cyflow_6tensor_Tensor *)Py_None); Py_INCREF(Py_None);
+  Py_XDECREF(tmp);
+  tmp = ((PyObject*)p->other);
+  p->other = ((struct __pyx_obj_6cyflow_6tensor_Tensor *)Py_None); Py_INCREF(Py_None);
+  Py_XDECREF(tmp);
+  return 0;
+}
+
+static PyObject *__pyx_getprop_6cyflow_8autograd_14MatmulBackward_self_tensor(PyObject *o, CYTHON_UNUSED void *x) {
+  return __pyx_pw_6cyflow_8autograd_14MatmulBackward_11self_tensor_1__get__(o);
+}
+
+static int __pyx_setprop_6cyflow_8autograd_14MatmulBackward_self_tensor(PyObject *o, PyObject *v, CYTHON_UNUSED void *x) {
+  if (v) {
+    return __pyx_pw_6cyflow_8autograd_14MatmulBackward_11self_tensor_3__set__(o, v);
+  }
+  else {
+    return __pyx_pw_6cyflow_8autograd_14MatmulBackward_11self_tensor_5__del__(o);
+  }
+}
+
+static PyObject *__pyx_getprop_6cyflow_8autograd_14MatmulBackward_other(PyObject *o, CYTHON_UNUSED void *x) {
+  return __pyx_pw_6cyflow_8autograd_14MatmulBackward_5other_1__get__(o);
+}
+
+static int __pyx_setprop_6cyflow_8autograd_14MatmulBackward_other(PyObject *o, PyObject *v, CYTHON_UNUSED void *x) {
+  if (v) {
+    return __pyx_pw_6cyflow_8autograd_14MatmulBackward_5other_3__set__(o, v);
+  }
+  else {
+    return __pyx_pw_6cyflow_8autograd_14MatmulBackward_5other_5__del__(o);
+  }
+}
+
+static PyMethodDef __pyx_methods_6cyflow_8autograd_MatmulBackward[] = {
+  {"__reduce_cython__", (PyCFunction)(void(*)(void))(__Pyx_PyCFunction_FastCallWithKeywords)__pyx_pw_6cyflow_8autograd_14MatmulBackward_5__reduce_cython__, __Pyx_METH_FASTCALL|METH_KEYWORDS, 0},
+  {"__setstate_cython__", (PyCFunction)(void(*)(void))(__Pyx_PyCFunction_FastCallWithKeywords)__pyx_pw_6cyflow_8autograd_14MatmulBackward_7__setstate_cython__, __Pyx_METH_FASTCALL|METH_KEYWORDS, 0},
+  {0, 0, 0, 0}
+};
+
+static struct PyGetSetDef __pyx_getsets_6cyflow_8autograd_MatmulBackward[] = {
+  {"self_tensor", __pyx_getprop_6cyflow_8autograd_14MatmulBackward_self_tensor, __pyx_setprop_6cyflow_8autograd_14MatmulBackward_self_tensor, 0, 0},
+  {"other", __pyx_getprop_6cyflow_8autograd_14MatmulBackward_other, __pyx_setprop_6cyflow_8autograd_14MatmulBackward_other, 0, 0},
+  {0, 0, 0, 0, 0}
+};
+#if CYTHON_USE_TYPE_SPECS
+static PyType_Slot __pyx_type_6cyflow_8autograd_MatmulBackward_slots[] = {
+  {Py_tp_dealloc, (void *)__pyx_tp_dealloc_6cyflow_8autograd_MatmulBackward},
+  {Py_tp_traverse, (void *)__pyx_tp_traverse_6cyflow_8autograd_MatmulBackward},
+  {Py_tp_clear, (void *)__pyx_tp_clear_6cyflow_8autograd_MatmulBackward},
+  {Py_tp_methods, (void *)__pyx_methods_6cyflow_8autograd_MatmulBackward},
+  {Py_tp_getset, (void *)__pyx_getsets_6cyflow_8autograd_MatmulBackward},
+  {Py_tp_init, (void *)__pyx_pw_6cyflow_8autograd_14MatmulBackward_1__init__},
+  {Py_tp_new, (void *)__pyx_tp_new_6cyflow_8autograd_MatmulBackward},
+  {0, 0},
+};
+static PyType_Spec __pyx_type_6cyflow_8autograd_MatmulBackward_spec = {
+  "cyflow.autograd.MatmulBackward",
+  sizeof(struct __pyx_obj_6cyflow_8autograd_MatmulBackward),
+  0,
+  Py_TPFLAGS_DEFAULT|Py_TPFLAGS_HAVE_VERSION_TAG|Py_TPFLAGS_CHECKTYPES|Py_TPFLAGS_HAVE_NEWBUFFER|Py_TPFLAGS_BASETYPE|Py_TPFLAGS_HAVE_GC,
+  __pyx_type_6cyflow_8autograd_MatmulBackward_slots,
+};
+#else
+
+static PyTypeObject __pyx_type_6cyflow_8autograd_MatmulBackward = {
+  PyVarObject_HEAD_INIT(0, 0)
+  "cyflow.autograd.""MatmulBackward", /*tp_name*/
+  sizeof(struct __pyx_obj_6cyflow_8autograd_MatmulBackward), /*tp_basicsize*/
+  0, /*tp_itemsize*/
+  __pyx_tp_dealloc_6cyflow_8autograd_MatmulBackward, /*tp_dealloc*/
+  0, /*tp_vectorcall_offset*/
+  0, /*tp_getattr*/
+  0, /*tp_setattr*/
+  0, /*tp_as_async*/
+  0, /*tp_repr*/
+  0, /*tp_as_number*/
+  0, /*tp_as_sequence*/
+  0, /*tp_as_mapping*/
+  0, /*tp_hash*/
+  0, /*tp_call*/
+  0, /*tp_str*/
+  0, /*tp_getattro*/
+  0, /*tp_setattro*/
+  0, /*tp_as_buffer*/
+  Py_TPFLAGS_DEFAULT|Py_TPFLAGS_HAVE_VERSION_TAG|Py_TPFLAGS_CHECKTYPES|Py_TPFLAGS_HAVE_NEWBUFFER|Py_TPFLAGS_BASETYPE|Py_TPFLAGS_HAVE_GC, /*tp_flags*/
+  0, /*tp_doc*/
+  __pyx_tp_traverse_6cyflow_8autograd_MatmulBackward, /*tp_traverse*/
+  __pyx_tp_clear_6cyflow_8autograd_MatmulBackward, /*tp_clear*/
+  0, /*tp_richcompare*/
+  0, /*tp_weaklistoffset*/
+  0, /*tp_iter*/
+  0, /*tp_iternext*/
+  __pyx_methods_6cyflow_8autograd_MatmulBackward, /*tp_methods*/
+  0, /*tp_members*/
+  __pyx_getsets_6cyflow_8autograd_MatmulBackward, /*tp_getset*/
+  0, /*tp_base*/
+  0, /*tp_dict*/
+  0, /*tp_descr_get*/
+  0, /*tp_descr_set*/
+  #if !CYTHON_USE_TYPE_SPECS
+  0, /*tp_dictoffset*/
+  #endif
+  __pyx_pw_6cyflow_8autograd_14MatmulBackward_1__init__, /*tp_init*/
+  0, /*tp_alloc*/
+  __pyx_tp_new_6cyflow_8autograd_MatmulBackward, /*tp_new*/
+  0, /*tp_free*/
+  0, /*tp_is_gc*/
+  0, /*tp_bases*/
+  0, /*tp_mro*/
+  0, /*tp_cache*/
+  0, /*tp_subclasses*/
+  0, /*tp_weaklist*/
+  0, /*tp_del*/
+  0, /*tp_version_tag*/
+  #if CYTHON_USE_TP_FINALIZE
+  0, /*tp_finalize*/
+  #else
+  NULL, /*tp_finalize*/
+  #endif
+  #if !CYTHON_COMPILING_IN_PYPY || PYPY_VERSION_NUM >= 0x07030800
+  0, /*tp_vectorcall*/
+  #endif
+  #if __PYX_NEED_TP_PRINT_SLOT == 1
+  0, /*tp_print*/
+  #endif
+  #if PY_VERSION_HEX >= 0x030C0000
+  0, /*tp_watched*/
+  #endif
+  #if PY_VERSION_HEX >= 0x030d00A4
+  0, /*tp_versions_used*/
+  #endif
+  #if CYTHON_COMPILING_IN_PYPY && PY_VERSION_HEX >= 0x03090000 && PY_VERSION_HEX < 0x030a0000
+  0, /*tp_pypy_flags*/
+  #endif
+};
+#endif
 
 static PyMethodDef __pyx_methods[] = {
   {0, 0, 0, 0}
@@ -15973,6 +18054,37 @@ static int __Pyx_modinit_type_init_code(__pyx_mstatetype *__pyx_mstate) {
   if (__Pyx_MergeVtables(__pyx_mstate->__pyx_ptype_6cyflow_8autograd_GetItemBackward) < (0)) __PYX_ERR(0, 242, __pyx_L1_error)
   if (PyObject_SetAttr(__pyx_m, __pyx_mstate_global->__pyx_n_u_GetItemBackward, (PyObject *) __pyx_mstate->__pyx_ptype_6cyflow_8autograd_GetItemBackward) < (0)) __PYX_ERR(0, 242, __pyx_L1_error)
   if (__Pyx_setup_reduce((PyObject *) __pyx_mstate->__pyx_ptype_6cyflow_8autograd_GetItemBackward) < (0)) __PYX_ERR(0, 242, __pyx_L1_error)
+  __pyx_vtabptr_6cyflow_8autograd_MatmulBackward = &__pyx_vtable_6cyflow_8autograd_MatmulBackward;
+  __pyx_vtable_6cyflow_8autograd_MatmulBackward.__pyx_base = *__pyx_vtabptr_6cyflow_8autograd_AutogradNode;
+  __pyx_vtable_6cyflow_8autograd_MatmulBackward.__pyx_base.apply = (PyObject *(*)(struct __pyx_obj_6cyflow_8autograd_AutogradNode *, struct __pyx_obj_6cyflow_6tensor_Tensor *, int __pyx_skip_dispatch))__pyx_f_6cyflow_8autograd_14MatmulBackward_apply;
+  #if CYTHON_USE_TYPE_SPECS
+  __pyx_t_1 = PyTuple_Pack(1, (PyObject *)__pyx_mstate_global->__pyx_ptype_6cyflow_8autograd_AutogradNode); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 264, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __pyx_mstate->__pyx_ptype_6cyflow_8autograd_MatmulBackward = (PyTypeObject *) __Pyx_PyType_FromModuleAndSpec(__pyx_m, &__pyx_type_6cyflow_8autograd_MatmulBackward_spec, __pyx_t_1);
+  __Pyx_XDECREF(__pyx_t_1); __pyx_t_1 = 0;
+  if (unlikely(!__pyx_mstate->__pyx_ptype_6cyflow_8autograd_MatmulBackward)) __PYX_ERR(0, 264, __pyx_L1_error)
+  if (__Pyx_fix_up_extension_type_from_spec(&__pyx_type_6cyflow_8autograd_MatmulBackward_spec, __pyx_mstate->__pyx_ptype_6cyflow_8autograd_MatmulBackward) < (0)) __PYX_ERR(0, 264, __pyx_L1_error)
+  #else
+  __pyx_mstate->__pyx_ptype_6cyflow_8autograd_MatmulBackward = &__pyx_type_6cyflow_8autograd_MatmulBackward;
+  #endif
+  #if !CYTHON_COMPILING_IN_LIMITED_API
+  __pyx_mstate_global->__pyx_ptype_6cyflow_8autograd_MatmulBackward->tp_base = __pyx_mstate_global->__pyx_ptype_6cyflow_8autograd_AutogradNode;
+  #endif
+  #if !CYTHON_USE_TYPE_SPECS
+  if (__Pyx_PyType_Ready(__pyx_mstate->__pyx_ptype_6cyflow_8autograd_MatmulBackward) < (0)) __PYX_ERR(0, 264, __pyx_L1_error)
+  #endif
+  #if CYTHON_COMPILING_IN_CPYTHON && PY_VERSION_HEX >= 0x030E0000
+  PyUnstable_Object_EnableDeferredRefcount((PyObject*)__pyx_mstate->__pyx_ptype_6cyflow_8autograd_MatmulBackward);
+  #endif
+  #if !CYTHON_COMPILING_IN_LIMITED_API
+  if ((CYTHON_USE_TYPE_SLOTS && CYTHON_USE_PYTYPE_LOOKUP) && likely(!__pyx_mstate->__pyx_ptype_6cyflow_8autograd_MatmulBackward->tp_dictoffset && __pyx_mstate->__pyx_ptype_6cyflow_8autograd_MatmulBackward->tp_getattro == PyObject_GenericGetAttr)) {
+    __pyx_mstate->__pyx_ptype_6cyflow_8autograd_MatmulBackward->tp_getattro = PyObject_GenericGetAttr;
+  }
+  #endif
+  if (__Pyx_SetVtable(__pyx_mstate->__pyx_ptype_6cyflow_8autograd_MatmulBackward, __pyx_vtabptr_6cyflow_8autograd_MatmulBackward) < (0)) __PYX_ERR(0, 264, __pyx_L1_error)
+  if (__Pyx_MergeVtables(__pyx_mstate->__pyx_ptype_6cyflow_8autograd_MatmulBackward) < (0)) __PYX_ERR(0, 264, __pyx_L1_error)
+  if (PyObject_SetAttr(__pyx_m, __pyx_mstate_global->__pyx_n_u_MatmulBackward, (PyObject *) __pyx_mstate->__pyx_ptype_6cyflow_8autograd_MatmulBackward) < (0)) __PYX_ERR(0, 264, __pyx_L1_error)
+  if (__Pyx_setup_reduce((PyObject *) __pyx_mstate->__pyx_ptype_6cyflow_8autograd_MatmulBackward) < (0)) __PYX_ERR(0, 264, __pyx_L1_error)
   __Pyx_RefNannyFinishContext();
   return 0;
   __pyx_L1_error:;
@@ -16617,6 +18729,48 @@ __Pyx_RefNannySetupContext("PyInit_autograd", 0);
   if (__Pyx_SetItemOnTypeDict(__pyx_mstate_global->__pyx_ptype_6cyflow_8autograd_GetItemBackward, __pyx_mstate_global->__pyx_n_u_setstate_cython, __pyx_t_2) < (0)) __PYX_ERR(2, 16, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
+  /* "cyflow/autograd.pyx":276
+ *             self.next_functions.append(self.other.grad_fn)
+ * 
+ *     cpdef tuple apply(self, Tensor grad_output):             # <<<<<<<<<<<<<<
+ *         # C = A @ B  =>  dA = dC @ B^T,  dB = A^T @ dC
+ *         cdef Tensor grad_self = None
+*/
+  __pyx_t_2 = __Pyx_CyFunction_New(&__pyx_mdef_6cyflow_8autograd_14MatmulBackward_3apply, __Pyx_CYFUNCTION_CCLASS, __pyx_mstate_global->__pyx_n_u_MatmulBackward_apply, NULL, __pyx_mstate_global->__pyx_n_u_cyflow_autograd, __pyx_mstate_global->__pyx_d, ((PyObject *)__pyx_mstate_global->__pyx_codeobj_tab[21])); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 276, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  #if CYTHON_COMPILING_IN_CPYTHON && PY_VERSION_HEX >= 0x030E0000
+  PyUnstable_Object_EnableDeferredRefcount(__pyx_t_2);
+  #endif
+  if (__Pyx_SetItemOnTypeDict(__pyx_mstate_global->__pyx_ptype_6cyflow_8autograd_MatmulBackward, __pyx_mstate_global->__pyx_n_u_apply, __pyx_t_2) < (0)) __PYX_ERR(0, 276, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+
+  /* "(tree fragment)":1
+ * def __reduce_cython__(self):             # <<<<<<<<<<<<<<
+ *     cdef tuple state
+ *     cdef object _dict
+*/
+  __pyx_t_2 = __Pyx_CyFunction_New(&__pyx_mdef_6cyflow_8autograd_14MatmulBackward_5__reduce_cython__, __Pyx_CYFUNCTION_CCLASS, __pyx_mstate_global->__pyx_n_u_MatmulBackward___reduce_cython, NULL, __pyx_mstate_global->__pyx_n_u_cyflow_autograd, __pyx_mstate_global->__pyx_d, ((PyObject *)__pyx_mstate_global->__pyx_codeobj_tab[22])); if (unlikely(!__pyx_t_2)) __PYX_ERR(2, 1, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  #if CYTHON_COMPILING_IN_CPYTHON && PY_VERSION_HEX >= 0x030E0000
+  PyUnstable_Object_EnableDeferredRefcount(__pyx_t_2);
+  #endif
+  if (__Pyx_SetItemOnTypeDict(__pyx_mstate_global->__pyx_ptype_6cyflow_8autograd_MatmulBackward, __pyx_mstate_global->__pyx_n_u_reduce_cython, __pyx_t_2) < (0)) __PYX_ERR(2, 1, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+
+  /* "(tree fragment)":16
+ *     else:
+ *         return __pyx_unpickle_MatmulBackward, (type(self), 0xf4e844f, state)
+ * def __setstate_cython__(self, __pyx_state):             # <<<<<<<<<<<<<<
+ *     __pyx_unpickle_MatmulBackward__set_state(self, __pyx_state)
+*/
+  __pyx_t_2 = __Pyx_CyFunction_New(&__pyx_mdef_6cyflow_8autograd_14MatmulBackward_7__setstate_cython__, __Pyx_CYFUNCTION_CCLASS, __pyx_mstate_global->__pyx_n_u_MatmulBackward___setstate_cython, NULL, __pyx_mstate_global->__pyx_n_u_cyflow_autograd, __pyx_mstate_global->__pyx_d, ((PyObject *)__pyx_mstate_global->__pyx_codeobj_tab[23])); if (unlikely(!__pyx_t_2)) __PYX_ERR(2, 16, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  #if CYTHON_COMPILING_IN_CPYTHON && PY_VERSION_HEX >= 0x030E0000
+  PyUnstable_Object_EnableDeferredRefcount(__pyx_t_2);
+  #endif
+  if (__Pyx_SetItemOnTypeDict(__pyx_mstate_global->__pyx_ptype_6cyflow_8autograd_MatmulBackward, __pyx_mstate_global->__pyx_n_u_setstate_cython, __pyx_t_2) < (0)) __PYX_ERR(2, 16, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+
   /* "(tree fragment)":4
  *     int __Pyx_CheckUnpickleChecksum(long, long, long, long, const char*) except -1
  *     int __Pyx_UpdateUnpickledDict(object, object, Py_ssize_t) except -1
@@ -16624,7 +18778,7 @@ __Pyx_RefNannySetupContext("PyInit_autograd", 0);
  *     cdef object __pyx_result
  *     __Pyx_CheckUnpickleChecksum(__pyx_checksum, 0xee0ca95, 0x9b04479, 0xb0ed2b9, b'next_functions')
 */
-  __pyx_t_2 = __Pyx_CyFunction_New(&__pyx_mdef_6cyflow_8autograd_1__pyx_unpickle_AutogradNode, 0, __pyx_mstate_global->__pyx_n_u_pyx_unpickle_AutogradNode, NULL, __pyx_mstate_global->__pyx_n_u_cyflow_autograd, __pyx_mstate_global->__pyx_d, ((PyObject *)__pyx_mstate_global->__pyx_codeobj_tab[21])); if (unlikely(!__pyx_t_2)) __PYX_ERR(2, 4, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_CyFunction_New(&__pyx_mdef_6cyflow_8autograd_1__pyx_unpickle_AutogradNode, 0, __pyx_mstate_global->__pyx_n_u_pyx_unpickle_AutogradNode, NULL, __pyx_mstate_global->__pyx_n_u_cyflow_autograd, __pyx_mstate_global->__pyx_d, ((PyObject *)__pyx_mstate_global->__pyx_codeobj_tab[24])); if (unlikely(!__pyx_t_2)) __PYX_ERR(2, 4, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   #if CYTHON_COMPILING_IN_CPYTHON && PY_VERSION_HEX >= 0x030E0000
   PyUnstable_Object_EnableDeferredRefcount(__pyx_t_2);
@@ -16637,7 +18791,7 @@ __Pyx_RefNannySetupContext("PyInit_autograd", 0);
  *     int __Pyx_CheckUnpickleChecksum(long, long, long, long, const char*) except -1
  *     int __Pyx_UpdateUnpickledDict(object, object, Py_ssize_t) except -1
 */
-  __pyx_t_2 = __Pyx_CyFunction_New(&__pyx_mdef_6cyflow_8autograd_3__pyx_unpickle_AddBackward, 0, __pyx_mstate_global->__pyx_n_u_pyx_unpickle_AddBackward, NULL, __pyx_mstate_global->__pyx_n_u_cyflow_autograd, __pyx_mstate_global->__pyx_d, ((PyObject *)__pyx_mstate_global->__pyx_codeobj_tab[22])); if (unlikely(!__pyx_t_2)) __PYX_ERR(2, 4, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_CyFunction_New(&__pyx_mdef_6cyflow_8autograd_3__pyx_unpickle_AddBackward, 0, __pyx_mstate_global->__pyx_n_u_pyx_unpickle_AddBackward, NULL, __pyx_mstate_global->__pyx_n_u_cyflow_autograd, __pyx_mstate_global->__pyx_d, ((PyObject *)__pyx_mstate_global->__pyx_codeobj_tab[25])); if (unlikely(!__pyx_t_2)) __PYX_ERR(2, 4, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   #if CYTHON_COMPILING_IN_CPYTHON && PY_VERSION_HEX >= 0x030E0000
   PyUnstable_Object_EnableDeferredRefcount(__pyx_t_2);
@@ -16652,7 +18806,7 @@ __Pyx_RefNannySetupContext("PyInit_autograd", 0);
  *     cdef object __pyx_result
  *     __Pyx_CheckUnpickleChecksum(__pyx_checksum, 0xf4e844f, 0xbac5051, 0xf195067, b'next_functions, other, self_tensor')
 */
-  __pyx_t_2 = __Pyx_CyFunction_New(&__pyx_mdef_6cyflow_8autograd_5__pyx_unpickle_SubBackward, 0, __pyx_mstate_global->__pyx_n_u_pyx_unpickle_SubBackward, NULL, __pyx_mstate_global->__pyx_n_u_cyflow_autograd, __pyx_mstate_global->__pyx_d, ((PyObject *)__pyx_mstate_global->__pyx_codeobj_tab[23])); if (unlikely(!__pyx_t_2)) __PYX_ERR(2, 4, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_CyFunction_New(&__pyx_mdef_6cyflow_8autograd_5__pyx_unpickle_SubBackward, 0, __pyx_mstate_global->__pyx_n_u_pyx_unpickle_SubBackward, NULL, __pyx_mstate_global->__pyx_n_u_cyflow_autograd, __pyx_mstate_global->__pyx_d, ((PyObject *)__pyx_mstate_global->__pyx_codeobj_tab[26])); if (unlikely(!__pyx_t_2)) __PYX_ERR(2, 4, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   #if CYTHON_COMPILING_IN_CPYTHON && PY_VERSION_HEX >= 0x030E0000
   PyUnstable_Object_EnableDeferredRefcount(__pyx_t_2);
@@ -16665,7 +18819,7 @@ __Pyx_RefNannySetupContext("PyInit_autograd", 0);
  *     int __Pyx_CheckUnpickleChecksum(long, long, long, long, const char*) except -1
  *     int __Pyx_UpdateUnpickledDict(object, object, Py_ssize_t) except -1
 */
-  __pyx_t_2 = __Pyx_CyFunction_New(&__pyx_mdef_6cyflow_8autograd_7__pyx_unpickle_MulBackward, 0, __pyx_mstate_global->__pyx_n_u_pyx_unpickle_MulBackward, NULL, __pyx_mstate_global->__pyx_n_u_cyflow_autograd, __pyx_mstate_global->__pyx_d, ((PyObject *)__pyx_mstate_global->__pyx_codeobj_tab[24])); if (unlikely(!__pyx_t_2)) __PYX_ERR(2, 4, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_CyFunction_New(&__pyx_mdef_6cyflow_8autograd_7__pyx_unpickle_MulBackward, 0, __pyx_mstate_global->__pyx_n_u_pyx_unpickle_MulBackward, NULL, __pyx_mstate_global->__pyx_n_u_cyflow_autograd, __pyx_mstate_global->__pyx_d, ((PyObject *)__pyx_mstate_global->__pyx_codeobj_tab[27])); if (unlikely(!__pyx_t_2)) __PYX_ERR(2, 4, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   #if CYTHON_COMPILING_IN_CPYTHON && PY_VERSION_HEX >= 0x030E0000
   PyUnstable_Object_EnableDeferredRefcount(__pyx_t_2);
@@ -16680,7 +18834,7 @@ __Pyx_RefNannySetupContext("PyInit_autograd", 0);
  *     cdef object __pyx_result
  *     __Pyx_CheckUnpickleChecksum(__pyx_checksum, 0xf4e844f, 0xbac5051, 0xf195067, b'next_functions, other, self_tensor')
 */
-  __pyx_t_2 = __Pyx_CyFunction_New(&__pyx_mdef_6cyflow_8autograd_9__pyx_unpickle_DivBackward, 0, __pyx_mstate_global->__pyx_n_u_pyx_unpickle_DivBackward, NULL, __pyx_mstate_global->__pyx_n_u_cyflow_autograd, __pyx_mstate_global->__pyx_d, ((PyObject *)__pyx_mstate_global->__pyx_codeobj_tab[25])); if (unlikely(!__pyx_t_2)) __PYX_ERR(2, 4, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_CyFunction_New(&__pyx_mdef_6cyflow_8autograd_9__pyx_unpickle_DivBackward, 0, __pyx_mstate_global->__pyx_n_u_pyx_unpickle_DivBackward, NULL, __pyx_mstate_global->__pyx_n_u_cyflow_autograd, __pyx_mstate_global->__pyx_d, ((PyObject *)__pyx_mstate_global->__pyx_codeobj_tab[28])); if (unlikely(!__pyx_t_2)) __PYX_ERR(2, 4, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   #if CYTHON_COMPILING_IN_CPYTHON && PY_VERSION_HEX >= 0x030E0000
   PyUnstable_Object_EnableDeferredRefcount(__pyx_t_2);
@@ -16693,7 +18847,7 @@ __Pyx_RefNannySetupContext("PyInit_autograd", 0);
  *     int __Pyx_CheckUnpickleChecksum(long, long, long, long, const char*) except -1
  *     int __Pyx_UpdateUnpickledDict(object, object, Py_ssize_t) except -1
 */
-  __pyx_t_2 = __Pyx_CyFunction_New(&__pyx_mdef_6cyflow_8autograd_11__pyx_unpickle_ViewBackward, 0, __pyx_mstate_global->__pyx_n_u_pyx_unpickle_ViewBackward, NULL, __pyx_mstate_global->__pyx_n_u_cyflow_autograd, __pyx_mstate_global->__pyx_d, ((PyObject *)__pyx_mstate_global->__pyx_codeobj_tab[26])); if (unlikely(!__pyx_t_2)) __PYX_ERR(2, 4, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_CyFunction_New(&__pyx_mdef_6cyflow_8autograd_11__pyx_unpickle_ViewBackward, 0, __pyx_mstate_global->__pyx_n_u_pyx_unpickle_ViewBackward, NULL, __pyx_mstate_global->__pyx_n_u_cyflow_autograd, __pyx_mstate_global->__pyx_d, ((PyObject *)__pyx_mstate_global->__pyx_codeobj_tab[29])); if (unlikely(!__pyx_t_2)) __PYX_ERR(2, 4, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   #if CYTHON_COMPILING_IN_CPYTHON && PY_VERSION_HEX >= 0x030E0000
   PyUnstable_Object_EnableDeferredRefcount(__pyx_t_2);
@@ -16708,12 +18862,25 @@ __Pyx_RefNannySetupContext("PyInit_autograd", 0);
  *     cdef object __pyx_result
  *     __Pyx_CheckUnpickleChecksum(__pyx_checksum, 0x21448d8, 0x247ef90, 0xda65e99, b'next_functions, output_view, self_tensor')
 */
-  __pyx_t_2 = __Pyx_CyFunction_New(&__pyx_mdef_6cyflow_8autograd_13__pyx_unpickle_GetItemBackward, 0, __pyx_mstate_global->__pyx_n_u_pyx_unpickle_GetItemBackward, NULL, __pyx_mstate_global->__pyx_n_u_cyflow_autograd, __pyx_mstate_global->__pyx_d, ((PyObject *)__pyx_mstate_global->__pyx_codeobj_tab[27])); if (unlikely(!__pyx_t_2)) __PYX_ERR(2, 4, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_CyFunction_New(&__pyx_mdef_6cyflow_8autograd_13__pyx_unpickle_GetItemBackward, 0, __pyx_mstate_global->__pyx_n_u_pyx_unpickle_GetItemBackward, NULL, __pyx_mstate_global->__pyx_n_u_cyflow_autograd, __pyx_mstate_global->__pyx_d, ((PyObject *)__pyx_mstate_global->__pyx_codeobj_tab[30])); if (unlikely(!__pyx_t_2)) __PYX_ERR(2, 4, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   #if CYTHON_COMPILING_IN_CPYTHON && PY_VERSION_HEX >= 0x030E0000
   PyUnstable_Object_EnableDeferredRefcount(__pyx_t_2);
   #endif
   if (PyDict_SetItem(__pyx_mstate_global->__pyx_d, __pyx_mstate_global->__pyx_n_u_pyx_unpickle_GetItemBackward, __pyx_t_2) < (0)) __PYX_ERR(2, 4, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+
+  /* "(tree fragment)":1
+ * cdef extern from *:             # <<<<<<<<<<<<<<
+ *     int __Pyx_CheckUnpickleChecksum(long, long, long, long, const char*) except -1
+ *     int __Pyx_UpdateUnpickledDict(object, object, Py_ssize_t) except -1
+*/
+  __pyx_t_2 = __Pyx_CyFunction_New(&__pyx_mdef_6cyflow_8autograd_15__pyx_unpickle_MatmulBackward, 0, __pyx_mstate_global->__pyx_n_u_pyx_unpickle_MatmulBackward, NULL, __pyx_mstate_global->__pyx_n_u_cyflow_autograd, __pyx_mstate_global->__pyx_d, ((PyObject *)__pyx_mstate_global->__pyx_codeobj_tab[31])); if (unlikely(!__pyx_t_2)) __PYX_ERR(2, 4, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  #if CYTHON_COMPILING_IN_CPYTHON && PY_VERSION_HEX >= 0x030E0000
+  PyUnstable_Object_EnableDeferredRefcount(__pyx_t_2);
+  #endif
+  if (PyDict_SetItem(__pyx_mstate_global->__pyx_d, __pyx_mstate_global->__pyx_n_u_pyx_unpickle_MatmulBackward, __pyx_t_2) < (0)) __PYX_ERR(2, 4, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
   /* "cyflow/autograd.pyx":1
@@ -16789,31 +18956,31 @@ static int __Pyx_InitCachedConstants(__pyx_mstatetype *__pyx_mstate) {
 static int __Pyx_InitConstants(__pyx_mstatetype *__pyx_mstate) {
   CYTHON_UNUSED_VAR(__pyx_mstate);
   {
-    const struct { const unsigned int length: 9; } index[] = {{1},{33},{179},{8},{7},{6},{2},{9},{23},{14},{11},{29},{31},{17},{12},{30},{32},{18},{11},{29},{31},{17},{15},{33},{35},{21},{11},{29},{31},{17},{20},{11},{29},{31},{17},{12},{30},{32},{18},{12},{5},{18},{18},{15},{6},{8},{5},{8},{12},{11},{8},{12},{13},{5},{8},{10},{8},{7},{5},{11},{3},{14},{12},{11},{10},{26},{27},{26},{30},{26},{26},{27},{14},{12},{10},{17},{13},{4},{11},{12},{10},{12},{19},{5},{5},{5},{8},{6},{12},{6},{4},{11},{12},{46},{63},{133},{149},{243},{301},{11},{98},{114},{132},{133},{11},{57},{55},{55},{350}};
-    #if (CYTHON_COMPRESS_STRINGS) == 2 /* compression: bz2 (1597 bytes) */
-const char* const cstring = "BZh91AY&SY(\274`\311\000\001|\377\377\367\377\377\377\367\377\365\315\277\377\375\327\277\377\377\374\300@@@@@@@@@@@@\000@\000P\006\036\005+\2731\tf\262\330\r\301\334%$&CJ<\312\233M0FQ\352=ODmLh#OI\243\364P<\241\352z\206\324\030\206\206\2064=$h\360\223A$\244\302zE?\"~\2253)\352hz\233\324 \323\021\220\006\200\006\214@\030\206FF \006\206\200\000\304\231\022i\252zbA\223e\003@\r\000\r\000\000\000\000\000\000\r\000\r\000A\200\002`\000&\000\000\000\000\000\000\000\000\000\000\000\000\t\024FB\0015<\021\250\364\324\0232h\206\203CM\031\000\003@\310h\030\232i\352b2a6D\332I\204\202\270A1\233}\024\033\006\342\334\335\360\255\320\240~2*>5\000\207\225\010\336MH\210^\0172\t\341H\264\251(J\240\250m\246\3066\201\203\022\232Dd\257\223&\255\225*\2017\214\t\023\t\236laD\000\314\221\004\\`TV1&\233M6&\321]\302j\334\305v\321\024oF\021\2020p \026\302\001yD-\253\200\323\241\"\300\321x*\002j\313F\002\357\005X\241T\207\022 \354\250)&\024\205)@a\0130\021WWc\276\26354Y\372\257\325`\007\225\275\275\372\326\210\321\007\367\001\266\230\276\311\000[\243\005\266\026i\246\345\003\204\200\221\330`\325\006\024\250\006c[\314\365\302\265XE<\364\327\235U1I\020\222\232\207s\233 \240)\367\210\223\356\232&\223\365\271\2014L=3\255+\334\312\003W6\253\023hm\264/\316Y\255`a\375xC\211\316\231\261\211\201\016R\3500L\026\313\223n\3141\t\246\220$8\2110\265h\332\240\267\241y\"\214\271 \354:N\206q\335\313e\300\201s\227xb\240-\002\241\026\001\202\t\256\001g\35377\355\206\"\"\"\"\036\"\"\036\"\"\"#CvK\004\r)[\303L\301\270\274\226\240J\342V\274\007\225d\307D\003\304\326\206\035Tsx\334Q\303\225\222\352Z\233z\003\tl\034\355\272\025\316\322\271Q\312uv\311\304X(\014d\025UR^w*\220L\267e\037\333\265\335j\035\353\020n\013XP4\261\261\261\261\352d\310\313,\026\014\210\031`\213\350\006 k\331\310J\220\333i\274\220\301_\347 \035B\0211\216\221\033\362q1\036\034\233\217+\004\354\240\000H[\014\326&B\212\225\324\014\231\022\013\"D&8\"U\272D\264<\223\326\270\226\237S\346\004\231\0006\270\215{\201\267\265ib\305\203\237\033\022\216!%\217""\220\263f\235\006\020T\337\206ff\375m\361t4q\301\23316\231\221\032\032\305\273\254.\366\350j\322mV\030h\303(\330\"\030G\253.tn%v\002KJ\341O\0256\na\003?\217/`U\000e\t]w\304\027G\201\rA\014\010C;\354\241\231Q\276\311+D+\200\322)\310\0318\031+\340\330ex\236\2008mJ`^\207wI$\222I$\226-%*\365y\324\367U\267\004T\331V\332OXy\353\221\023U\305\254\240\\\001\234W.\322\202J\310\225\215\2063\010W\020\322\"\004\r\031+k/\203\305\253\376a\337=\200!=k)\344\325KCti\343o\325\353\354\203H6\003^W-%\361\275-\375\221\275W0+\322\372\325\n\316\204\214\236-\361^\030\240\211\207\336\316\212\266E\274J\031(\031,\006I(\262W\345\350\2054\3513\202\314\252'?\024\006\220\273\004r\001~\300\306,\031a\243F\001\215<16\004\244\022aH\252\241\242\252\254t(\214\2060\245\022\205\302L6\336\376i\255\021\334p\256\243\006x\322\301@IF\344J\321dsKDU\310\274@c\260\271#}Sx\254J\027\356\201\347\322\006\t>E\340F^\006DeO\232\031\216Y\304\010\030\205\235\244\335\2762\010\342\305\200Id\275}&d\205f\275\242\315z\005fk\265\243\212h\025\270H.X\2734R)\352\010\260\301lI\361\224\320\211k\314U`\014\253\370\373\354\314p\221\235\364+\307:[\331.\201\276%0wNn\337\317\t\315\306\261\245\220\200\235\204a\004+!\016:+\345\013\031m\322\260\004\374\344\005\333\2453\221\024\023\270\005\027\022#K\346#HZ\362n\242\265\234F!]\341n\243M2\300\357\347\323|\n.\352Y\262\242W\352\241\300\342\0132&\353+|P\221J\030\231\256$\231\2208\301Y\247c~I\202\03592?q\246\303\030\027\267\374U\341\240\003\034\330\"\360\215D\300\274l\350\344\177['W:\207\332\350M\376\311\035u\371\000\306.\230rC\352A\364\003K\247\001s\273\001\317\r\345\266\214\350g\346\177-\007@5\003\030vC\264\007Q\036QtC\364\336\017\022\316&\035\303\244\032\200u\372\275d\231\250\017\267\320\r\317\000\273\320\357\256\3222C\216\307\001#L\031'\365C\350w\006<\376*)\017Q\254\377`P\251\n 60\205\234\353\".w)\"\202\215\353vk\006E\322Y0\376\204\220\270\023T`\370I.\246\322\202\260|p\231\"\301\225w)^$\231\371\235\203\356vI\377,\"\346!d\372\370\301\352\036\203\275\241\203\300.\235P\264nT:\312\025\324\302O%\230""\223\222\321*Q\314U\t\006\336\332\177\235KDjTS\236 \333V\005G\010\266\nz\351\230p\344\373\r\361\307]\367\274\006Bz\350\\\010\301j\272Qy+\270\352\233\212\375\007\367aP\355H\255\247G\266\016\350T\246\313Q\324\3237\221H\312A\016\3502\013\210\300RF\320@ \340$\3254\321\230S\230iD\304\250\020\2338\n\003:\014\250\245\203$Q \204\2112,\233\010\251\321\020\221\032JB\001\377\213\271\"\234(H\024^0d\200";
-    PyObject *data = __Pyx_DecompressString(cstring, 1597, 2);
+    const struct { const unsigned int length: 9; } index[] = {{1},{33},{179},{8},{7},{6},{2},{9},{23},{14},{11},{29},{31},{17},{12},{30},{32},{18},{11},{29},{31},{17},{15},{33},{35},{21},{14},{32},{34},{20},{11},{29},{31},{17},{20},{11},{29},{31},{17},{12},{30},{32},{18},{12},{5},{18},{18},{15},{6},{8},{5},{8},{12},{11},{8},{12},{13},{5},{8},{10},{8},{7},{5},{11},{3},{14},{12},{11},{10},{26},{27},{26},{30},{29},{26},{26},{27},{14},{12},{10},{17},{13},{4},{11},{12},{10},{12},{19},{5},{5},{5},{8},{6},{12},{6},{4},{11},{12},{11},{46},{63},{133},{149},{214},{243},{301},{11},{98},{114},{132},{132},{133},{11},{57},{57},{55},{55},{350}};
+    #if (CYTHON_COMPRESS_STRINGS) == 2 /* compression: bz2 (1761 bytes) */
+const char* const cstring = "BZh91AY&SYH\033\346\327\000\001\316\177\377\377\377\377\377\367\377\375\335\277\377\375\337\277\377\377\374\300@@@@@@@@@@@@\000@\000`\006\337\000\017{j\200\000(#\200\300\224\212@\0002h\332\215\r\r4h4\3204\000\000z!\240d\000\032\000\320\032\032\006\232\004\030\000&\000\002`\230\000\000\000\000&\0010\020\300\000\021\200\000\001\0254{\325D\320\3021\001\200\203#@h\031\030\t\204\001\210\320\r\006\214\230 \310`L\000H\224SC\312mSmS\324\032=@\323\324\000\310b\032i\243@\003@\032\006\230\207\242\r\r\r\032h\000\320\203\000\004\300\000L\023\000\000\000\000\004\300&\002\030\000\0020\000\000\022(\010#Bi\201\032M\252f\223d\247\351\023FG\250\365<\232\232z\203 \000h\000\000=F\231\251\204\366\224\036\245\210\250]\010(@\201\375=\264\035\007\227\312\323\352\370C\251\036Rd<\304\202D\274\312(\204\377\352B\377\300\302\004C*<\350+\240K\022\231 ,J\300`\330\306\333Hh`\330*\202\211@\314\025U\014e\210\260\020\332\326\005\025Q}\207\237Z'\001\034HP\026\014E\245\303\000i\260`\3306\233E\323\014\n\206;\005}\352(\313\030F\010\315\326\2021\242\342!\220$\030\326\000\323\222\025\342\345\250S5\242'\025~\"f\007]\\R\330J\005S\211\024;&\023*\023\t\205\032%\"\001+\263(\321\204\260\017\345\357\255\215I\020\362w\374\235\371\001\342~?\037\301\340\305R\317\206w\326]T&C\013/\224+[\366\2431\253Z:dm\006\211\250\006\323\211\371\340r\242\300\264\"\017t\355\334\026\025\025\005\n\005B\036\357~\201 \237\210\211_x\353U'\335;\310\252*\211z\247\355\206N\364\203\203n\315\255&\304\333b\352\345\205\236\000\257n\236O\r\345Y\2349\374\341g\001\262\364Y\003\212A\001\223[\210Y\267\350}\337\255\210\026;\227\312\005\2066\003F<gN)\224mE\373\220W\217^\334\347\205\312\315\373\242\251B \243\215Y1J\211g\024CT\030\304F#\217\034q\214E\207j\305\202\254\264\000\010\000\000\007\000\001\210\000\000 :\265f\2631\007u\346?\301\331\310\215y\313\342\213\356/y\321}\347\tu\276\242 `\003\3302y\211\3342\036[\221\033\232\223T\265>\332\342\034\n\202\232\250\255!\024\315\252v\352\356\333@2\336|\227w\366,\"-\026L4(\205\245\2648\035keQa\210\272G\270:{\266B""\223Jd\037\201X\024\027\254llllt\331\221I\210(!\240\304\005\300\302\010;\220\222\033\254\341\353RQgZ\3577 \273,\235\r\215\213\327\003&IN@a(\342)\212\242\010\227\220\206'\006U\326\353\005\0304%\006\nn\013\216q\272M\201\t\312.W?\025\262\364\177\202@D\017W$3x\177\237M\353F\214\336\304n\002:\022\003Oql\331Y\031\320\247\226\033\031\376\021\267\365c\354v\267\261>\200\201\323\025\333f\304okWV\341y:\203\216gj\320\321-\024\215\311\020\320>:{\021\306\006\020H\016\272\346\256\231\334*\204\016O6\317\342+\004\032\321L\036T#\001\346C\010!\240\2049\037\215\014\326\216\035T\274\205\260\030)\352\rG.\253{\027\032\336\207\275\007e\270\3203NR\223m\266\333m\266\333\317X\306\356\216\027,\256\371$Y\017J\370FW\022\247H\321Gt\355\364\205 1\2742\326\244^)\307\0247O\334C\301\234\254D\316\262-k_\277\361\033|\231\370_l\010W\212\351\372vM\241\271o\355\035\034\213.fA\241\035\001\276\246\033\000\367\265\033~$u\327\037c\0277\r\361/\266E\014\223\3471Jp\2338udE\231\205\275)W\204`v\030 \236\220\363g\021$\362\000\355\014\327)\332g\356\000\352o\205*\203t\022\236y\250\356\2543\"\234f\262\273\251X\00067\002\311\333a\311e\233\031V\242k+P%h\223\036\235\3310\310S\212\321oG6J%\314\220W\207\214KY\230\265\335\303<D^\2004\334c\241\303cz.\002\031pA\351\315\006j>\234\210F\276MB\326\017\300\210k\330|\263\231\0204\213\215\244\336>\322\010\351\323\300\220\032\362\346\001\232\341i\313yw,\205\237\r\367\322xAm\221\016<\273\360\235VH\244]\260\330\tj\352\026k\242k\252\013\206\202\034\332X\327^\351F\325JY5\340^\326\263+\027\001\032\013\273%\227\203AJH\347\204x\232\023\270\214 %t!\333E\276\240\264\230\234\326`\257\242\220a\201:\264P\212\n\343\002x\301Fo\274\226\343z1\177\277*.[\2224\213'_\177u\266\333m\316\234\0176\357C2\ta\236\356\332\211o\254\207\003\230[QWik\347F\252\224C\0237\244\003\"\034\350\264=\016\216B\215\010s\325\251\372\354\033\r d\344\355/\202B\r5hFD\216\000h2.]\245\366\201\275^k\n,dE\262c\316\022\363\243\306\003L\014\224_#\266\227]\203\006\006L$\303\033\322\227-\033\035@\317D\t\254\263\326\322;\010\245\025u""\301\354\017h\217*?\242\310Ff+\324G\3246Ba\360;\310\256\203:\325\246\201\252\350R\224\221\341\207\307\230\222\027\314\033P\304\200\206\013\205\221m\3017\301\342\3222\202\245\220\3635\305$m\331\014Z\207Q\316\343\261\006\021\352\014-6\345!\205\003PG\323\t/\036\261\024\203\373\231\033:\254\241\226\347\272\271B\207G\272\025.A\326\360)D\256\031\2237\271%r,!!\315a\366)\026\016\317\007j\323GQ\322\313\352\360\225\000\262\347h4%\213\014\373\360\202\361\331\235\200}2\215\001\340`\351\220\345\304N\214B%\272\305=\245!}\217\007D\260\223<\225\265\243\037\206x,\215\030?[\224\341\2665\270\266\017\354\272\"\207\342v*)\200\246p^\214\210\374\364v\324\361\032\266'\033q\302\020`4\007\266hR\006\326\034\020\303~\371z\001\004\247n\252!\254\222\322Lrv\320\201T\316\"\355\261\220l\332j\363\344xcn\250\026W\333\006\025\013Qb(\210\212H\254B\321\203)9\221\262(\201W\nJ\022jc\255\025c*UFC)X\314\035\010M\220\010N4\205\032\201R2\252)Y\270\r\221jm\021*\345\020\241)\223D\021\377\305\334\221N\024$\022\006\371\265\300";
+    PyObject *data = __Pyx_DecompressString(cstring, 1761, 2);
     if (unlikely(!data)) __PYX_ERR(0, 1, __pyx_L1_error)
     const char* const bytes = __Pyx_PyBytes_AsString(data);
     #if !CYTHON_ASSUME_SAFE_MACROS
     if (likely(bytes)); else { Py_DECREF(data); __PYX_ERR(0, 1, __pyx_L1_error) }
     #endif
-    #elif (CYTHON_COMPRESS_STRINGS) != 0 /* compression: zlib (1397 bytes) */
-const char* const cstring = "x\332\325WAs\323F\024\216;.\204\306%qI\233\244IZ\231I\033\240`0\223!\235\tS\306mRJ)i\002\031\3020-;kim\013\313\222\254]\305q\313Ls\364\321G\035u\334\243\216:\372\350\243\216>\372'\360\023\372V\266\034\331&\035`\206C3\343\325\323\276\367\276\357\275\267\357I\312\275G6eR\201Hj\325\324H\225\350\214(R\241!Q\273 k\230RBw\rF$V\306L\372\251\301\312\206.\251TR\210\246\026\210\205\031\321\300\224Y\252\314\210%\214tiog\357\306\306\367\033\022\326\025\311\"/\211\314h\014L2\212R\301V5\246\352\022k\230\204f\245\007E\251a\330\222N\200\230\031\222\tvq\007V&\272D\t\023\202\264\216u\335`\230\251\206\216\300]\325K\353\222\242Z@\242\036\021\341\3753\326(\311bEA`G\024\225\342\202F\210.\326\222\254\322\276\244PK\276)7\212\232Q\277\211mf\224,\254d\315\306\361]\221\211^\242\206m\311\344\207\274\242\374\210\345J\035[JL\314\"d\021\305\226\t\222\303j 4\252\204H)\004\370f56M\255\221\0370\356\032\n\211\313o@\036\325NB\307\365!\366\266z\024\221\305\304I\344Q\345\004p\\\035\342\336'\354\001#\325hs\354v\022\177\322`\202c\334$\344ydk\321FL\234\304\037UN`\307\325!.B{\215c\370mC\243\242]r\314\036\223\342\023\273\020\031\305\304I\256Q\345\004W\\\035r=UI=\332\211\313\223\310c\332\t\350\021\375 \217\301\000\020\220\304\006\246\r]V\215\254lX\206\rCE\250\254\301\212T\230\017\013\313\244\000\356\375N\317F\235\256\020\206\3452B\212\250Et)\332\272\0147\250\024\305\200\204)\002L\323\006\265\252\253\341*n\030\321\251a!\225\242!\251\n\007I\021\252b\240\205\277\252\241\330\032\021\222\216\253\375+\251#d\300\004[\003\304#H\3154L\204`\354\220\\&r\205\332\325\376\235E\250\255\261\276<\210E\210\342i\321\227l\335T\345\n\020\304Fk\\\023\233\2141U\254\267\3074c\0359\246\215\365\324\230&\326\001c\232\370\001\366UGL<\200DIj6\326\242\362\014\372\002Mt\310p\203\034\213\376\320\212\342\027\235\200h\230A\205ARH\021\207u\033\266\021zCK\3212\206\207\256\330\242\266I\000\003\004\360\261M\005\266lJ\206\036GX\263\t\025\307t\222\350&\257\361\014\277\343\245O\362\335\351\213\301\305\214\233v3B\006\2417=\323\334h\276rr\335\324R""\260t\203\357w\347\346[\371\301\222~}n\352\302\234\320\016\254\273\323\227\335\314\320\245\227\232m\262\326\226\243\363|o\356+\247\302\027\274D/\265\344,\273;<\315\327\270\346\203\355l\344.\271\211\020\343\365\364\324\205T\304)\000\356:uW\346\313\036\200\2548\017\335\032\377\324;\360W\332\373@\236^u\362\"\006a\377\227\223v\326\034\325\265y\276\233\372\242Uv\0247#\000\352-\334\235\273\324\332t\326\335K\356C^\353\315g\334e\236\347\177\372\353\355\264\270I\213 \376v2#A|rV\020\335\321 DLo\027\302\262\263\345\226\370\023\357#/s\032\317/`9\210\347\271W\367qw~\321I\234\031\024Tf\025\310\353\034G\214\203\370\342\304s+\301J\226\027\274\244(\330\227\316\025w\315\005\366\214\273\300\317\363\332P\233\010\217\260\027\313mI\304\325\317m\306\333\360^\265s}\223\267NPr\223\356o\336y\017HV\203\325\233\334\362\322\003\204(\333_9\216\262\375\303_h'\342\331\246\232\220\351\3778\345\001[on1X\274\306/\213\250\026\235sN\001\022\001a\326\2658Tc\325y\352\336v\303\316\375|8E#\313;\027\013\246\027\246\222\027\275\374I\002\252\365\361\305\346A+\335M\246\232\367[\271\326\317\316u\250D\362\374\311Q\363\260\265\343\314;\373\335\351\317Z\231\356\364B\253\326\203\205\005\313\337\361M\250\002\230\324\0001\230\275\301\017\274\264\267\356/\267\357wr\275\321\235S\206 }9\254\361\273\321|\343Q\177\315\257v6\203\307O\336\217\261\314\025\021\354{\260\226\332\207\235\235`\377 8x\026<#\001\321\002\255z\032\303u\276\355%\274\005\177\246\275\331\311\364Fwrc1\350\336\266\237x\377\314\017\203\303\347\301\363\027\301\213JP\261\002\213\236\006qK\364\257w\350?l\327;\2707\272S\023\347|\025\236\232\337z\211\223D/\371\265S\013\244[\336\214\277\325\256\004\373\217\273\311K\255{\356\025x\212\347\004\336+h!\210!\347\245\203\333\333\355\335\260\3343\315\334\031\216[N\331\305n-\346(\032J\367w;\231\377r\273\353\034\303\334$bnY\216\371?\276\336\311\207n\360\261m\313L\352\277\027\215\302Kt\247\377\241\202\356\014\336o\007\341E\272v\345\255-\257K{\215\337\013\342\177\016!\253z\344C+\252\t\037:\324\304L._\235\372 \314\037\306""\364\314\034l\275`\031X\2211eSX\226\355\252\255\211\367\274xa\207\237n\377\002\337\362qX";
-    PyObject *data = __Pyx_DecompressString(cstring, 1397, 1);
+    #elif (CYTHON_COMPRESS_STRINGS) != 0 /* compression: zlib (1552 bytes) */
+const char* const cstring = "x\332\325W\317s\323F\024\216\333\264\230\306%6\244$i\222\"3i\0034q0\315$\235\206\2011MH)%\215C\2060\264E\263\226\326\266\260,\331\322*\216[f\232\243\217>\352\250\343\036u\364\321G\037u\364\321\177\002\177B\337\312\262\221,B\0033t\246\231\211\374\364~|\337\333\267\357\255\327w\037\031:\341r\230\223\312\025\031\227\261B\260\310\345\352\234n\344\004\031\351:\326wU\2029RD\204\373\261N\212\252\302I:'bY\312a\r\021,\203+\321$\201`\2159)\334\336\366\336\312\332\367k\034RDN\303/\260@t\037\030\247\346\271\234!\311DR8R\257`=\305=\310su\325\340\024\014\304D\345*\340\347\017 E\254p:&L\340\226\220\242\250\004\021IUx\010\227\224\302\022'J\032\220HG\230E\337G\262\216SH\024y\360\303\242\244\243\234\214\261\302\236\005A\322\373\222\250k\302\252P\317\313jm\025\031D-hHLU\352\307\267\331J\224\202\256\032\232\200\357dD\361\036\022J5\244\211>1\305\363\032\026\r\001\363\202[\r\236\017\032!S\035\022|\263\031U*r=\3431\356\252\"\366\313o@\016Z\303\320~\273\213\275%\035\r\310|b\0309h\014\001\373\315.\356\016&\017\010.\017\224#\257a\374\260C\210c\324\305\345y\204H\331\220\007\272\340[\230%d\017\221\214x\3649|\004oE\377\027\350Q\\\236\337\253\037\303\377\026\014\003\277\213\217\311>\316?6r\003'\237\030\346\n\032C\\~\263\313\365D\302\265\201\306/\207\221G\254!\350\200\335[\2077d\030$\246@z]\021$5%\250\232j\300\340b]\220\341\311K0\203\032\022p\016\302\373\323\224\032L\223\210\t\022\212</\262Z\014>\362\206\"\300\013_\030\344\3003W\0360+\006\230%Er\237\354\205`EW5^\322\371!\251\004\315\242\363|\031\001-\374\225U\321\2201\223\024T\356\177\342\032\317\253pJh\036\342\021,\255\242Vx\036F\233\027\212X(\351F\271\377\246a\335\220I_\366ra\";\221\372\222\241T$\241\004\004\276\361\035\265\370\246o\304\344\233\237\021\313H\327\217X\203\355:j<\325\342k\217\021\213\177w\373\246#\302N@V\257\252\201\344A\355\274\246\341C\3553T\340c\326<r\236\375\017\266\207u\223W~\220D\234GnQ\207=\306\277\241\337\364\"\202S\237\251t\243\202\001\003\004\2101*\"\250\014\035\017#\216\220l`\235\355\341I\244;~\203&\351\272\2358\311t""\243\027\234\013I+a%\231z\231f\350\023;\315\324\240\353E'\032k\215\227f\272\033\233ufWh\266\033\237jf\274G\342\325\247c\347\343\314\352yw\243W\255\3440\244\027\233l\220\346\246\251\320L/\376\225Y\242\323v\244\027\2335\347\254m\232\240\213Tn\201\357\344 \234\263\".\306\253\350\330\371\330\200\223\001\3346k\226@\347l\000\2317\037ZU\372\271}\320\232og\201<\261`fX\016\314\377O3a.\232\222e\320L7v\271Y4E+\311\000jM\324\215_jn\230K\326%\353!\255\366\246\222\326\034\254\361\217\326R;\301^\022,\211\277\314d \211\317NK\242\033L\202\345t\266\024\346\314M\253@\037\333\037\331\311\327\371\374\004\236^>\317\354Z\013u\247f\314H0\251^ \251\005 \257Q\344\333\226\005\363\300\272\314t\335\330\305f\312\341\326 \307\330\2143s\203^ei\304\233\021\367\321\363-c\226\245\320_\306\204\275f\277l\247\335\ru\327\322G>jf\273\261ys\313\212\321\035;\315\220W\234+\3371i\326\2342\367\315\352(\360\2729m}l\375\300\372c\301\374\215F\350<\324\347r\253\352\001/\230\331^4\326\200\n\207K\035\035\256jPG\257\352\376r\306\347\235\371\024\315\331\343\254\r\2764\257Y\213\026\3244iM\323s\264:\264F\372tg\\\352\231\266\215\263\306\255_\354s6\220,8\013\253T\263\023\036\302`\017\177\206\322{{\370{k\272\035\361\357\341\377}\311\036[/>l\250\370\214\371\251\231\203\205\2000ii4\3016\374\211u\313r\347\361\213\341\331\020x\274s\261\340\034\202\263\206\346\355\314I\004\252\365\311\205\306A3\321\035\2175v\232\351\346}s\031*1~\356\344\250q\330\334\206~\314v\243\027\233\311nt\272Y\355\301\2038s\337\322\r\250\002\270T\001\321\231\\\241\007v\302^j\315\265w:\351^P\363\232\301I\\uk\374n4_\333zk\261U\356l8\373\217\337\217\261HE\226\354{\260\026\332\207\235m'{\340\034<u\236b\007\313\216\\~\235\3032\335\262#\366tk\242\275\321I\366\202\232\364\177\224\303*%v\332\336im\266\013\235l/\250A#9(\366V+\362\376\325?t\016\2379\317\236;\317KNIs4\375u\0227\331\014\331\207\255\207\355Z\007\365\202\232*\353\265\353\360}\364\215\0359\211\364\306\257\230U\207\273iO@~%'\273\337\035\277\324\274k]\203\257\3124\303{\tm\0149\244\355\204sk\253\275\353n""\371D#}J\340\035k\006\200\223\276\300\233v\304I\337k\247\234\275\354\333\0027\315\242\205\254\252/\220M\203\322\332\355$\337\026v\333<\206\241\217\370\302R\024\321\277[J'\343\206\301o1C \\\377\326\242\346^\360\353\375;&\277\356\335>\016\334\017\356\306\2653{.s{\365_s\354')\223%e\020\243\227\244\n\334Q\365\n\"B\361\372\330\007a\3760\256\247\256\301Pr\232\212D\001\351d\014\t\202\001\327Jv\013c\327)\367\326\375\017jUI\310";
+    PyObject *data = __Pyx_DecompressString(cstring, 1552, 1);
     if (unlikely(!data)) __PYX_ERR(0, 1, __pyx_L1_error)
     const char* const bytes = __Pyx_PyBytes_AsString(data);
     #if !CYTHON_ASSUME_SAFE_MACROS
     if (likely(bytes)); else { Py_DECREF(data); __PYX_ERR(0, 1, __pyx_L1_error) }
     #endif
-    #else /* compression: none (3544 bytes) */
-const char* const bytes = "?Must be implemented by subclassesNote that Cython is deliberately stricter than PEP-484 and rejects subclasses of builtin types. If you need to pass subclasses then set the 'annotation_typing' directive to False.add_notedisableenablegcisenabledsrc/cyflow/autograd.pyx<stringsource>AddBackwardAddBackward.__reduce_cython__AddBackward.__setstate_cython__AddBackward.applyAutogradNodeAutogradNode.__reduce_cython__AutogradNode.__setstate_cython__AutogradNode.applyDivBackwardDivBackward.__reduce_cython__DivBackward.__setstate_cython__DivBackward.applyGetItemBackwardGetItemBackward.__reduce_cython__GetItemBackward.__setstate_cython__GetItemBackward.applyMulBackwardMulBackward.__reduce_cython__MulBackward.__setstate_cython__MulBackward.apply__Pyx_PyDict_NextRefSubBackwardSubBackward.__reduce_cython__SubBackward.__setstate_cython__SubBackward.applyViewBackwardViewBackward.__reduce_cython__ViewBackward.__setstate_cython__ViewBackward.apply__annotate__applyasyncio.coroutinescline_in_tracebackcyflow.autograddetach__dict___dict__func____getstate__grad_output__init__input_tensor_is_coroutineitems__main____module____name____new__otheroutput_viewpop__pyx_checksum__pyx_result__pyx_state__pyx_type__pyx_unpickle_AddBackward__pyx_unpickle_AutogradNode__pyx_unpickle_DivBackward__pyx_unpickle_GetItemBackward__pyx_unpickle_MulBackward__pyx_unpickle_SubBackward__pyx_unpickle_ViewBackward__pyx_vtable____qualname____reduce____reduce_cython____reduce_ex__selfself_tensor__set_name__setdefault__setstate____setstate_cython__shapestatesuper__test__updateuse_setstatevaluesview\200\001\330\004*\250!\2506\260\021\200A\330\010\016\320\016!\240\021\240!\200A\330\010!\240\021\340\010\013\2104\210|\2301\330\014\031\320\031-\250Q\330\020\024\220A\330\020\024\220A\330\020\021\360\006\000\t\020\210|\2301\200A\330\010!\240\021\330\010\"\240!\340\010\013\2104\210|\2301\340\014\017\210t\220;\230n\250A\340\020\036\230k\250\027\260\001\340\014\031\230\033\240E\250\021\250$\250l\270!\340\010\017\210|\2301\200A""\330\010 \240\001\330\010!\240\021\360\010\000\t\014\2104\210|\2301\330\014\017\210t\220<\230w\240c\250\033\260A\340\020\034\230K\240q\250\r\260T\270\034\300Q\360\006\000\021\035\230A\360\006\000\t\014\2104\210z\230\021\230$\230i\240u\250A\330\014\026\220h\230d\240!\330\014\017\210w\220a\330\020\023\2207\230'\240\023\240K\250q\340\024!\240\033\250A\250]\270'\300\021\340\024!\240\021\340\010\017\210{\230!\200A\330\010 \240\001\330\010!\240\021\360\n\000\t\014\2104\210|\2301\330\014\017\210t\220<\230w\240c\250\033\260A\330\020\034\230K\240q\250\r\260T\270\034\300Q\340\020\034\230A\360\006\000\t\014\2104\210z\230\021\230$\230i\240u\250A\330\014\026\220h\230d\240!\330\014\017\210w\220a\330\020\033\230;\240g\250S\260\002\260!\330\020\023\2207\230'\240\023\240H\250A\330\024!\240\033\250A\250Z\260w\270a\330\024\030\230\001\340\024!\240\021\340\010\017\210{\230!\200A\330\010 \240\001\330\010!\240\021\360\010\000\t\035\230K\240w\250a\360\006\000\t\014\2104\210|\2301\330\014\017\210z\230\021\230$\230i\240u\250A\330\020\034\320\034.\250b\260\004\260A\340\020\032\230(\240$\240a\330\020!\240\027\250\007\250q\330\020\034\320\034.\250b\260\001\330\020\024\220A\340\014\017\210t\220<\230w\240c\250\031\260!\330\020\034\230K\240q\250\013\2604\260|\3001\330\020\024\220A\340\020\034\230A\360\006\000\t\014\2104\210z\230\021\230$\230i\240u\250A\330\014\026\220h\230d\240!\330\014\017\210w\220a\330\020 \240\004\240L\260\007\260q\330\020\035\320\035/\250r\260\021\330\020\024\220A\340\020\023\2207\230'\240\023\240J\250a\330\024!\240\033\250A\250\\\270\027\300\001\330\024\030\230\001\340\024!\240\021\340\010\014\210A\330\010\017\210{\230!\200A\330\010 \240\001\330\010!\240\021\360\010\000\t\035\230K\240w\250a\360\006\000\t\014\2104\210|\2301\330\014\017\210z\230\021\230$\230i\240u\250A\330\020\034\320\034.\250b\260\004\260A\340\020\032\230(\240$\240a\330\020!\240\027\250\007\250q\330\020\034\320\034.\250b\260\001\330\020\024\220A\340\014\017\210t\220<\230w\240c\250\031\260!\330\020\034\230K""\240q\250\013\2604\260|\3001\330\020\024\220A\340\020\034\230A\360\006\000\t\014\2104\210z\230\021\230$\230i\240u\250A\330\014\026\220h\230d\240!\330\014\017\210w\220a\330\020 \240\004\240L\260\007\260q\330\020!\240\027\250\007\250q\340\020\030\320\030*\250\"\250A\330\020\030\230\006\230b\240\001\330\020\030\230\017\240r\250\021\330\020\035\230V\2402\240Q\360\006\000\021\025\220A\330\020\024\220A\330\020\024\220A\330\020\024\220A\330\020\024\220A\340\020\023\2207\230'\240\023\240J\250a\330\024!\240\033\250A\250\\\270\027\300\001\330\024\030\230\001\340\024!\240\021\340\010\014\210A\330\010\017\210{\230!\200\001\330\004-\250Q\250f\260A\200\001\360\010\000\005\016\210T\220\021\330\004\014\210G\2201\220F\230,\240a\330\004\007\200v\210W\220E\230\024\230Q\330\010\022\220!\330\010\027\220q\340\010\027\220t\320\033+\2507\260!\330\004\007\200q\330\010\017\320\017-\250T\260\021\260'\270\033\300G\3101\340\010\017\320\017-\250T\260\021\260'\270\033\300A\200\001\360\010\000\005\016\210T\320\021\"\240$\240a\330\004\014\210G\2201\220F\230,\240a\330\004\007\200v\210W\220E\230\024\230Q\330\010\022\220!\330\010\027\220q\340\010\027\220t\320\033+\2507\260%\260s\270$\270m\3107\320RS\330\004\007\200q\330\010\017\320\017-\250T\260\021\260'\270\033\300G\3101\340\010\017\320\017-\250T\260\021\260'\270\033\300A\200\001\360\010\000\005\016\210T\320\021\"\240$\240h\250d\260!\330\004\014\210G\2201\220F\230,\240a\330\004\007\200v\210W\220E\230\024\230Q\330\010\022\220!\330\010\027\220q\340\010\027\220t\320\033+\2507\260%\260s\270$\270g\300W\310E\320QT\320TX\320Xe\320el\320lm\330\004\007\200q\330\010\017\320\017,\250D\260\001\260\027\270\013\3007\310!\340\010\017\320\017,\250D\260\001\260\027\270\013\3001\200\001\360\010\000\005\016\210T\320\021\"\240$\240n\260D\270\001\330\004\014\210G\2201\220F\230,\240a\330\004\007\200v\210W\220E\230\024\230Q\330\010\022\220!\330\010\027\220q\340\010\027\220t\320\033+\2507\260%\260s\270$\270m\3107\320RW\320WZ\320Z^\320^k\320kr\320rs\330\004\007\200q\330\010""\017\320\0170\260\004\260A\260W\270K\300w\310a\340\010\017\320\0170\260\004\260A\260W\270K\300q\200\001\330\004)\250\021\250&\260\001\200\001\340\004\037\230q\320 0\260\013\270;\300k\320QR\330\004\023\220?\240(\250!\2501\330\004\007\200|\2207\230!\330\0101\260\021\3202D\300N\320RS\330\004\013\2101\200\001\340\004\037\230q\320 0\260\013\270;\300k\320QR\330\004\023\220;\230h\240a\240q\330\004\007\200|\2207\230!\330\010-\250Q\250n\270N\310!\330\004\013\2101\200\001\340\004\037\230q\320 0\260\013\270;\300k\320QR\330\004\023\220<\230x\240q\250\001\330\004\007\200|\2207\230!\330\010.\250a\250\177\270n\310A\330\004\013\2101struct __pyx_obj_6cyflow_6tensor_Tensor *(struct __pyx_obj_6cyflow_6tensor_Tensor *, PyObject *, int __pyx_skip_dispatch)\000struct __pyx_obj_6cyflow_6tensor_Tensor *(struct __pyx_obj_6cyflow_6tensor_Tensor *, struct __pyx_obj_6cyflow_6tensor_Tensor *, struct __pyx_obj_6cyflow_6tensor_Tensor *, int __pyx_skip_dispatch)\000unbroadcast\000accumulate_view_grad";
+    #else /* compression: none (4087 bytes) */
+const char* const bytes = "?Must be implemented by subclassesNote that Cython is deliberately stricter than PEP-484 and rejects subclasses of builtin types. If you need to pass subclasses then set the 'annotation_typing' directive to False.add_notedisableenablegcisenabledsrc/cyflow/autograd.pyx<stringsource>AddBackwardAddBackward.__reduce_cython__AddBackward.__setstate_cython__AddBackward.applyAutogradNodeAutogradNode.__reduce_cython__AutogradNode.__setstate_cython__AutogradNode.applyDivBackwardDivBackward.__reduce_cython__DivBackward.__setstate_cython__DivBackward.applyGetItemBackwardGetItemBackward.__reduce_cython__GetItemBackward.__setstate_cython__GetItemBackward.applyMatmulBackwardMatmulBackward.__reduce_cython__MatmulBackward.__setstate_cython__MatmulBackward.applyMulBackwardMulBackward.__reduce_cython__MulBackward.__setstate_cython__MulBackward.apply__Pyx_PyDict_NextRefSubBackwardSubBackward.__reduce_cython__SubBackward.__setstate_cython__SubBackward.applyViewBackwardViewBackward.__reduce_cython__ViewBackward.__setstate_cython__ViewBackward.apply__annotate__applyasyncio.coroutinescline_in_tracebackcyflow.autograddetach__dict___dict__func____getstate__grad_output__init__input_tensor_is_coroutineitems__main____module____name____new__otheroutput_viewpop__pyx_checksum__pyx_result__pyx_state__pyx_type__pyx_unpickle_AddBackward__pyx_unpickle_AutogradNode__pyx_unpickle_DivBackward__pyx_unpickle_GetItemBackward__pyx_unpickle_MatmulBackward__pyx_unpickle_MulBackward__pyx_unpickle_SubBackward__pyx_unpickle_ViewBackward__pyx_vtable____qualname____reduce____reduce_cython____reduce_ex__selfself_tensor__set_name__setdefault__setstate____setstate_cython__shapestatesuper__test__updateuse_setstatevaluesview\200\001\330\004*\250!\2506\260\021\200A\330\010\016\320\016!\240\021\240!\200\001\330\004,\250A\250V\2601\200A\330\010!\240\021\340\010\013\2104\210|\2301\330\014\031\320\031-\250Q\330\020\024\220A\330\020\024\220A\330\020\021\360\006\000\t\020\210|\2301\200A\330\010!\240\021\330\010\"\240!\340\010""\013\2104\210|\2301\340\014\017\210t\220;\230n\250A\340\020\036\230k\250\027\260\001\340\014\031\230\033\240E\250\021\250$\250l\270!\340\010\017\210|\2301\200A\330\010 \240\001\330\010!\240\021\360\010\000\t\014\2104\210|\2301\330\014\017\210t\220<\230w\240c\250\033\260A\340\020\034\230K\240q\250\r\260T\270\034\300Q\360\006\000\021\035\230A\360\006\000\t\014\2104\210z\230\021\230$\230i\240u\250A\330\014\026\220h\230d\240!\330\014\017\210w\220a\330\020\023\2207\230'\240\023\240K\250q\340\024!\240\033\250A\250]\270'\300\021\340\024!\240\021\340\010\017\210{\230!\200A\330\010 \240\001\330\010!\240\021\360\n\000\t\014\2104\210|\2301\330\014\017\210t\220<\230w\240c\250\033\260A\330\020\034\230K\240q\250\r\260T\270\034\300Q\340\020\034\230A\360\006\000\t\014\2104\210z\230\021\230$\230i\240u\250A\330\014\026\220h\230d\240!\330\014\017\210w\220a\330\020\033\230;\240g\250S\260\002\260!\330\020\023\2207\230'\240\023\240H\250A\330\024!\240\033\250A\250Z\260w\270a\330\024\030\230\001\340\024!\240\021\340\010\017\210{\230!\200A\340\010 \240\001\330\010!\240\021\360\n\000\t\035\230K\240w\250a\340\010\013\2104\210|\2301\330\014\035\230T\240\026\240w\250a\330\014\022\220.\320 4\260A\330\014\030\320\030*\250\"\250A\330\014\020\220\001\330\014\020\220\001\340\014\017\210t\220<\230w\240c\250\031\260!\330\020\034\230K\240q\250\013\2604\260|\3001\330\020\024\220A\340\020\034\230A\340\010\013\2104\210v\220Q\330\014\034\230D\240\014\250G\2601\330\014\022\220-\320\0373\2601\330\014\031\230\024\230R\230q\330\014\020\220\001\330\014\020\220\001\340\014\017\210t\2206\230\027\240\003\240:\250Q\330\020\035\230[\250\001\250\034\260T\270\026\270q\330\020\024\220A\340\020\035\230Q\340\010\014\210A\330\010\017\210{\230!\200A\330\010 \240\001\330\010!\240\021\360\010\000\t\035\230K\240w\250a\360\006\000\t\014\2104\210|\2301\330\014\017\210z\230\021\230$\230i\240u\250A\330\020\034\320\034.\250b\260\004\260A\340\020\032\230(\240$\240a\330\020!\240\027\250\007\250q\330\020\034\320\034.\250b\260\001""\330\020\024\220A\340\014\017\210t\220<\230w\240c\250\031\260!\330\020\034\230K\240q\250\013\2604\260|\3001\330\020\024\220A\340\020\034\230A\360\006\000\t\014\2104\210z\230\021\230$\230i\240u\250A\330\014\026\220h\230d\240!\330\014\017\210w\220a\330\020 \240\004\240L\260\007\260q\330\020\035\320\035/\250r\260\021\330\020\024\220A\340\020\023\2207\230'\240\023\240J\250a\330\024!\240\033\250A\250\\\270\027\300\001\330\024\030\230\001\340\024!\240\021\340\010\014\210A\330\010\017\210{\230!\200A\330\010 \240\001\330\010!\240\021\360\010\000\t\035\230K\240w\250a\360\006\000\t\014\2104\210|\2301\330\014\017\210z\230\021\230$\230i\240u\250A\330\020\034\320\034.\250b\260\004\260A\340\020\032\230(\240$\240a\330\020!\240\027\250\007\250q\330\020\034\320\034.\250b\260\001\330\020\024\220A\340\014\017\210t\220<\230w\240c\250\031\260!\330\020\034\230K\240q\250\013\2604\260|\3001\330\020\024\220A\340\020\034\230A\360\006\000\t\014\2104\210z\230\021\230$\230i\240u\250A\330\014\026\220h\230d\240!\330\014\017\210w\220a\330\020 \240\004\240L\260\007\260q\330\020!\240\027\250\007\250q\340\020\030\320\030*\250\"\250A\330\020\030\230\006\230b\240\001\330\020\030\230\017\240r\250\021\330\020\035\230V\2402\240Q\360\006\000\021\025\220A\330\020\024\220A\330\020\024\220A\330\020\024\220A\330\020\024\220A\340\020\023\2207\230'\240\023\240J\250a\330\024!\240\033\250A\250\\\270\027\300\001\330\024\030\230\001\340\024!\240\021\340\010\014\210A\330\010\017\210{\230!\200\001\330\004-\250Q\250f\260A\200\001\360\010\000\005\016\210T\220\021\330\004\014\210G\2201\220F\230,\240a\330\004\007\200v\210W\220E\230\024\230Q\330\010\022\220!\330\010\027\220q\340\010\027\220t\320\033+\2507\260!\330\004\007\200q\330\010\017\320\017-\250T\260\021\260'\270\033\300G\3101\340\010\017\320\017-\250T\260\021\260'\270\033\300A\200\001\360\010\000\005\016\210T\320\021\"\240$\240a\330\004\014\210G\2201\220F\230,\240a\330\004\007\200v\210W\220E\230\024\230Q\330\010\022\220!\330\010\027\220q\340\010\027\220t\320\033+""\2507\260%\260s\270$\270m\3107\320RS\330\004\007\200q\330\010\017\320\017-\250T\260\021\260'\270\033\300G\3101\340\010\017\320\017-\250T\260\021\260'\270\033\300A\200\001\360\010\000\005\016\210T\320\021\"\240$\240h\250d\260!\330\004\014\210G\2201\220F\230,\240a\330\004\007\200v\210W\220E\230\024\230Q\330\010\022\220!\330\010\027\220q\340\010\027\220t\320\033+\2507\260%\260s\270$\270g\300W\310E\320QT\320TX\320Xe\320el\320lm\330\004\007\200q\330\010\017\320\017,\250D\260\001\260\027\270\013\3007\310!\340\010\017\320\017,\250D\260\001\260\027\270\013\3001\200\001\360\010\000\005\016\210T\320\021\"\240$\240h\250d\260!\330\004\014\210G\2201\220F\230,\240a\330\004\007\200v\210W\220E\230\024\230Q\330\010\022\220!\330\010\027\220q\340\010\027\220t\320\033+\2507\260%\260s\270$\270g\300W\310E\320QT\320TX\320Xe\320el\320lm\330\004\007\200q\330\010\017\320\017/\250t\2601\260G\270;\300g\310Q\340\010\017\320\017/\250t\2601\260G\270;\300a\200\001\360\010\000\005\016\210T\320\021\"\240$\240n\260D\270\001\330\004\014\210G\2201\220F\230,\240a\330\004\007\200v\210W\220E\230\024\230Q\330\010\022\220!\330\010\027\220q\340\010\027\220t\320\033+\2507\260%\260s\270$\270m\3107\320RW\320WZ\320Z^\320^k\320kr\320rs\330\004\007\200q\330\010\017\320\0170\260\004\260A\260W\270K\300w\310a\340\010\017\320\0170\260\004\260A\260W\270K\300q\200\001\330\004)\250\021\250&\260\001\200\001\340\004\037\230q\320 0\260\013\270;\300k\320QR\330\004\023\220?\240(\250!\2501\330\004\007\200|\2207\230!\330\0101\260\021\3202D\300N\320RS\330\004\013\2101\200\001\340\004\037\230q\320 0\260\013\270;\300k\320QR\330\004\023\220>\240\030\250\021\250!\330\004\007\200|\2207\230!\330\0100\260\001\3201B\300.\320PQ\330\004\013\2101\200\001\340\004\037\230q\320 0\260\013\270;\300k\320QR\330\004\023\220;\230h\240a\240q\330\004\007\200|\2207\230!\330\010-\250Q\250n\270N\310!\330\004\013\2101\200\001\340\004\037\230q\320 0\260\013\270;\300k\320QR\330\004\023\220<\230x\240q\250\001\330\004\007\200|\2207\230!\330\010.\250a\250""\177\270n\310A\330\004\013\2101struct __pyx_obj_6cyflow_6tensor_Tensor *(struct __pyx_obj_6cyflow_6tensor_Tensor *, PyObject *, int __pyx_skip_dispatch)\000struct __pyx_obj_6cyflow_6tensor_Tensor *(struct __pyx_obj_6cyflow_6tensor_Tensor *, struct __pyx_obj_6cyflow_6tensor_Tensor *, struct __pyx_obj_6cyflow_6tensor_Tensor *, int __pyx_skip_dispatch)\000unbroadcast\000accumulate_view_grad";
     PyObject *data = NULL;
     CYTHON_UNUSED_VAR(__Pyx_DecompressString);
     #endif
     PyObject **stringtab = __pyx_mstate->__pyx_string_tab;
     Py_ssize_t pos = 0;
-    for (int i = 0; i < 91; i++) {
+    for (int i = 0; i < 96; i++) {
       Py_ssize_t bytes_length = index[i].length;
       PyObject *string = PyUnicode_DecodeUTF8(bytes + pos, bytes_length, NULL);
       if (likely(string) && i >= 10) PyUnicode_InternInPlace(&string);
@@ -16824,7 +18991,7 @@ const char* const bytes = "?Must be implemented by subclassesNote that Cython is
       stringtab[i] = string;
       pos += bytes_length;
     }
-    for (int i = 91; i < 109; i++) {
+    for (int i = 96; i < 118; i++) {
       Py_ssize_t bytes_length = index[i].length;
       PyObject *string = PyBytes_FromStringAndSize(bytes + pos, bytes_length);
       stringtab[i] = string;
@@ -16835,15 +19002,15 @@ const char* const bytes = "?Must be implemented by subclassesNote that Cython is
       }
     }
     Py_XDECREF(data);
-    for (Py_ssize_t i = 0; i < 109; i++) {
+    for (Py_ssize_t i = 0; i < 118; i++) {
       if (unlikely(PyObject_Hash(stringtab[i]) == -1)) {
         __PYX_ERR(0, 1, __pyx_L1_error)
       }
     }
     #if CYTHON_IMMORTAL_CONSTANTS
     {
-      PyObject **table = stringtab + 91;
-      for (Py_ssize_t i=0; i<18; ++i) {
+      PyObject **table = stringtab + 96;
+      for (Py_ssize_t i=0; i<22; ++i) {
         #if PY_VERSION_HEX >= 0x030F0000
         PyUnstable_SetImmortal(table[i]);
         #elif CYTHON_COMPILING_IN_CPYTHON_FREETHREADING
@@ -16914,7 +19081,7 @@ typedef struct {
     unsigned int num_kwonly_args : 1;
     unsigned int nlocals : 3;
     unsigned int flags : 10;
-    unsigned int first_line : 8;
+    unsigned int first_line : 9;
 } __Pyx_PyCode_New_function_description;
 /* NewCodeObj.proto */
 static PyObject* __Pyx_PyCode_New(
@@ -17036,39 +19203,59 @@ static int __Pyx_CreateCodeObjects(__pyx_mstatetype *__pyx_mstate) {
     __pyx_mstate_global->__pyx_codeobj_tab[20] = __Pyx_PyCode_New(descr, varnames, __pyx_mstate->__pyx_kp_u_stringsource, __pyx_mstate->__pyx_n_u_setstate_cython, __pyx_mstate->__pyx_kp_b_iso88591_QfA, tuple_dedup_map); if (unlikely(!__pyx_mstate_global->__pyx_codeobj_tab[20])) goto bad;
   }
   {
-    const __Pyx_PyCode_New_function_description descr = {3, 0, 0, 4, (unsigned int)(CO_OPTIMIZED|CO_NEWLOCALS), 4};
-    PyObject* const varnames[] = {__pyx_mstate->__pyx_n_u_pyx_type, __pyx_mstate->__pyx_n_u_pyx_checksum, __pyx_mstate->__pyx_n_u_pyx_state, __pyx_mstate->__pyx_n_u_pyx_result};
-    __pyx_mstate_global->__pyx_codeobj_tab[21] = __Pyx_PyCode_New(descr, varnames, __pyx_mstate->__pyx_kp_u_stringsource, __pyx_mstate->__pyx_n_u_pyx_unpickle_AutogradNode, __pyx_mstate->__pyx_kp_b_iso88591_q_0_kQR_xq_7_a_nA_1, tuple_dedup_map); if (unlikely(!__pyx_mstate_global->__pyx_codeobj_tab[21])) goto bad;
+    const __Pyx_PyCode_New_function_description descr = {2, 0, 0, 2, (unsigned int)(CO_OPTIMIZED|CO_NEWLOCALS), 276};
+    PyObject* const varnames[] = {__pyx_mstate->__pyx_n_u_self, __pyx_mstate->__pyx_n_u_grad_output};
+    __pyx_mstate_global->__pyx_codeobj_tab[21] = __Pyx_PyCode_New(descr, varnames, __pyx_mstate->__pyx_kp_u_src_cyflow_autograd_pyx, __pyx_mstate->__pyx_n_u_apply, __pyx_mstate->__pyx_kp_b_iso88591_A_Kwa_4_1_T_wa_4A_A_t_wc_Kq_4_1, tuple_dedup_map); if (unlikely(!__pyx_mstate_global->__pyx_codeobj_tab[21])) goto bad;
+  }
+  {
+    const __Pyx_PyCode_New_function_description descr = {1, 0, 0, 4, (unsigned int)(CO_OPTIMIZED|CO_NEWLOCALS), 1};
+    PyObject* const varnames[] = {__pyx_mstate->__pyx_n_u_self, __pyx_mstate->__pyx_n_u_state, __pyx_mstate->__pyx_n_u_dict_2, __pyx_mstate->__pyx_n_u_use_setstate};
+    __pyx_mstate_global->__pyx_codeobj_tab[22] = __Pyx_PyCode_New(descr, varnames, __pyx_mstate->__pyx_kp_u_stringsource, __pyx_mstate->__pyx_n_u_reduce_cython, __pyx_mstate->__pyx_kp_b_iso88591_T_hd_G1F_a_vWE_Q_q_t_7_s_gWEQTT_2, tuple_dedup_map); if (unlikely(!__pyx_mstate_global->__pyx_codeobj_tab[22])) goto bad;
+  }
+  {
+    const __Pyx_PyCode_New_function_description descr = {2, 0, 0, 2, (unsigned int)(CO_OPTIMIZED|CO_NEWLOCALS), 16};
+    PyObject* const varnames[] = {__pyx_mstate->__pyx_n_u_self, __pyx_mstate->__pyx_n_u_pyx_state};
+    __pyx_mstate_global->__pyx_codeobj_tab[23] = __Pyx_PyCode_New(descr, varnames, __pyx_mstate->__pyx_kp_u_stringsource, __pyx_mstate->__pyx_n_u_setstate_cython, __pyx_mstate->__pyx_kp_b_iso88591_AV1, tuple_dedup_map); if (unlikely(!__pyx_mstate_global->__pyx_codeobj_tab[23])) goto bad;
   }
   {
     const __Pyx_PyCode_New_function_description descr = {3, 0, 0, 4, (unsigned int)(CO_OPTIMIZED|CO_NEWLOCALS), 4};
     PyObject* const varnames[] = {__pyx_mstate->__pyx_n_u_pyx_type, __pyx_mstate->__pyx_n_u_pyx_checksum, __pyx_mstate->__pyx_n_u_pyx_state, __pyx_mstate->__pyx_n_u_pyx_result};
-    __pyx_mstate_global->__pyx_codeobj_tab[22] = __Pyx_PyCode_New(descr, varnames, __pyx_mstate->__pyx_kp_u_stringsource, __pyx_mstate->__pyx_n_u_pyx_unpickle_AddBackward, __pyx_mstate->__pyx_kp_b_iso88591_q_0_kQR_haq_7_QnN_1, tuple_dedup_map); if (unlikely(!__pyx_mstate_global->__pyx_codeobj_tab[22])) goto bad;
+    __pyx_mstate_global->__pyx_codeobj_tab[24] = __Pyx_PyCode_New(descr, varnames, __pyx_mstate->__pyx_kp_u_stringsource, __pyx_mstate->__pyx_n_u_pyx_unpickle_AutogradNode, __pyx_mstate->__pyx_kp_b_iso88591_q_0_kQR_xq_7_a_nA_1, tuple_dedup_map); if (unlikely(!__pyx_mstate_global->__pyx_codeobj_tab[24])) goto bad;
   }
   {
     const __Pyx_PyCode_New_function_description descr = {3, 0, 0, 4, (unsigned int)(CO_OPTIMIZED|CO_NEWLOCALS), 4};
     PyObject* const varnames[] = {__pyx_mstate->__pyx_n_u_pyx_type, __pyx_mstate->__pyx_n_u_pyx_checksum, __pyx_mstate->__pyx_n_u_pyx_state, __pyx_mstate->__pyx_n_u_pyx_result};
-    __pyx_mstate_global->__pyx_codeobj_tab[23] = __Pyx_PyCode_New(descr, varnames, __pyx_mstate->__pyx_kp_u_stringsource, __pyx_mstate->__pyx_n_u_pyx_unpickle_SubBackward, __pyx_mstate->__pyx_kp_b_iso88591_q_0_kQR_haq_7_QnN_1, tuple_dedup_map); if (unlikely(!__pyx_mstate_global->__pyx_codeobj_tab[23])) goto bad;
+    __pyx_mstate_global->__pyx_codeobj_tab[25] = __Pyx_PyCode_New(descr, varnames, __pyx_mstate->__pyx_kp_u_stringsource, __pyx_mstate->__pyx_n_u_pyx_unpickle_AddBackward, __pyx_mstate->__pyx_kp_b_iso88591_q_0_kQR_haq_7_QnN_1, tuple_dedup_map); if (unlikely(!__pyx_mstate_global->__pyx_codeobj_tab[25])) goto bad;
   }
   {
     const __Pyx_PyCode_New_function_description descr = {3, 0, 0, 4, (unsigned int)(CO_OPTIMIZED|CO_NEWLOCALS), 4};
     PyObject* const varnames[] = {__pyx_mstate->__pyx_n_u_pyx_type, __pyx_mstate->__pyx_n_u_pyx_checksum, __pyx_mstate->__pyx_n_u_pyx_state, __pyx_mstate->__pyx_n_u_pyx_result};
-    __pyx_mstate_global->__pyx_codeobj_tab[24] = __Pyx_PyCode_New(descr, varnames, __pyx_mstate->__pyx_kp_u_stringsource, __pyx_mstate->__pyx_n_u_pyx_unpickle_MulBackward, __pyx_mstate->__pyx_kp_b_iso88591_q_0_kQR_haq_7_QnN_1, tuple_dedup_map); if (unlikely(!__pyx_mstate_global->__pyx_codeobj_tab[24])) goto bad;
+    __pyx_mstate_global->__pyx_codeobj_tab[26] = __Pyx_PyCode_New(descr, varnames, __pyx_mstate->__pyx_kp_u_stringsource, __pyx_mstate->__pyx_n_u_pyx_unpickle_SubBackward, __pyx_mstate->__pyx_kp_b_iso88591_q_0_kQR_haq_7_QnN_1, tuple_dedup_map); if (unlikely(!__pyx_mstate_global->__pyx_codeobj_tab[26])) goto bad;
   }
   {
     const __Pyx_PyCode_New_function_description descr = {3, 0, 0, 4, (unsigned int)(CO_OPTIMIZED|CO_NEWLOCALS), 4};
     PyObject* const varnames[] = {__pyx_mstate->__pyx_n_u_pyx_type, __pyx_mstate->__pyx_n_u_pyx_checksum, __pyx_mstate->__pyx_n_u_pyx_state, __pyx_mstate->__pyx_n_u_pyx_result};
-    __pyx_mstate_global->__pyx_codeobj_tab[25] = __Pyx_PyCode_New(descr, varnames, __pyx_mstate->__pyx_kp_u_stringsource, __pyx_mstate->__pyx_n_u_pyx_unpickle_DivBackward, __pyx_mstate->__pyx_kp_b_iso88591_q_0_kQR_haq_7_QnN_1, tuple_dedup_map); if (unlikely(!__pyx_mstate_global->__pyx_codeobj_tab[25])) goto bad;
+    __pyx_mstate_global->__pyx_codeobj_tab[27] = __Pyx_PyCode_New(descr, varnames, __pyx_mstate->__pyx_kp_u_stringsource, __pyx_mstate->__pyx_n_u_pyx_unpickle_MulBackward, __pyx_mstate->__pyx_kp_b_iso88591_q_0_kQR_haq_7_QnN_1, tuple_dedup_map); if (unlikely(!__pyx_mstate_global->__pyx_codeobj_tab[27])) goto bad;
   }
   {
     const __Pyx_PyCode_New_function_description descr = {3, 0, 0, 4, (unsigned int)(CO_OPTIMIZED|CO_NEWLOCALS), 4};
     PyObject* const varnames[] = {__pyx_mstate->__pyx_n_u_pyx_type, __pyx_mstate->__pyx_n_u_pyx_checksum, __pyx_mstate->__pyx_n_u_pyx_state, __pyx_mstate->__pyx_n_u_pyx_result};
-    __pyx_mstate_global->__pyx_codeobj_tab[26] = __Pyx_PyCode_New(descr, varnames, __pyx_mstate->__pyx_kp_u_stringsource, __pyx_mstate->__pyx_n_u_pyx_unpickle_ViewBackward, __pyx_mstate->__pyx_kp_b_iso88591_q_0_kQR_xq_7_a_nA_1, tuple_dedup_map); if (unlikely(!__pyx_mstate_global->__pyx_codeobj_tab[26])) goto bad;
+    __pyx_mstate_global->__pyx_codeobj_tab[28] = __Pyx_PyCode_New(descr, varnames, __pyx_mstate->__pyx_kp_u_stringsource, __pyx_mstate->__pyx_n_u_pyx_unpickle_DivBackward, __pyx_mstate->__pyx_kp_b_iso88591_q_0_kQR_haq_7_QnN_1, tuple_dedup_map); if (unlikely(!__pyx_mstate_global->__pyx_codeobj_tab[28])) goto bad;
   }
   {
     const __Pyx_PyCode_New_function_description descr = {3, 0, 0, 4, (unsigned int)(CO_OPTIMIZED|CO_NEWLOCALS), 4};
     PyObject* const varnames[] = {__pyx_mstate->__pyx_n_u_pyx_type, __pyx_mstate->__pyx_n_u_pyx_checksum, __pyx_mstate->__pyx_n_u_pyx_state, __pyx_mstate->__pyx_n_u_pyx_result};
-    __pyx_mstate_global->__pyx_codeobj_tab[27] = __Pyx_PyCode_New(descr, varnames, __pyx_mstate->__pyx_kp_u_stringsource, __pyx_mstate->__pyx_n_u_pyx_unpickle_GetItemBackward, __pyx_mstate->__pyx_kp_b_iso88591_q_0_kQR_1_7_1_2DNRS_1, tuple_dedup_map); if (unlikely(!__pyx_mstate_global->__pyx_codeobj_tab[27])) goto bad;
+    __pyx_mstate_global->__pyx_codeobj_tab[29] = __Pyx_PyCode_New(descr, varnames, __pyx_mstate->__pyx_kp_u_stringsource, __pyx_mstate->__pyx_n_u_pyx_unpickle_ViewBackward, __pyx_mstate->__pyx_kp_b_iso88591_q_0_kQR_xq_7_a_nA_1, tuple_dedup_map); if (unlikely(!__pyx_mstate_global->__pyx_codeobj_tab[29])) goto bad;
+  }
+  {
+    const __Pyx_PyCode_New_function_description descr = {3, 0, 0, 4, (unsigned int)(CO_OPTIMIZED|CO_NEWLOCALS), 4};
+    PyObject* const varnames[] = {__pyx_mstate->__pyx_n_u_pyx_type, __pyx_mstate->__pyx_n_u_pyx_checksum, __pyx_mstate->__pyx_n_u_pyx_state, __pyx_mstate->__pyx_n_u_pyx_result};
+    __pyx_mstate_global->__pyx_codeobj_tab[30] = __Pyx_PyCode_New(descr, varnames, __pyx_mstate->__pyx_kp_u_stringsource, __pyx_mstate->__pyx_n_u_pyx_unpickle_GetItemBackward, __pyx_mstate->__pyx_kp_b_iso88591_q_0_kQR_1_7_1_2DNRS_1, tuple_dedup_map); if (unlikely(!__pyx_mstate_global->__pyx_codeobj_tab[30])) goto bad;
+  }
+  {
+    const __Pyx_PyCode_New_function_description descr = {3, 0, 0, 4, (unsigned int)(CO_OPTIMIZED|CO_NEWLOCALS), 4};
+    PyObject* const varnames[] = {__pyx_mstate->__pyx_n_u_pyx_type, __pyx_mstate->__pyx_n_u_pyx_checksum, __pyx_mstate->__pyx_n_u_pyx_state, __pyx_mstate->__pyx_n_u_pyx_result};
+    __pyx_mstate_global->__pyx_codeobj_tab[31] = __Pyx_PyCode_New(descr, varnames, __pyx_mstate->__pyx_kp_u_stringsource, __pyx_mstate->__pyx_n_u_pyx_unpickle_MatmulBackward, __pyx_mstate->__pyx_kp_b_iso88591_q_0_kQR_7_0_1B_PQ_1, tuple_dedup_map); if (unlikely(!__pyx_mstate_global->__pyx_codeobj_tab[31])) goto bad;
   }
   Py_DECREF(tuple_dedup_map);
   return 0;

@@ -172,6 +172,15 @@ void tensor_div_out_tensor_strided_cuda(TensorImpl *dst, const TensorImpl *src1,
 }
 
 /* ============================================================================
+ * Matmul Stub
+ * ============================================================================
+ */
+
+void tensor_matmul_out_cuda(TensorImpl *dst, const TensorImpl *src1, const TensorImpl *src2) {
+  cuda_not_available_error("tensor_matmul_out_cuda");
+}
+
+/* ============================================================================
  * CUDA Runtime API Stubs
  * ============================================================================
  */

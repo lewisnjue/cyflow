@@ -4,7 +4,7 @@ from libc.stddef cimport size_t
 from libc.stdint cimport int64_t
 from libc.string cimport memcpy
 
-from cyflow.autograd cimport SubBackward, MulBackward, DivBackward, AddBackward, ViewBackward, GetItemBackward
+from cyflow.autograd cimport SubBackward, MulBackward, DivBackward, AddBackward, ViewBackward, GetItemBackward, MatmulBackward
 
 cdef extern from "cyflow/tensor.h":
     ctypedef enum DeviceType:
@@ -120,6 +120,12 @@ cdef extern from "cyflow/inline_op_cuda.h":
     void tensor_sub_tensor_cuda(TensorImpl *dst, const TensorImpl *src)
     void tensor_mul_tensor_cuda(TensorImpl *dst, const TensorImpl *src)
     void tensor_div_tensor_cuda(TensorImpl *dst, const TensorImpl *src)
+
+cdef extern from "cyflow/matmul_cpu.h":
+    void tensor_matmul_out_cpu(TensorImpl *dst, const TensorImpl *src1, const TensorImpl *src2)
+
+cdef extern from "cyflow/matmul_cuda.h":
+    void tensor_matmul_out_cuda(TensorImpl *dst, const TensorImpl *src1, const TensorImpl *src2)
 
 cdef extern from "cuda_runtime.h":
     cdef enum cudaMemcpyKind:
@@ -302,6 +308,45 @@ cdef class Tensor:
         Returns True if the tensor's underlying memory layout is contiguous.
         """
         return tensor_is_contiguous(self._tensor)
+    cpdef Tensor _transpose_last_two(self):
+        """
+        Returns a new Tensor view with the last two dimensions swapped.
+        Shares the underlying storage (metadata-only, no data copy).
+        Requires ndim >= 2.
+        """
+        if self._tensor.ndim < 2:
+            raise ValueError("_transpose_last_two requires a tensor with ndim >= 2")
+
+        cdef size_t ndim = self._tensor.ndim
+        cdef size_t i
+        cdef TensorImpl* result = <TensorImpl*>malloc(sizeof(TensorImpl))
+        if not result:
+            raise MemoryError("Failed to allocate TensorImpl for transpose")
+
+        cdef int64_t* c_shape = <int64_t*>malloc(ndim * sizeof(int64_t))
+        cdef int64_t* c_strides = <int64_t*>malloc(ndim * sizeof(int64_t))
+        if not c_shape or not c_strides:
+            if c_shape: free(c_shape)
+            if c_strides: free(c_strides)
+            free(result)
+            raise MemoryError("Failed to allocate shape/stride memory for transpose")
+
+        for i in range(ndim):
+            c_shape[i] = self._tensor.shape[i]
+            c_strides[i] = self._tensor.strides[i]
+
+        c_shape[ndim - 2], c_shape[ndim - 1] = c_shape[ndim - 1], c_shape[ndim - 2]
+        c_strides[ndim - 2], c_strides[ndim - 1] = c_strides[ndim - 1], c_strides[ndim - 2]
+
+        result.storage = self._tensor.storage
+        result.storage.ref_count += 1
+        result.storage_offset = self._tensor.storage_offset
+        result.ndim = ndim
+        result.numel = self._tensor.numel
+        result.shape = c_shape
+        result.strides = c_strides
+
+        return Tensor._from_c_tensor(result)
     def __add__(self, other):
         cdef Tensor result
         cdef Tensor other_t
@@ -671,6 +716,99 @@ cdef class Tensor:
         if self_req or other_req:
             result.requires_grad = True
             result.grad_fn = DivBackward(self, other)
+
+        return result
+
+    def __matmul__(self, other):
+        cdef Tensor result
+        cdef Tensor other_t
+        cdef size_t ndim1, ndim2
+        cdef int64_t M, K1, K2, N
+        cdef int _device
+        cdef size_t batch_ndim1, batch_ndim2, max_batch_ndim
+        cdef int64_t* out_batch_shape_c = NULL
+        cdef size_t computed_batch_ndim = 0
+        cdef int status
+        cdef size_t i
+        cdef bint self_req, other_req
+
+        if not isinstance(other, Tensor):
+            raise TypeError("Unsupported operand type for matmul: expected Tensor")
+
+        other_t = <Tensor>other
+
+        if self._tensor.ndim < 2 or other_t._tensor.ndim < 2:
+            raise NotImplementedError(
+                "matmul currently requires both tensors to have ndim >= 2"
+            )
+
+        if self.device == 'cuda':
+            _device = CUDA
+        else:
+            _device = CPU
+
+        second_device = CUDA if other_t.device == 'cuda' else CPU
+        assert _device == second_device, f"Device mismatch: {self.device} vs {other_t.device}"
+
+        ndim1 = self._tensor.ndim
+        ndim2 = other_t._tensor.ndim
+
+        M = self._tensor.shape[ndim1 - 2]
+        K1 = self._tensor.shape[ndim1 - 1]
+        K2 = other_t._tensor.shape[ndim2 - 2]
+        N = other_t._tensor.shape[ndim2 - 1]
+
+        if K1 != K2:
+            raise ValueError(
+                f"Cannot multiply tensors with shapes {self.shape} and {other_t.shape}: "
+                f"inner dimensions {K1} and {K2} do not match"
+            )
+
+        batch_ndim1 = ndim1 - 2
+        batch_ndim2 = ndim2 - 2
+        max_batch_ndim = max(batch_ndim1, batch_ndim2)
+
+        if max_batch_ndim > 0:
+            out_batch_shape_c = <int64_t*>malloc(max_batch_ndim * sizeof(int64_t))
+            if not out_batch_shape_c:
+                raise MemoryError("Failed to allocate batch shape array for matmul")
+
+            status = compute_broadcast_shape(
+                self._tensor.shape, batch_ndim1,
+                other_t._tensor.shape, batch_ndim2,
+                out_batch_shape_c, &computed_batch_ndim
+            )
+
+            if status == -1:
+                free(out_batch_shape_c)
+                raise ValueError(
+                    f"Batch dimensions could not be broadcast together for "
+                    f"shapes {self.shape} and {other_t.shape}"
+                )
+
+        final_shape_list = []
+        if out_batch_shape_c is not NULL:
+            for i in range(computed_batch_ndim):
+                final_shape_list.append(out_batch_shape_c[i])
+            free(out_batch_shape_c)
+
+        final_shape_list.append(M)
+        final_shape_list.append(N)
+        final_shape = tuple(final_shape_list)
+
+        result = Tensor(final_shape, device=_device)
+
+        if _device == CPU:
+            tensor_matmul_out_cpu(result._tensor, self._tensor, other_t._tensor)
+        else:
+            tensor_matmul_out_cuda(result._tensor, self._tensor, other_t._tensor)
+
+        self_req = self.requires_grad
+        other_req = other_t.requires_grad
+
+        if self_req or other_req:
+            result.requires_grad = True
+            result.grad_fn = MatmulBackward(self, other_t)
 
         return result
 

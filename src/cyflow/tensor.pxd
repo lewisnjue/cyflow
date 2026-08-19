@@ -37,6 +37,7 @@ cdef class Tensor:
     cdef _copy_from_tensor(self, Tensor src)
     cpdef _apply_inplace(self, object other, str op)
     cpdef bint is_contiguous(self)
+    cpdef Tensor _transpose_last_two(self)
 
 
 cpdef Tensor unbroadcast(Tensor grad, tuple target_shape)

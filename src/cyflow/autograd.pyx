@@ -259,3 +259,55 @@ cdef class GetItemBackward(AutogradNode):
             )
 
         return grad_input, None
+
+
+cdef class MatmulBackward(AutogradNode):
+    def __init__(self, Tensor self_tensor, Tensor other):
+        super().__init__()
+        self.self_tensor = self_tensor
+        self.other = other
+
+        if self.self_tensor.requires_grad:
+            self.next_functions.append(self.self_tensor.grad_fn)
+
+        if self.other.requires_grad:
+            self.next_functions.append(self.other.grad_fn)
+
+    cpdef tuple apply(self, Tensor grad_output):
+        # C = A @ B  =>  dA = dC @ B^T,  dB = A^T @ dC
+        cdef Tensor grad_self = None
+        cdef Tensor grad_other = None
+        cdef Tensor detached_grad_out, detached_self, detached_other
+        cdef Tensor a_t, b_t
+        cdef Tensor temp_self, temp_other
+
+        detached_grad_out = grad_output.detach()
+
+        if self.self_tensor.requires_grad:
+            detached_other = self.other.detach()
+            b_t = detached_other._transpose_last_two()
+            temp_self = detached_grad_out @ b_t
+            del detached_other
+            del b_t
+
+            if self.self_tensor.shape != temp_self.shape:
+                grad_self = unbroadcast(temp_self, self.self_tensor.shape)
+                del temp_self
+            else:
+                grad_self = temp_self
+
+        if self.other.requires_grad:
+            detached_self = self.self_tensor.detach()
+            a_t = detached_self._transpose_last_two()
+            temp_other = a_t @ detached_grad_out
+            del detached_self
+            del a_t
+
+            if self.other.shape != temp_other.shape:
+                grad_other = unbroadcast(temp_other, self.other.shape)
+                del temp_other
+            else:
+                grad_other = temp_other
+
+        del detached_grad_out
+        return grad_self, grad_other
