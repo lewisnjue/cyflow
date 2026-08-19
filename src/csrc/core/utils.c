@@ -91,6 +91,7 @@ static float read_tensor_element(const TensorImpl *tensor,
 
   return tensor->storage->data[offset];
 }
+
 static void offset_to_parent_coords(const TensorImpl *parent,
                                     size_t storage_offset,
                                     int64_t *parent_coords) {

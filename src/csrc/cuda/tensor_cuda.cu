@@ -43,8 +43,20 @@ Storage *storage_create_cuda(size_t size) {
   if (!storage)
     return NULL;
 
-  CUDA_CHECK(cudaMalloc((void **)&storage->data, size * sizeof(float)));
-  CUDA_CHECK(cudaMemset(storage->data, 0, size * sizeof(float)));
+  cudaError_t err = cudaMalloc((void **)&storage->data, size * sizeof(float));
+  if (err != cudaSuccess) {
+    fprintf(stderr, "CUDA Error: %s at %s:%d\n", cudaGetErrorString(err), __FILE__, __LINE__);
+    free(storage);
+    return NULL;
+  }
+
+  err = cudaMemset(storage->data, 0, size * sizeof(float));
+  if (err != cudaSuccess) {
+    fprintf(stderr, "CUDA Error: %s at %s:%d\n", cudaGetErrorString(err), __FILE__, __LINE__);
+    cudaFree(storage->data);
+    free(storage);
+    return NULL;
+  }
 
   storage->size = size;
   storage->ref_count = 1;

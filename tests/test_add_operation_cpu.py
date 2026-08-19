@@ -2,6 +2,14 @@ import pytest
 import cyflow
 
 
+def _cuda_available():
+    try:
+        cyflow.tensor(shape=(1,), device=cyflow.CUDA)
+        return True
+    except Exception:
+        return False
+
+
 
 class TestAddScaler:
     def setup_method(self):
@@ -27,6 +35,9 @@ class TestAddTensor:
 
     
     def test_add_tensor_device_mismatch(self):
+        if not _cuda_available():
+            pytest.skip("CUDA not available in this environment")
+
         t1 = cyflow.tensor([[1, 2], [3, 4]], device=cyflow.CPU)
         t2 = cyflow.tensor([[5, 6], [7, 8]], device=cyflow.CUDA)
         with pytest.raises(AssertionError):

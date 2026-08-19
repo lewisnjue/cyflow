@@ -13,14 +13,19 @@ INCLUDE_DIR = SRC_DIR / "include"
 CSRC_DIR = SRC_DIR / "csrc"
 
 
-# --- SMART CUDA PATH DETECTION ---
 def find_cuda_path():
     if "CUDA_HOME" in os.environ:
         return os.environ["CUDA_HOME"]
+    # Add Arch Linux path
+    if os.path.exists("/opt/cuda/include/cuda_runtime.h"):
+        return "/opt/cuda"
+    # Ubuntu path
     if os.path.exists("/usr/local/cuda/include/cuda_runtime.h"):
         return "/usr/local/cuda"
+    # Fallback system path
     if os.path.exists("/usr/include/cuda_runtime.h"):
         return "/usr"
+
     return "/usr/local/cuda"
 
 
@@ -69,7 +74,8 @@ class CudaBuildExt(build_ext):
                     if isinstance(extra_postargs, dict)
                     else extra_postargs
                 )
-                cmd = [nvcc, "-c", src, "-o", obj, "--compiler-options", "-fPIC"] + pp_opts + postargs
+                cmd = [nvcc, "-c", src, "-o", obj,
+                       "--compiler-options", "-fPIC"] + pp_opts + postargs
                 self.spawn(cmd)
             else:
                 postargs = (
@@ -89,7 +95,8 @@ class CudaBuildExt(build_ext):
                         continue
                     safe_postargs.append(arg)
 
-                original_compile(obj, src, ext, cc_args, safe_postargs, pp_opts)
+                original_compile(obj, src, ext, cc_args,
+                                 safe_postargs, pp_opts)
 
         self.compiler._compile = custom_compile
         super().build_extensions()
@@ -116,7 +123,8 @@ if USE_CUDA:
         [
             str(CSRC_DIR / "cuda" / "inline_op.cu"),
             str(CSRC_DIR / "cuda" / "tensor_cuda.cu"),
-            str(CSRC_DIR / "cuda" / "out_op_cuda.cu"),  # <-- Added CUDA out-of-place ops
+            # <-- Added CUDA out-of-place ops
+            str(CSRC_DIR / "cuda" / "out_op_cuda.cu"),
         ]
     )
     tensor_libraries.extend(["cudart", "cublas", "curand"])

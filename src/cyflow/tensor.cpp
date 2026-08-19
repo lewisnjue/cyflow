@@ -10,40 +10,28 @@
             "/home/njue/.dev/cyflow/src/include/cyflow/out_op_cuda.h",
             "/home/njue/.dev/cyflow/src/include/cyflow/tensor.h",
             "/home/njue/.dev/cyflow/src/include/cyflow/tensor_cuda.h",
-            "/home/njue/.dev/cyflow/src/include/cyflow/utils.h",
-            "/usr/include/cuda_runtime.h"
+            "/home/njue/.dev/cyflow/src/include/cyflow/utils.h"
         ],
-        "extra_compile_args": {
-            "gcc": [
-                "-O3",
-                "-std=c99",
-                "-std=c++17"
-            ],
-            "nvcc": [
-                "-O3",
-                "-std=c++17"
-            ]
-        },
+        "extra_compile_args": [
+            "-O3",
+            "-std=c99",
+            "-std=c++17"
+        ],
         "extra_link_args": [
             "-lstdc++"
         ],
         "include_dirs": [
             "/home/njue/.dev/cyflow/src/include",
             "/home/njue/.dev/cyflow/.venv/lib/python3.12/site-packages/numpy/_core/include",
-            "/usr/include"
+            "/usr/local/cuda/include"
         ],
         "language": "c++",
-        "libraries": [
-            "cudart",
-            "cublas",
-            "curand"
-        ],
         "library_dirs": [
-            "/usr/lib/x86_64-linux-gnu"
+            "/usr/local/cuda/lib64"
         ],
         "name": "cyflow.tensor",
         "runtime_library_dirs": [
-            "/usr/lib/x86_64-linux-gnu"
+            "/usr/local/cuda/lib64"
         ],
         "sources": [
             "/home/njue/.dev/cyflow/src/cyflow/tensor.pyx",
@@ -52,9 +40,7 @@
             "/home/njue/.dev/cyflow/src/csrc/cpu/inline_op_cpu.c",
             "/home/njue/.dev/cyflow/src/csrc/cpu/out_op_cpu.c",
             "/home/njue/.dev/cyflow/src/csrc/core/utils_cuda.cu",
-            "/home/njue/.dev/cyflow/src/csrc/cuda/inline_op.cu",
-            "/home/njue/.dev/cyflow/src/csrc/cuda/tensor_cuda.cu",
-            "/home/njue/.dev/cyflow/src/csrc/cuda/out_op_cuda.cu"
+            "/home/njue/.dev/cyflow/src/csrc/cuda/cuda_stubs.c"
         ]
     },
     "module_name": "cyflow.tensor"

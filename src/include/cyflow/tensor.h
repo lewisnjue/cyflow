@@ -19,14 +19,14 @@ typedef struct Storage {
   float *data; // Pointer to data (can be CPU or GPU pointer)
   size_t size; // Number of elements
   int ref_count;
-  bool owns_data;
+  bool owns_data; // will change when data is owned by python eg though numpy
   DeviceType device; // Tracks if data is on CPU or GPU
 } Storage;
 
 typedef struct TensorImpl {
   Storage *storage;
-  int64_t *shape;   // ALWAYS on the CPU
-  int64_t *strides; // ALWAYS on the CPU
+  int64_t *shape;   
+  int64_t *strides;
   size_t ndim;
   size_t numel;
   size_t storage_offset;

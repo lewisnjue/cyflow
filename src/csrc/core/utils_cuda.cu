@@ -117,17 +117,38 @@ __global__ void accumulate_view_grad_cuda_kernel(
         view_offset += (size_t)(coord * view_strides[d]);
     }
 
+    // Decode the raw storage offset into parent coordinates by greedily
+    // consuming the largest *remaining* stride first (matches CPU logic).
     size_t rel = view_offset - parent_base_offset;
     size_t remaining = rel;
-    size_t result_offset = result_base_offset;
 
-    for (ptrdiff_t d = (ptrdiff_t)parent_ndim - 1; d >= 0; d--) {
-        if (parent_shape[d] == 0) {
+    int64_t parent_coords[MAX_DIMS];
+    bool used[MAX_DIMS];
+    for (size_t i = 0; i < (size_t)parent_ndim && i < MAX_DIMS; i++) used[i] = false;
+
+    for (size_t step = 0; step < parent_ndim; step++) {
+        int64_t max_stride = -1;
+        int best_d = -1;
+        for (size_t d = 0; d < parent_ndim; d++) {
+            if (!used[d] && parent_strides[d] > max_stride) {
+                max_stride = parent_strides[d];
+                best_d = (int)d;
+            }
+        }
+        if (best_d == -1) break;
+        used[best_d] = true;
+
+        if (parent_shape[best_d] == 0 || max_stride == 0) {
+            parent_coords[best_d] = 0;
             continue;
         }
-        int64_t coord = (int64_t)(remaining / (size_t)parent_strides[d]);
-        remaining %= (size_t)parent_strides[d];
-        result_offset += (size_t)(coord * result_strides[d]);
+        parent_coords[best_d] = (int64_t)(remaining / (size_t)max_stride);
+        remaining %= (size_t)max_stride;
+    }
+
+    size_t result_offset = result_base_offset;
+    for (size_t d = 0; d < parent_ndim; d++) {
+        result_offset += (size_t)(parent_coords[d] * result_strides[d]);
     }
 
     atomicAdd(&result_data[result_offset], grad_data[grad_storage_offset]);

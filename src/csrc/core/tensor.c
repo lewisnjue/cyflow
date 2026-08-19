@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+static uint32_t g_rng_state = 123456789;
 TensorMeta create_tensor_meta(const TensorImpl *t) {
   if (t->ndim > MAX_DIMS) {
     fprintf(stderr, "CUDA Error: Tensor ndim (%zu) exceeds MAX_DIMS (%d)\n",
@@ -138,7 +139,6 @@ TensorImpl *tensor_index(TensorImpl *src, int64_t index) {
   return tensor;
 }
 
-static uint32_t g_rng_state = 123456789;
 
 Storage *storage_create_cpu(size_t size) {
   Storage *storage = (Storage *)malloc(sizeof(Storage));

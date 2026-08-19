@@ -16,7 +16,7 @@
         "include_dirs": [
             "/home/njue/.dev/cyflow/src/include",
             "/home/njue/.dev/cyflow/.venv/lib/python3.12/site-packages/numpy/_core/include",
-            "/usr/include"
+            "/usr/local/cuda/include"
         ],
         "language": "c++",
         "name": "cyflow.autograd",
